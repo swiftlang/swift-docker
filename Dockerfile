@@ -23,7 +23,7 @@ RUN cd / && rm -rf swift-2.2-SNAPSHOT-2015-12-01-b-ubuntu14.04*
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Set Swfit Path
+# Set Swift Path
 ENV PATH /usr/bin:$PATH
 
 # Print Installed Swift Version
