@@ -19,7 +19,7 @@ RUN wget https://swift.org/builds/ubuntu1404/swift-2.2-SNAPSHOT-2015-12-01-b/swi
 RUN tar -xvzf swift-2.2-SNAPSHOT-2015-12-01-b-ubuntu14.04.tar.gz && cd swift-2.2-SNAPSHOT-2015-12-01-b-ubuntu14.04
 
 # Move extracted Swift Snapshot
-RUN rsync -a -v --ignore-existing . /usr
+RUN rsync -a -v --ignore-existing swift-2.2-SNAPSHOT-2015-12-01-b-ubuntu14.04/usr/ /usr
 
 # Clean up
 RUN cd / && rm -rf swift-2.2-SNAPSHOT-2015-12-01-b-ubuntu14.04*
