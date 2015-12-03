@@ -3,9 +3,9 @@
 ![swift](https://raw.githubusercontent.com/hamin/EventSource.Swift/master/swift-logo.png)
 
 
-### An Ubuntu 14.04 Docker image for [Swift](https://swift.forg). 
+### An Ubuntu 14.04 Docker image for [Swift](https://swift.org).
 
-#### You can find the Docker Hub repo here: [https://hub.docker.com/r/harisamin/docker-swift/](https://hub.docker.com/r/harisamin/docker-swift/)
+#### You can find the Docker Hub repo here: [https://hub.docker.com/r/swiftdocker/swift/](https://hub.docker.com/r/swiftdocker/swift/)
 
 
 ### Docker Instructions
