@@ -15,13 +15,13 @@ You can open a connection to your faye server.
 ##### Pull the Docker Image From Docker Hub:
 
 ```bash
-docker pull harisamin/docker-swift
+docker pull swiftdocker/swift
 ```
 
 ##### Create a container from the Image and attach it:
 
 ```bash
-docker run -i -t --name swiftfun harisamin/docker-swift:latest /bin/bash
+docker run -i -t --name swiftfun swiftdocker/swift:latest /bin/bash
 ```
 
 ##### To start your and attach your image later:
@@ -35,7 +35,7 @@ docker start swiftfun
 and then attach it
 
 ```bash
-docker start swiftfun
+docker attach swiftfun
 ```
 
 
