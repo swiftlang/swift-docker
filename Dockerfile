@@ -6,7 +6,7 @@ CMD ["/sbin/my_init"]
 
 RUN apt-get update && \
     apt-get -y upgrade && \
-    apt-get install -y build-essential wget clang libedit-dev python2.7 python2.7-dev libicu52 && \
+    apt-get install -y build-essential wget clang libedit-dev python2.7 python2.7-dev libicu52 rsync && \
     rm -rf /var/lib/apt/lists/*
 
 # Download Swift Ubuntu 14.04 Snapshot
