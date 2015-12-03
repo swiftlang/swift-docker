@@ -1,17 +1,13 @@
-
 FROM phusion/baseimage:0.9.17
 MAINTAINER Haris Amin <aminharis7@gmail.com>
 
 # Use baseimage-docker's init system.
 CMD ["/sbin/my_init"]
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y curl wget git make
-
-# Ubuntu Swift Requirements: https://github.com/apple/swift#system-requirements
-RUN sudo apt-get install -y git cmake ninja-build clang uuid-dev libicu-dev icu-devtools libbsd-dev libedit-dev libxml2-dev libsqlite3-dev swig libpython-dev libncurses5-dev pkg-config
-RUN sudo apt-get install -y clang-3.6
-RUN sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.6 100
-RUN sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.6 100
+RUN apt-get update && \
+    apt-get -y upgrade && \
+    apt-get install -y build-essential wget clang libedit-dev python2.7 python2.7-dev libicu52 && \
+    rm -rf /var/lib/apt/lists/*
 
 # Download Swift Ubuntu 14.04 Snapshot
 RUN wget https://swift.org/builds/ubuntu1404/swift-2.2-SNAPSHOT-2015-12-01-b/swift-2.2-SNAPSHOT-2015-12-01-b-ubuntu14.04.tar.gz
