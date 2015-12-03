@@ -15,7 +15,7 @@ RUN gpg --keyserver hkp://pool.sks-keyservers.net --refresh-keys Swift
 # Download Swift Ubuntu 14.04 Snapshot, signature and verify
 RUN wget https://swift.org/builds/ubuntu1404/swift-2.2-SNAPSHOT-2015-12-01-b/swift-2.2-SNAPSHOT-2015-12-01-b-ubuntu14.04.tar.gz
 RUN wget https://swift.org/builds/ubuntu1404/swift-2.2-SNAPSHOT-2015-12-01-b/swift-2.2-SNAPSHOT-2015-12-01-b-ubuntu14.04.tar.gz.sig
-RUN gpg --verify swift-2.2-SNAPSHOT-2015-12-01-b-ubuntu14.04.tar.gz
+RUN gpg --verify swift-2.2-SNAPSHOT-2015-12-01-b-ubuntu14.04.tar.gz.sig
 
 RUN tar -xvzf swift-2.2-SNAPSHOT-2015-12-01-b-ubuntu14.04.tar.gz && cd swift-2.2-SNAPSHOT-2015-12-01-b-ubuntu14.04
 
