@@ -23,8 +23,7 @@ RUN SWIFT_ARCHIVE_NAME=swift-$SWIFT_VERSION-$SWIFT_PLATFORM && \
     wget $SWIFT_URL && \
     wget $SWIFT_URL.sig && \
     gpg --verify $SWIFT_ARCHIVE_NAME.tar.gz.sig && \
-    tar -xvzf $SWIFT_ARCHIVE_NAME.tar.gz && \
-    rsync -a -v --ignore-existing $SWIFT_ARCHIVE_NAME/usr/ /usr && \
+    tar -xvzf $SWIFT_ARCHIVE_NAME.tar.gz --directory / --strip-components=1 && \
     rm -rf $SWIFT_ARCHIVE_NAME* /tmp/* /var/tmp/*
 
 # Set Swift Path
