@@ -10,8 +10,6 @@
 
 ### Docker Instructions
 
-You can open a connection to your faye server.
-
 ##### Pull the Docker Image From Docker Hub:
 
 ```bash
