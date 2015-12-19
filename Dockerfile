@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:14.04
 MAINTAINER Haris Amin <aminharis7@gmail.com>
 
 ENV SWIFT_VERSION 2.2-SNAPSHOT-2015-12-10-a
