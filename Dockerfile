@@ -1,10 +1,7 @@
-FROM phusion/baseimage:0.9.17
+FROM ubuntu:14.04
 MAINTAINER Haris Amin <aminharis7@gmail.com>
 
-# Use baseimage-docker's init system.
-CMD ["/sbin/my_init"]
-
-ENV SWIFT_VERSION 2.2-SNAPSHOT-2015-12-10-a
+ENV SWIFT_VERSION 2.2-SNAPSHOT-2015-12-18-a
 ENV SWIFT_PLATFORM ubuntu14.04
 
 # Install related packages
