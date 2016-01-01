@@ -1,7 +1,7 @@
 FROM ubuntu:14.04
 MAINTAINER Haris Amin <aminharis7@gmail.com>
 
-ENV SWIFT_VERSION 2.2-SNAPSHOT-2015-12-22-a
+ENV SWIFT_VERSION 2.2-SNAPSHOT-2015-12-31-a
 ENV SWIFT_PLATFORM ubuntu14.04
 
 # Install related packages
