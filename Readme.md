@@ -16,13 +16,13 @@
 docker pull swiftdocker/swift
 ```
 
-##### Create a container from the Image and attach it:
+##### Create a Container from the Image and Attach It:
 
 ```bash
 docker run -i -t --name swiftfun swiftdocker/swift:latest /bin/bash
 ```
 
-##### To start your and attach your image later:
+##### To Start and Attach Your Image Later:
 
 Start your image with name `swiftfun`
 
