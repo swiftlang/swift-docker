@@ -24,6 +24,9 @@ RUN SWIFT_ARCHIVE_NAME=swift-$SWIFT_VERSION-$SWIFT_PLATFORM && \
     tar -xvzf $SWIFT_ARCHIVE_NAME.tar.gz --directory / --strip-components=1 && \
     rm -rf $SWIFT_ARCHIVE_NAME* /tmp/* /var/tmp/*
 
+# Fix permissions
+RUN find /usr/lib/swift/ -type f -exec chmod 655 {} \;
+
 # Set Swift Path
 ENV PATH /usr/bin:$PATH
 
