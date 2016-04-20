@@ -1,13 +1,13 @@
-FROM ubuntu:14.04
+FROM ubuntu:15.10
 MAINTAINER Haris Amin <aminharis7@gmail.com>
 
 ENV SWIFT_BRANCH development
 ENV SWIFT_VERSION DEVELOPMENT-SNAPSHOT-2016-04-12-a
-ENV SWIFT_PLATFORM ubuntu14.04
+ENV SWIFT_PLATFORM ubuntu15.10
 
 # Install related packages
 RUN apt-get update && \
-    apt-get install -y build-essential wget clang libedit-dev python2.7 python2.7-dev libicu52 rsync libxml2 git && \
+    apt-get install -y build-essential wget clang libedit-dev python2.7-dev libicu-dev libxml2-dev git && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -23,6 +23,9 @@ RUN SWIFT_ARCHIVE_NAME=swift-$SWIFT_VERSION-$SWIFT_PLATFORM && \
     gpg --verify $SWIFT_ARCHIVE_NAME.tar.gz.sig && \
     tar -xvzf $SWIFT_ARCHIVE_NAME.tar.gz --directory / --strip-components=1 && \
     rm -rf $SWIFT_ARCHIVE_NAME* /tmp/* /var/tmp/*
+
+# Fix permissions
+RUN find /usr/lib/swift/ -type f -exec chmod 655 {} \;
 
 # Set Swift Path
 ENV PATH /usr/bin:$PATH
