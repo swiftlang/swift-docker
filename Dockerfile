@@ -1,8 +1,8 @@
 FROM ubuntu:14.04
 MAINTAINER Haris Amin <aminharis7@gmail.com>
 
-ENV SWIFT_BRANCH development
-ENV SWIFT_VERSION DEVELOPMENT-SNAPSHOT-2016-09-02-a
+ENV SWIFT_BRANCH swift-3.0-release
+ENV SWIFT_VERSION swift-3.0-RELEASE 
 ENV SWIFT_PLATFORM ubuntu14.04
 
 # Install related packages
@@ -16,8 +16,8 @@ RUN wget -q -O - https://swift.org/keys/all-keys.asc | gpg --import - && \
     gpg --keyserver hkp://pool.sks-keyservers.net --refresh-keys Swift
 
 # Install Swift Ubuntu 14.04 Snapshot
-RUN SWIFT_ARCHIVE_NAME=swift-$SWIFT_VERSION-$SWIFT_PLATFORM && \
-    SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | tr -d .)/swift-$SWIFT_VERSION/$SWIFT_ARCHIVE_NAME.tar.gz && \
+RUN SWIFT_ARCHIVE_NAME=$SWIFT_VERSION-$SWIFT_PLATFORM && \
+    SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | tr -d .)/$SWIFT_VERSION/$SWIFT_ARCHIVE_NAME.tar.gz && \
     wget $SWIFT_URL && \
     wget $SWIFT_URL.sig && \
     gpg --verify $SWIFT_ARCHIVE_NAME.tar.gz.sig && \
