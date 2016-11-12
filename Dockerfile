@@ -1,13 +1,13 @@
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 MAINTAINER Haris Amin <aminharis7@gmail.com>
 
-ENV SWIFT_BRANCH swift-3.0-release
-ENV SWIFT_VERSION swift-3.0-RELEASE 
-ENV SWIFT_PLATFORM ubuntu14.04
+ENV SWIFT_BRANCH swift-3.0.1-release
+ENV SWIFT_VERSION swift-3.0.1-RELEASE
+ENV SWIFT_PLATFORM ubuntu16.04
 
 # Install related packages and set LLVM 3.6 as the compiler
 RUN apt-get update && \
-    apt-get install -y build-essential wget clang-3.6 curl libedit-dev python2.7 python2.7-dev libicu52 rsync libxml2 git && \
+    apt-get install -y build-essential wget clang-3.6 curl libedit-dev python2.7 python2.7-dev libicu-dev rsync libxml2 git && \
     update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.6 100 && \
     update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.6 100 && \
     apt-get clean && \
