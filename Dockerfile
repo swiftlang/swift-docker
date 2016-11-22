@@ -7,7 +7,7 @@ ENV SWIFT_PLATFORM ubuntu16.04
 
 # Install related packages and set LLVM 3.6 as the compiler
 RUN apt-get update && \
-    apt-get install -y build-essential wget clang-3.6 curl libedit-dev python2.7 python2.7-dev libicu-dev rsync libxml2 git && \
+    apt-get install -y build-essential wget clang-3.6 curl libcurl3 libedit-dev python2.7 python2.7-dev libicu-dev rsync libxml2 git && \
     update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.6 100 && \
     update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.6 100 && \
     apt-get clean && \
