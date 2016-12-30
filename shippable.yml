@@ -3,5 +3,3 @@ build:
         - docker build -t testbuild .
     ci:
         - echo "Building $COMMIT"
-
-
