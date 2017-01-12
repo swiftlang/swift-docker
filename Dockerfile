@@ -7,7 +7,6 @@ RUN apt-get -q update && \
     make \
     libc6-dev \
     clang-3.6 \
-    vim \
     curl \
     libedit-dev \
     python2.7 \
