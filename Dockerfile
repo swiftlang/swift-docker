@@ -2,8 +2,8 @@ FROM ubuntu:16.04
 MAINTAINER Haris Amin <aminharis7@gmail.com>
 
 # Install related packages and set LLVM 3.6 as the compiler
-RUN apt-get -qq update && \
-    apt-get -qq install -y \
+RUN apt-get -q update && \
+    apt-get -q install -y \
     make \
     libc6-dev \
     clang-3.6 \
@@ -16,7 +16,7 @@ RUN apt-get -qq update && \
     rsync \
     libxml2 \
     git \
-    libcurl4-openssl-dev > /dev/null 2>&1 && \
+    libcurl4-openssl-dev && \
     update-alternatives --quiet --install /usr/bin/clang clang /usr/bin/clang-3.6 100 && \
     update-alternatives --quiet --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.6 100 && \
     rm -r /var/lib/apt/lists/*
@@ -47,9 +47,9 @@ RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | 
       # uid                  Swift 3.x Release Signing Key <swift-infrastructure@swift.org>
           A3BAFD3556A59079C06894BD63BC1CFE91D306C6 \
         ; do \
-          gpg --quiet --keyserver ha.pool.sks-keyservers.net --recv-keys "$key" > /dev/null 2>&1; \
+          gpg --quiet --keyserver ha.pool.sks-keyservers.net --recv-keys "$key"; \
         done \
-    && gpg --batch --verify --quiet swift.tar.gz.sig swift.tar.gz  > /dev/null 2>&1 \
+    && gpg --batch --verify --quiet swift.tar.gz.sig swift.tar.gz \
     && tar -xzf swift.tar.gz --directory / --strip-components=1 \
     && rm -r "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz
 
