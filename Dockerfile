@@ -16,10 +16,10 @@ RUN apt-get -q update && \
     rsync \
     libxml2 \
     git \
-    libcurl4-openssl-dev && \
-    update-alternatives --quiet --install /usr/bin/clang clang /usr/bin/clang-3.6 100 && \
-    update-alternatives --quiet --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.6 100 && \
-    rm -r /var/lib/apt/lists/*
+    libcurl4-openssl-dev \
+    && update-alternatives --quiet --install /usr/bin/clang clang /usr/bin/clang-3.6 100 \
+    && update-alternatives --quiet --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.6 100 \
+    && rm -r /var/lib/apt/lists/*
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 ENV SWIFT_BRANCH=swift-3.0.2-release \
