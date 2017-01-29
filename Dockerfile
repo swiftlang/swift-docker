@@ -22,7 +22,7 @@ RUN apt-get -q update && \
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 ENV SWIFT_BRANCH=swift-3.1-branch \
-    SWIFT_VERSION=swift-3.1-DEVELOPMENT-SNAPSHOT-2017-01-24-a \
+    SWIFT_VERSION=swift-3.1-DEVELOPMENT-SNAPSHOT-2017-01-28-a \
     SWIFT_PLATFORM=ubuntu16.04 \
     PATH=/usr/bin:$PATH
 
