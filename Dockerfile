@@ -6,7 +6,7 @@ RUN apt-get -q update && \
     apt-get -q install -y \
     make \
     libc6-dev \
-    clang-3.6 \
+    clang-3.8 \
     curl \
     libedit-dev \
     python2.7 \
@@ -16,8 +16,8 @@ RUN apt-get -q update && \
     libxml2 \
     git \
     libcurl4-openssl-dev \
-    && update-alternatives --quiet --install /usr/bin/clang clang /usr/bin/clang-3.6 100 \
-    && update-alternatives --quiet --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.6 100 \
+    && update-alternatives --quiet --install /usr/bin/clang clang /usr/bin/clang-3.8 100 \
+    && update-alternatives --quiet --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.8 100 \
     && rm -r /var/lib/apt/lists/*
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
