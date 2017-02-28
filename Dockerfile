@@ -13,7 +13,6 @@ RUN apt-get -q update && \
     python2.7-dev \
     libicu-dev \
     libssl-dev \
-    rsync \
     libxml2 \
     git \
     libcurl4-openssl-dev \
