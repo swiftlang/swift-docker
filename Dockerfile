@@ -25,6 +25,10 @@ ARG SWIFT_PLATFORM=ubuntu16.04
 ARG SWIFT_BRANCH=swift-3.0.2-release 
 ARG SWIFT_VERSION=swift-3.0.2-RELEASE
 
+ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
+    SWIFT_BRANCH=$SWIFT_BRANCH
+    SWIFT_VERSION=$SWIFT_VERSION
+
 # Download GPG keys, signature and Swift package, then unpack and cleanup
 RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | tr -d .)/$SWIFT_VERSION/$SWIFT_VERSION-$SWIFT_PLATFORM.tar.gz \
     && curl -fSsL $SWIFT_URL -o swift.tar.gz \
