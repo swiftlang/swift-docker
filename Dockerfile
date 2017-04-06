@@ -56,5 +56,9 @@ RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | 
     && tar -xzf swift.tar.gz --directory / --strip-components=1 \
     && rm -r "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz
 
+# Post cleanup for binaries orthogonal to swift runtime, but was used to download and install. 
+RUN apt-get -y remove --purge \ 
+    python2.7
+
 # Print Installed Swift Version
 RUN swift --version
