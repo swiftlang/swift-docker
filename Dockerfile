@@ -30,7 +30,7 @@ ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_BRANCH=$SWIFT_BRANCH \
     SWIFT_VERSION=$SWIFT_VERSION
 
-# Download GPG keys, signature and Swift package, then unpack and cleanup
+# Download GPG keys, signature and Swift package, then unpack, cleanup and execute permissions for foundation libs
 RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | tr -d .)/$SWIFT_VERSION/$SWIFT_VERSION-$SWIFT_PLATFORM.tar.gz \
     && curl -fSsL $SWIFT_URL -o swift.tar.gz \
     && curl -fSsL $SWIFT_URL.sig -o swift.tar.gz.sig \
@@ -54,7 +54,12 @@ RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | 
         done \
     && gpg --batch --verify --quiet swift.tar.gz.sig swift.tar.gz \
     && tar -xzf swift.tar.gz --directory / --strip-components=1 \
-    && rm -r "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz
+    && rm -r "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
+    && chmod -R o+r /usr/lib/swift 
+
+# Post cleanup for binaries orthogonal to swift runtime, but was used to download and install. 
+RUN apt-get -y remove --purge \ 
+    python2.7
 
 # Post cleanup for binaries orthogonal to swift runtime, but was used to download and install. 
 RUN apt-get -y remove --purge \ 
