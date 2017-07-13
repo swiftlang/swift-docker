@@ -61,6 +61,12 @@ RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | 
 RUN apt-get -y remove --purge \ 
     python2.7
 
+# Adding shared library path look
+RUN bash -c "echo '/usr/lib/swift/linux' > /etc/ld.so.conf.d/swift.conf;\
+             echo '/usr/lib/swift/clang/lib/linux' >> /etc/ld.so.conf.d/swift.conf;\
+             echo '/usr/lib/swift/pm' >> /etc/ld.so.conf.d/swift.conf;\
+             ldconfig"
+
 # Post cleanup for binaries orthogonal to swift runtime, but was used to download and install. 
 RUN apt-get -y remove --purge \ 
     python2.7
