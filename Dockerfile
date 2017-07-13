@@ -1,5 +1,5 @@
 FROM ubuntu:16.04
-MAINTAINER Haris Amin <aminharis7@gmail.com>
+LABEL maintainer="Haris Amin <aminharis7@gmail.com>"
 
 # Install related packages and set LLVM 3.6 as the compiler
 RUN apt-get -q update && \
