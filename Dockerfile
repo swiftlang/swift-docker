@@ -1,5 +1,5 @@
 FROM ubuntu:16.04
-LABEL maintainer="Haris Amin <aminharis7@gmail.com>"
+MAINTAINER Haris Amin <aminharis7@gmail.com>
 
 # Install related packages and set LLVM 3.6 as the compiler
 RUN apt-get -q update && \
@@ -23,8 +23,8 @@ RUN apt-get -q update && \
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 ARG SWIFT_PLATFORM=ubuntu16.04
-ARG SWIFT_BRANCH=swift-4.0-branch
-ARG SWIFT_VERSION=swift-4.0-DEVELOPMENT-SNAPSHOT-2017-09-10-a
+ARG SWIFT_BRANCH=swift-4.0-release
+ARG SWIFT_VERSION=swift-4.0-RELEASE
 
 ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_BRANCH=$SWIFT_BRANCH \
@@ -49,6 +49,10 @@ RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | 
       #       Key fingerprint = A3BA FD35 56A5 9079 C068  94BD 63BC 1CFE 91D3 06C6
       # uid                  Swift 3.x Release Signing Key <swift-infrastructure@swift.org>
           A3BAFD3556A59079C06894BD63BC1CFE91D306C6 \
+      # pub   4096R/71E1B235 2016-05-31 [expires: 2019-06-14]
+      #       Key fingerprint = 5E4D F843 FB06 5D7F 7E24  FBA2 EF54 30F0 71E1 B235
+      # uid                  Swift 4.x Release Signing Key <swift-infrastructure@swift.org>          
+          5E4DF843FB065D7F7E24FBA2EF5430F071E1B235 \
         ; do \
           gpg --quiet --keyserver ha.pool.sks-keyservers.net --recv-keys "$key"; \
         done \
