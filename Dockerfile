@@ -4,7 +4,6 @@ LABEL Description="Docker Container for the Apple's Swift programming language"
 
 # Install related packages and set LLVM 3.6 as the compiler
 RUN apt-get -q update && \
-    apt-get dist-upgrade -y && \
     apt-get -q install -y \
     make \
     libc6-dev \
