@@ -1,5 +1,6 @@
 FROM ubuntu:16.04
-MAINTAINER Haris Amin <aminharis7@gmail.com>
+LABEL maintainer="Haris Amin <aminharis7@gmail.com>"
+LABEL Description="Docker Container for the Apple's Swift programming language"
 
 # Install related packages and set LLVM 3.6 as the compiler
 RUN apt-get -q update && \
@@ -9,8 +10,7 @@ RUN apt-get -q update && \
     clang-3.8 \
     curl \
     libedit-dev \
-    python2.7 \
-    python2.7-dev \
+    libpython2.7 \
     libicu-dev \
     libssl-dev \
     libxml2 \
@@ -19,7 +19,7 @@ RUN apt-get -q update && \
     pkg-config \
     && update-alternatives --quiet --install /usr/bin/clang clang /usr/bin/clang-3.8 100 \
     && update-alternatives --quiet --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.8 100 \
-    && rm -r /var/lib/apt/lists/*
+    && rm -r /var/lib/apt/lists/*    
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 ARG SWIFT_PLATFORM=ubuntu16.04
@@ -60,14 +60,6 @@ RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | 
     && tar -xzf swift.tar.gz --directory / --strip-components=1 \
     && rm -r "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
     && chmod -R o+r /usr/lib/swift 
-
-# Post cleanup for binaries orthogonal to swift runtime, but was used to download and install. 
-RUN apt-get -y remove --purge \ 
-    python2.7
-
-# Post cleanup for binaries orthogonal to swift runtime, but was used to download and install. 
-RUN apt-get -y remove --purge \ 
-    python2.7
 
 # Print Installed Swift Version
 RUN swift --version
