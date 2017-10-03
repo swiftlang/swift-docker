@@ -3,8 +3,7 @@ LABEL maintainer="Haris Amin <aminharis7@gmail.com>"
 LABEL Description="Docker Container for the Apple's Swift programming language"
 
 # Install related packages and set LLVM 3.6 as the compiler
-RUN apt-get -q update && \
-    apt-get dist-upgrade -y && \
+RUN apt-get -q update && \    
     apt-get -q install -y \
     make \
     libc6-dev \
@@ -25,7 +24,7 @@ RUN apt-get -q update && \
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 ARG SWIFT_PLATFORM=ubuntu16.04
 ARG SWIFT_BRANCH=swift-4.0-branch
-ARG SWIFT_VERSION=swift-4.0-DEVELOPMENT-SNAPSHOT-2017-09-27-a
+ARG SWIFT_VERSION=swift-4.0-DEVELOPMENT-SNAPSHOT-2017-10-02-a
 
 ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_BRANCH=$SWIFT_BRANCH \
