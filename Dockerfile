@@ -20,8 +20,8 @@ RUN apt-get -q update && apt-get dist-upgrade -y && \
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 ARG SWIFT_PLATFORM=ubuntu16.04
-ARG SWIFT_BRANCH=swift-4.0-branch
-ARG SWIFT_VERSION=swift-4.0-DEVELOPMENT-SNAPSHOT-2017-10-19-a
+ARG SWIFT_BRANCH=swift-4.0.2-release
+ARG SWIFT_VERSION=swift-4.0.2-RELEASE
 
 ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_BRANCH=$SWIFT_BRANCH \
@@ -32,7 +32,7 @@ RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | 
     && curl -fSsL $SWIFT_URL -o swift.tar.gz \
     && curl -fSsL $SWIFT_URL.sig -o swift.tar.gz.sig \
     && export GNUPGHOME="$(mktemp -d)" \
-    && gpg --quiet --keyserver ha.pool.sks-keyservers.net --recv-keys "7463A81A4B2EEA1B551FFBCFD441C977412B37AD" "5E4DF843FB065D7F7E24FBA2EF5430F071E1B235" \    
+    && gpg --quiet --keyserver ha.pool.sks-keyservers.net --recv-keys "5E4DF843FB065D7F7E24FBA2EF5430F071E1B235" \    
     && gpg --batch --verify --quiet swift.tar.gz.sig swift.tar.gz \
     && tar -xzf swift.tar.gz --directory / --strip-components=1 \
     && rm -r "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
