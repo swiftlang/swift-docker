@@ -63,3 +63,10 @@ RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | 
 
 # Print Installed Swift Version
 RUN swift --version
+
+WORKDIR /code
+ONBUILD COPY Package.swift /code/
+ONBUILD COPY Package.pins /code/ 
+ONBUILD COPY Sources /code/
+ONBUILD RUN swift build -c release || true 
+CMD ["/bin/bash", "-c", "find .build -executable -type f -not -name '*.so'| swift package describe | grep "Type: executable" | head | bash"]
