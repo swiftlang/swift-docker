@@ -1,5 +1,6 @@
 build:
     pre_ci:
-        - docker build -t testbuild .
+        - docker build ./4.0
+        - docker build ./3.1
     ci:
         - echo "Building $COMMIT"
