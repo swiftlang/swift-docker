@@ -14,6 +14,7 @@ RUN apt-get -q update && \
     libicu-dev \
     libssl-dev \
     libxml2 \
+    tzdata \
     git \
     libcurl4-openssl-dev \
     pkg-config \
