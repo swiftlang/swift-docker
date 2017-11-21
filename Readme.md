@@ -6,7 +6,7 @@
 
 ### An Ubuntu 16.04 Docker image for [Swift](https://swift.org).
 
-#### You can find the Docker Hub repo here: [https://hub.docker.com/r/swiftdocker/swift/](https://hub.docker.com/r/swiftdocker/swift/)
+#### You can find the Docker Hub repo here: [https://hub.docker.com/_/swift/](https://hub.docker.com/_/swift/)
 
 
 ### Docker Instructions
