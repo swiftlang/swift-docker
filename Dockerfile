@@ -3,17 +3,22 @@ FROM ubuntu:16.04
 # Install related packages and set LLVM 3.8 as the compiler
 RUN apt-get -q update && apt-get dist-upgrade -y && \    
     apt-get -q install -y \
-    build-essential \    
+    build-essential \   
+    make \
+    libc6-dev \ 
     clang-3.8 \
     curl \
     libedit-dev \
-    libpython2.7 \
+    python2.7 \
+    python2.7-dev \
     libicu-dev \
     libssl-dev \
     libxml2 \
+    tzdata \
     git \
     libcurl4-openssl-dev \
     pkg-config \
+    libblocksruntime-dev \
     && update-alternatives --quiet --install /usr/bin/clang clang /usr/bin/clang-3.8 100 \
     && update-alternatives --quiet --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.8 100 \
     && rm -r /var/lib/apt/lists/*    
