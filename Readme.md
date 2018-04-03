@@ -2,7 +2,7 @@
 
 ![swift](https://raw.githubusercontent.com/hamin/EventSource.Swift/master/swift-logo.png)
 
-[![Build Status](https://api.shippable.com/projects/58663bf6f6c7101000c4038f/badge?branchName=master)](https://app.shippable.com/projects/58663bf6f6c7101000c4038f/builds/latest)
+[![Run Status](https://api.shippable.com/projects/58663bf6f6c7101000c4038f/badge?branch=master)](https://app.shippable.com/github/swiftdocker/docker-swift)
 
 ### An Ubuntu 16.04 Docker image for [Swift](https://swift.org).
 
