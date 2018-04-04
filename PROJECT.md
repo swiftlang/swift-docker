@@ -15,7 +15,7 @@ However, the repo is also available as `swiftdocker/swift` on Docker Hub as an a
 
 ### Docker Versions
 
-We support the latest stable version of Docker only. This is currently 17.09.
+We support the latest stable version of Docker only. This is currently 18.03.
 
 ### Swift Versions
 
@@ -24,5 +24,5 @@ We support the latest stable version of Docker only. This is currently 17.09.
 - This project will only support the latest two minor versions of the latest major version of Swift.
 - This project will only support the latest patch version of any major version.
 
-Currently, we are supporting `4.0.2` and `3.1.1`.
+Currently, we are supporting `4.1`, `4.0.3` and `3.1.1`.
 
