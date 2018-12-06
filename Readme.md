@@ -1,8 +1,6 @@
-# docker-swift
+# swift-docker
 
-![swift](https://raw.githubusercontent.com/hamin/EventSource.Swift/master/swift-logo.png)
-
-[![Run Status](https://api.shippable.com/projects/58663bf6f6c7101000c4038f/badge?branch=master)](https://app.shippable.com/github/swiftdocker/docker-swift)
+<img src="https://swift.org/assets/images/swift.svg" alt="Swift logo" height="70" >
 
 ### An Ubuntu 16.04 Docker image for [Swift](https://swift.org).
 
@@ -14,13 +12,13 @@
 ##### Pull the Docker Image From Docker Hub:
 
 ```bash
-docker pull swiftdocker/swift
+docker pull swift
 ```
 
 ##### Create a Container from the Image and Attach It:
 
 ```bash
-docker run --privileged -i -t --name swiftfun swiftdocker/swift:latest /bin/bash
+docker run --privileged -i -t --name swiftfun swift:latest /bin/bash
 ```
 
 ##### To Start and Attach Your Image Later:
