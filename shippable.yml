@@ -1,8 +1,0 @@
-build:
-    pre_ci:
-        - docker build ./4.2
-        - docker build ./4.1
-        - docker build ./4.0
-        - docker build ./3.1
-    ci:
-        - echo "Building $COMMIT"

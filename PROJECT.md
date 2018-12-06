@@ -9,13 +9,11 @@ This is a community supported initiative to provide high quality Swift Docker im
 ## Relation to `official-images`
 This is the source repository for the official Docker image of Swift. We are necessarily conservative in what we add to this repo for that reason.
 
-However, the repo is also available as `swiftdocker/swift` on Docker Hub as an automated build. All older tags will remain there, and we may be able to provide pre-release builds here too.
-
 ## Support Commitments
 
 ### Docker Versions
 
-We support the latest stable version of Docker only. This is currently 18.03.
+We support the latest stable version of Docker only.
 
 ### Swift Versions
 
