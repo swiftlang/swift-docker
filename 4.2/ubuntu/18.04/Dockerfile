@@ -18,6 +18,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     git \
     libcurl4-openssl-dev \
     pkg-config \
+    wget \
     && update-alternatives --quiet --install /usr/bin/clang clang /usr/bin/clang-3.9 100 \
     && update-alternatives --quiet --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.9 100 \
     && rm -r /var/lib/apt/lists/*
@@ -37,22 +38,8 @@ RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | 
     && curl -fSsL $SWIFT_URL.sig -o swift.tar.gz.sig \
     && export GNUPGHOME="$(mktemp -d)" \
     && set -e; \
-        for key in \
-      # pub   rsa4096 2017-11-07 [SC] [expires: 2019-11-07]
-      # 8513444E2DA36B7C1659AF4D7638F1FB2B2B08C4
-      # uid           [ unknown] Swift Automatic Signing Key #2 <swift-infrastructure@swift.org>
-          8513444E2DA36B7C1659AF4D7638F1FB2B2B08C4 \
-      # pub   4096R/91D306C6 2016-05-31 [expires: 2018-05-31]
-      #       Key fingerprint = A3BA FD35 56A5 9079 C068  94BD 63BC 1CFE 91D3 06C6
-      # uid                  Swift 3.x Release Signing Key <swift-infrastructure@swift.org>
-          A3BAFD3556A59079C06894BD63BC1CFE91D306C6 \
-      # pub   4096R/71E1B235 2016-05-31 [expires: 2019-06-14]
-      #       Key fingerprint = 5E4D F843 FB06 5D7F 7E24  FBA2 EF54 30F0 71E1 B235
-      # uid                  Swift 4.x Release Signing Key <swift-infrastructure@swift.org>
-          5E4DF843FB065D7F7E24FBA2EF5430F071E1B235 \
-        ; do \
-          gpg --quiet --keyserver ha.pool.sks-keyservers.net --recv-keys "$key"; \
-        done \
+    wget -q -O - https://swift.org/keys/all-keys.asc | \
+    gpg --import - \
     && gpg --batch --verify --quiet swift.tar.gz.sig swift.tar.gz \
     && tar -xzf swift.tar.gz --directory / --strip-components=1 \
     && rm -r "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
