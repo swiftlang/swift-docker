@@ -18,7 +18,6 @@ RUN apt-get -q update && \
     git \
     libcurl4-openssl-dev \
     pkg-config \
-    wget \
     && update-alternatives --quiet --install /usr/bin/clang clang /usr/bin/clang-3.8 100 \
     && update-alternatives --quiet --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.8 100 \
     && rm -r /var/lib/apt/lists/*    
@@ -38,7 +37,7 @@ RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | 
     && curl -fSsL $SWIFT_URL.sig -o swift.tar.gz.sig \
     && export GNUPGHOME="$(mktemp -d)" \
     && set -e; \
-    wget -q -O - https://swift.org/keys/all-keys.asc | \
+    curl -fSsL https://swift.org/keys/all-keys.asc | \
     gpg --import - \
     && gpg --batch --verify --quiet swift.tar.gz.sig swift.tar.gz \
     && tar -xzf swift.tar.gz --directory / --strip-components=1 \
