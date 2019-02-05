@@ -24,8 +24,8 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 ARG SWIFT_PLATFORM=ubuntu18.04
-ARG SWIFT_BRANCH=swift-4.2.1-release
-ARG SWIFT_VERSION=swift-4.2.1-RELEASE
+ARG SWIFT_BRANCH=swift-4.2.2-release
+ARG SWIFT_VERSION=swift-4.2.2-RELEASE
 
 ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_BRANCH=$SWIFT_BRANCH \
