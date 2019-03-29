@@ -2,24 +2,22 @@ FROM ubuntu:16.04
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
 LABEL Description="Docker Container for the Swift programming language"
 
-# Install related packages and set LLVM 3.8 as the compiler
 RUN apt-get -q update && \
     apt-get -q install -y \
-    make \
-    libc6-dev \
-    clang-3.8 \
-    curl \
-    libedit-dev \
-    libpython2.7 \
-    libicu-dev \
-    libssl-dev \
+    libatomic1 \
+    libbsd0 \
+    libcurl3 \
     libxml2 \
+    libedit2 \
+    libsqlite3-0 \
+    libc6-dev \
+    binutils \
+    libgcc-5-dev \
+    libstdc++-5-dev \
+    libpython2.7 \
     tzdata \
     git \
-    libcurl4-openssl-dev \
     pkg-config \
-    && update-alternatives --quiet --install /usr/bin/clang clang /usr/bin/clang-3.8 100 \
-    && update-alternatives --quiet --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.8 100 \
     && rm -r /var/lib/apt/lists/*    
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
@@ -33,8 +31,12 @@ ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
 
 # Download GPG keys, signature and Swift package, then unpack, cleanup and execute permissions for foundation libs
 RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | tr -d .)/$SWIFT_VERSION/$SWIFT_VERSION-$SWIFT_PLATFORM.tar.gz \
+    && apt-get -q update \
+    && apt-get -q install -y curl \
     && curl -fSsL $SWIFT_URL -o swift.tar.gz \
     && curl -fSsL $SWIFT_URL.sig -o swift.tar.gz.sig \
+    && apt-get purge -y curl \
+    && apt-get -y autoremove \
     && export GNUPGHOME="$(mktemp -d)" \
     && set -e; \
         for key in \
