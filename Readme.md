@@ -2,7 +2,7 @@
 
 <img src="https://swift.org/assets/images/swift.svg" alt="Swift logo" height="70" >
 
-### An Ubuntu 16.04 Docker image for [Swift](https://swift.org).
+### An Ubuntu 16.04 and Ubuntu 18.04 Docker image for [Swift](https://swift.org).
 
 #### You can find the Docker Hub repo here: [https://hub.docker.com/_/swift/](https://hub.docker.com/_/swift/)
 
