@@ -29,8 +29,8 @@ def get_dockerfiles():
     docker_dir = os.path.dirname(os.path.realpath(__file__))
     for root, dirs, files in os.walk(docker_dir):
         for file in files:
-            if file.startswith("Dockerfile"):
-                 dockerfiles.append((root, file))
+            if file == "Dockerfile":
+                 dockerfiles.append(root)
     dockerfiles.sort(reverse=True)
     return dockerfiles
 
@@ -48,10 +48,9 @@ def main():
     results = {}
     suite_status = True
     dockerfiles = get_dockerfiles()
-    for dir, file in dockerfiles:
-        dockerfile = os.path.join(dir, file)
+    for dockerfile in dockerfiles:
         print("Testing {}".format(dockerfile))
-        cmd = "docker build -f {dockerfile} {dir}".format(dockerfile=dockerfile, dir=dir)
+        cmd = "docker build {}".format(dockerfile)
         status = run_command(cmd)
         results[dockerfile] = status
         if status != 0:
