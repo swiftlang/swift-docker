@@ -17,6 +17,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     tzdata \
     git \
     pkg-config \
+    curl \
     && rm -r /var/lib/apt/lists/*
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
@@ -36,12 +37,8 @@ ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
 
 # Download GPG keys, signature and Swift package, then unpack, cleanup and execute permissions for foundation libs
 RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | tr -d .)/$SWIFT_VERSION/$SWIFT_VERSION-$SWIFT_PLATFORM.tar.gz \
-    && apt-get update \
-    && apt-get install -y curl \
     && curl -fSsL $SWIFT_URL -o swift.tar.gz \
 #    && curl -fSsL $SWIFT_URL.sig -o swift.tar.gz.sig \
-    && apt-get purge -y curl \
-    && apt-get -y autoremove \
 #    && export GNUPGHOME="$(mktemp -d)" \
 #    && set -e; \
 #        for key in \
@@ -54,9 +51,9 @@ RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | 
 #        done \
 #    && gpg --batch --verify --quiet swift.tar.gz.sig swift.tar.gz \
     && tar -xzf swift.tar.gz --directory / --strip-components=1 \
-#    && rm -r "$GNUPGHOME" swift.tar.gz.sig
-    && rm swift.tar.gz \
-    && chmod -R o+r /usr/lib/swift
+    && chmod -R o+r /usr/lib/swift \
+    && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
+    && apt-get purge --auto-remove -y curl
 
 # Print Installed Swift Version
 RUN swift --version
