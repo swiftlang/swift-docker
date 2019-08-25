@@ -8,38 +8,38 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     libcurl4 \
     libxml2 \
     tzdata \
+    curl \
+    gpg \
     && rm -r /var/lib/apt/lists/*
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
+
+# pub   rsa4096 2017-11-07 [SC] [expires: 2019-11-07]
+#       8513 444E 2DA3 6B7C 1659  AF4D 7638 F1FB 2B2B 08C4
+# uid           [ unknown] Swift Automatic Signing Key #2 <swift-infrastructure@swift.org>
+ARG SWIFT_SIGNING_KEY=8513444E2DA36B7C1659AF4D7638F1FB2B2B08C4
 ARG SWIFT_PLATFORM=ubuntu18.04
 ARG SWIFT_BRANCH=swift-5.1-branch
-ARG SWIFT_VERSION=swift-5.1-DEVELOPMENT-SNAPSHOT-2019-06-21-a
+ARG SWIFT_VERSION=swift-5.1-DEVELOPMENT-SNAPSHOT-2019-08-24-a
+ARG SWIFT_WEBROOT=https://swift.org/builds/
 
-ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
+ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
+    SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_BRANCH=$SWIFT_BRANCH \
-    SWIFT_VERSION=$SWIFT_VERSION
+    SWIFT_VERSION=$SWIFT_VERSION \
+    SWIFT_WEBROOT=$SWIFT_WEBROOT
 
-# Download GPG keys, signature and Swift package, then unpack, cleanup and execute permissions for foundation libs
-RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | tr -d .)/$SWIFT_VERSION/$SWIFT_VERSION-$SWIFT_PLATFORM.tar.gz \
-    && apt-get update \
-    && apt-get install -y curl gpg \
-    && curl -fSsL $SWIFT_URL -o swift.tar.gz \
-#    && curl -fSsL $SWIFT_URL.sig -o swift.tar.gz.sig \
-#    && export GNUPGHOME="$(mktemp -d)" \
-#    && set -e; \
-#        for key in \
-#      # pub   4096R/ED3D1561 2019-03-22 [expires: 2021-03-21]
-#      #       Key fingerprint = A62A E125 BBBF BB96 A6E0  42EC 925C C1CC ED3D 1561
-#      # uid                  Swift 5.x Release Signing Key <swift-infrastructure@swift.org>
-#          A62AE125BBBFBB96A6E042EC925CC1CCED3D1561 \
-#        ; do \
-#          gpg --quiet --keyserver ha.pool.sks-keyservers.net --recv-keys "$key"; \
-#        done \
-#    && gpg --batch --verify --quiet swift.tar.gz.sig swift.tar.gz \
-    && tar -xzf swift.tar.gz --directory / --strip-components=1 $SWIFT_VERSION-$SWIFT_PLATFORM/usr/lib/swift/linux \
-    && apt-get purge -y curl gpg \
-    && apt-get -y autoremove \
-    && rm -r /var/lib/apt/lists/* \
-#    && rm -r "$GNUPGHOME" swift.tar.gz.sig \
-    && rm swift.tar.gz \
-    && chmod -R o+r /usr/lib/swift
+RUN set -e; \
+    SWIFT_WEBDIR="$SWIFT_WEBROOT/$SWIFT_BRANCH/$(echo $SWIFT_PLATFORM | tr -d .)/" \
+    && SWIFT_BIN_URL="$SWIFT_WEBDIR/$SWIFT_VERSION/$SWIFT_VERSION-$SWIFT_PLATFORM.tar.gz" \
+    && SWIFT_SIG_URL="$SWIFT_BIN_URL.sig" \
+    # - Download the GPG keys, Swift toolchain, and toolchain signature, and verify.
+    && export GNUPGHOME="$(mktemp -d)" \
+    && curl -fsSL "$SWIFT_BIN_URL" -o swift.tar.gz "$SWIFT_SIG_URL" -o swift.tar.gz.sig \
+    && gpg --batch --quiet --keyserver ha.pool.sks-keyservers.net --recv-keys "$SWIFT_SIGNING_KEY" \
+    && gpg --batch --quiet --verify swift.tar.gz.sig swift.tar.gz \
+    # - Unpack the toolchain, set libs permissions, and clean up.
+    && tar -xzf swift.tar.gz --directory / --strip-components=1 \
+    && chmod -R o+r /usr/lib/swift \
+    && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
+    && apt-get purge --auto-remove -y curl gpg
