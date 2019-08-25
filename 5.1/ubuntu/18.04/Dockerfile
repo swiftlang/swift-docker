@@ -20,11 +20,17 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     && rm -r /var/lib/apt/lists/*
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
+
+# pub   rsa4096 2017-11-07 [SC] [expires: 2019-11-07]
+#       8513 444E 2DA3 6B7C 1659  AF4D 7638 F1FB 2B2B 08C4
+# uid           [ unknown] Swift Automatic Signing Key #2 <swift-infrastructure@swift.org>
+ARG SWIFT_SIGNING_KEY=8513444E2DA36B7C1659AF4D7638F1FB2B2B08C4
 ARG SWIFT_PLATFORM=ubuntu18.04
 ARG SWIFT_BRANCH=swift-5.1-branch
 ARG SWIFT_VERSION=swift-5.1-DEVELOPMENT-SNAPSHOT-2019-06-21-a
 
-ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
+ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
+    SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_BRANCH=$SWIFT_BRANCH \
     SWIFT_VERSION=$SWIFT_VERSION
 
