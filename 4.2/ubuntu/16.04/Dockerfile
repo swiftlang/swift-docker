@@ -1,6 +1,6 @@
 FROM ubuntu:16.04
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
-LABEL Description="Docker Container for the Swift programming language"
+LABEL description="Docker Container for the Swift programming language"
 
 # Install related packages and set LLVM 3.8 as the compiler
 RUN apt-get -q update && \
