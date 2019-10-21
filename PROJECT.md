@@ -22,4 +22,4 @@ We support the latest stable version of Docker only.
 - This project will only support the latest two minor versions of the latest major version of Swift.
 - This project will only support the latest patch version of any major version.
 
-Currently, we are supporting `4.2.1`, `4.1.3`, `4.0.3` and `3.1.1`.
+Currently, we are supporting `5.1.1`, `5.0.3`, `4.2.4`, `4.1.3` and `4.0.3`.
