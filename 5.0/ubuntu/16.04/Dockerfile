@@ -14,6 +14,7 @@ RUN apt-get -q update && \
     binutils \
     libgcc-5-dev \
     libstdc++-5-dev \
+    zlib1g-dev \
     libpython2.7 \
     tzdata \
     git \

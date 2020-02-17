@@ -17,6 +17,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     tzdata \
     git \
     libcurl4-openssl-dev \
+    zlib1g-dev \
     pkg-config \
     && update-alternatives --quiet --install /usr/bin/clang clang /usr/bin/clang-3.9 100 \
     && update-alternatives --quiet --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.9 100 \
