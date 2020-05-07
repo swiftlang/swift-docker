@@ -8,6 +8,7 @@ RUN yum -y update && \
     yum install --enablerepo=PowerTools -y \
     binutils \
     gcc \
+    git \
     glibc-static \
     libbsd-devel \
     libedit \

@@ -5,6 +5,7 @@ LABEL description="Docker Container for the Swift programming language"
 RUN yum -y update && yum -y install \
   binutils \
   gcc \
+  git \
   glibc-static \
   gzip \
   libbsd \
