@@ -4,7 +4,6 @@ LABEL description="Docker Container for the Swift programming language"
 
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
     apt-get -q install -y \
-    libatomic1 \
     libcurl3 \
     libxml2 \
     tzdata \
@@ -27,7 +26,7 @@ ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
     OS_MAJOR_VER=$OS_MAJOR_VER \
     OS_MIN_VER=$OS_MIN_VER \
     OS_VER=$SWIFT_PLATFORM$OS_MAJOR_VER.$OS_MIN_VER \
-    SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM$OS_MAJOR_VER$OS_MIN_VER" 
+    SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM$OS_MAJOR_VER$OS_MIN_VER"
 
 RUN set -e; \
     # - Grab curl and gpg here so we cache better up above
@@ -54,7 +53,7 @@ RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd' \
     >> /etc/bash.bashrc; \
     echo " ################################################################\n" \
     "#\t\t\t\t\t\t\t\t#\n" \
-    "# Swift Nightly Docker Image\t\t\t\t#\n" \
+    "# Swift Nightly Docker Image\t\t\t\t\t#\n" \
     "# Tag: $(cat .swift_tag)\t\t\t#\n" \
     "#\t\t\t\t\t\t\t\t#\n"  \
     "################################################################\n" > /etc/motd
