@@ -5,9 +5,9 @@ RUN groupadd -g 998 build-user && \
 
 ENV DEBIAN_FRONTEND="noninteractive"
 
-RUN apt update
+RUN apt-get update
 
-RUN apt -y install      \
+RUN apt-get -y --no-install-recommends install \
   build-essential       \
   clang                 \
   cmake                 \
@@ -30,7 +30,8 @@ RUN apt -y install      \
   tzdata                \
   unzip                 \
   vim                   \
-  uuid-dev
+  uuid-dev		\
+  ca-certificates
 
 USER build-user
 

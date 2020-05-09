@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND="noninteractive"
 
 RUN apt-get update
 
-RUN apt-get --no-install-recommends install -y     \
+RUN apt-get -y --no-install-recommends install \
   build-essential       \
   clang                 \
   cmake                 \
@@ -30,7 +30,8 @@ RUN apt-get --no-install-recommends install -y     \
   tzdata                \
   unzip                 \
   vim                   \
-  uuid-dev
+  uuid-dev		\
+  ca-certificates
 
 USER build-user
 
