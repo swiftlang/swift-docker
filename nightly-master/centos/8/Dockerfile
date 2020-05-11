@@ -4,20 +4,19 @@ LABEL description="Docker Container for the Swift programming language"
 
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 
-RUN yum -y update && \
-    yum install --enablerepo=PowerTools -y \
-    binutils \
-    gcc \
-    git \
-    glibc-static \
-    libbsd-devel \
-    libedit \
-    libedit-devel \
-    libicu-devel \
-    libstdc++-static \
-    pkg-config \
-    python2 \
-    sqlite
+RUN yum -y update && yum install --enablerepo=PowerTools -y \
+  binutils \
+  gcc \
+  git \
+  glibc-static \
+  libbsd-devel \
+  libedit \
+  libedit-devel \
+  libicu-devel \
+  libstdc++-static \
+  pkg-config \
+  python2 \
+  sqlite
 
 RUN ln -s /usr/bin/python2 /usr/bin/python
 
@@ -36,7 +35,7 @@ ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
     SWIFT_PLATFORM=$SWIFT_PLATFORM \
     OS_MAJOR_VER=$OS_MAJOR_VER \
     OS_VER=$SWIFT_PLATFORM$OS_MAJOR_VER \
-    SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM$OS_MAJOR_VER" 
+    SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM$OS_MAJOR_VER"
 
 RUN echo "${SWIFT_WEBROOT}/latest-build.yml"
 
@@ -61,10 +60,10 @@ RUN set -e; \
 RUN swift --version
 
 RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd' \
-    >> /etc/bash.bashrc; \
-    echo " ################################################################\n" \
+    >> /etc/bashrc; \
+    echo -e " ################################################################\n" \
     "#\t\t\t\t\t\t\t\t#\n" \
-    "# Swift Nightly Docker Image\t\t\t\t#\n" \
+    "# Swift Nightly Docker Image\t\t\t\t\t#\n" \
     "# Tag: $(cat .swift_tag)\t\t\t#\n" \
     "#\t\t\t\t\t\t\t\t#\n"  \
     "################################################################\n" > /etc/motd
