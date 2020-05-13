@@ -30,6 +30,7 @@ RUN yum install --enablerepo=PowerTools -y \
     python3-six           \
     python3-pexpect       \
     platform-python-devel \
+    rpm-build.x86_64      \
     sqlite-devel          \
     swig                  \
     rsync                 \
@@ -37,6 +38,10 @@ RUN yum install --enablerepo=PowerTools -y \
     which
 
 RUN ln -s /usr/bin/python2 /usr/bin/python
+
+RUN mkdir -p /home/build-user/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+
+RUN echo '%_topdir %(echo $HOME)/rpmbuild' > /home/build-user/.rpmmacros
 
 USER build-user
 
