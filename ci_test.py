@@ -17,7 +17,6 @@ import subprocess
 import sys
 import os
 
-
 def run_command(cmd):
     print("Running: {}".format(cmd))
     p = subprocess.Popen(cmd, shell=True)
@@ -49,8 +48,11 @@ def main():
     suite_status = True
     dockerfiles = get_dockerfiles()
     for dockerfile in dockerfiles:
+        docker_dir = os.path.dirname(os.path.realpath(__file__))
         print("Testing {}".format(dockerfile))
-        cmd = "docker build {}".format(dockerfile)
+        log_file = dockerfile.replace(docker_dir,"").replace("/", "_")
+        log_file = "{}.log".format(log_file)
+        cmd = "docker build --no-cache {} &> {}".format(dockerfile, log_file)
         status = run_command(cmd)
         results[dockerfile] = status
         if status != 0:
@@ -58,10 +60,15 @@ def main():
             results[dockerfile] = "FAILED"
         else:
             results[dockerfile] = "PASSED"
-        print("--- [{}] - {} ---".format(results[dockerfile], dockerfile))
 
+        cmd = "mv {log} {results}{log}".format(log=log_file, results=results[dockerfile])
+        run_command(cmd)
+        print("[{}] - {}".format(results[dockerfile], dockerfile))
 
-    print_results(results)
+    for dockerfile in dockerfiles:
+        if results[dockerfile] == "FAILED":
+            print("[{}] - {}".format(results[dockerfile], dockerfile))
+
     if suite_status == False:
         sys.exit(1)
 
