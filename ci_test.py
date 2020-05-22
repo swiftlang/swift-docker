@@ -17,9 +17,14 @@ import subprocess
 import sys
 import os
 
-def run_command(cmd):
+def run_command(cmd, log_file=None):
     print("Running: {}".format(cmd))
-    p = subprocess.Popen(cmd, shell=True)
+    if log_file:
+        file = open(log_file, "w")
+        p = subprocess.Popen(cmd, shell=True, stdout=file, stderr=file)
+    else:
+        p = subprocess.Popen(cmd, shell=True)
+      
     (output, err) = p.communicate()
     return p.wait()
 
@@ -53,8 +58,8 @@ def main():
         print("Testing {}".format(dockerfile))
         log_file = dockerfile.replace(docker_dir,"").replace("/", "_")
         log_file = "{}.log".format(log_file)
-        cmd = "docker build --no-cache=true {} &> {}".format(dockerfile, log_file)
-        status = run_command(cmd)
+        cmd = "docker build --no-cache=true {}".format(dockerfile)
+        status = run_command(cmd, log_file)
         results[dockerfile] = status
         if status != 0:
             suite_status = False
