@@ -19,6 +19,7 @@ import os
 
 def run_command(cmd, log_file=None):
     print("Running: {}".format(cmd))
+    sys.stdout.flush()
     if log_file:
         file = open(log_file, "w")
         p = subprocess.Popen(cmd, shell=True, stdout=file, stderr=file)
@@ -56,6 +57,7 @@ def main():
     for dockerfile in dockerfiles:
         docker_dir = os.path.dirname(os.path.realpath(__file__))
         print("Testing {}".format(dockerfile))
+        sys.stdout.flush()
         log_file = dockerfile.replace(docker_dir,"").replace("/", "_")
         log_file = "{}.log".format(log_file)
         cmd = "docker build --no-cache=true {}".format(dockerfile)
@@ -70,6 +72,7 @@ def main():
         cmd = "mv {log} {results}{log}".format(log=log_file, results=results[dockerfile])
         run_command(cmd)
         print("[{}] - {}".format(results[dockerfile], dockerfile))
+        sys.stdout.flush()
 
     for dockerfile in dockerfiles:
         if results[dockerfile] == "FAILED":
