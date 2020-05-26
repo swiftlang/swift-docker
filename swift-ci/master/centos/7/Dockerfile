@@ -10,14 +10,9 @@ RUN yum install --enablerepo=centosplus  -y \
 	cmake3            \
 	devtoolset-8      \
 	gettext           \
-	gnutls-devel      \
-	krb5-devel        \
 	libatomic         \
+	libcurl-devel     \
 	libedit-devel     \
-	libidn2-devel     \
-	libmetalink-devel \
-	libnghttp2-devel  \
-	libssh2-devel     \
 	libstdc++-devel   \
 	libtool           \
 	libuuid-devel     \
@@ -26,14 +21,11 @@ RUN yum install --enablerepo=centosplus  -y \
 	make              \
 	ncurses-devel     \
 	ninja-build       \
-	openldap-devel    \
-	openssl-devel     \
 	pexpect           \
 	python-devel      \
 	python-pygments   \
 	python36-pexpect  \
 	PyYAML            \
-	rpm-build.x86_64  \
 	rsync             \
 	sclo-git25-git    \
 	sqlite-devel      \
@@ -41,13 +33,17 @@ RUN yum install --enablerepo=centosplus  -y \
 	which             \
 	zlib-devel
 
-RUN ln -sf /usr/bin/ninja-build /usr/bin/ninja && ln -sf /usr/bin/cmake3 /usr/bin/cmake
-
-RUN mkdir -p /home/build-user/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
-
-RUN echo '%_topdir %(echo $HOME)/rpmbuild' > /home/build-user/.rpmmacros
-
-RUN echo -e ". /opt/rh/sclo-git25/enable\n. /opt/rh/llvm-toolset-7/enable\n. /opt/rh/devtoolset-8/enable\n" >> /home/build-user/.bashrc
+RUN ln -sf /usr/bin/ninja-build /usr/bin/ninja && \
+  ln -sf /usr/bin/cmake3 /usr/bin/cmake && \
+  ln -sf /usr/lib64/libstdc++.so.6.0.?? /usr/lib64/libstdc++.so && \
+  ln -sf /usr/lib64/libatomic.so.1.?.? /usr/lib64/libatomic.so && \
+  echo "/* GNU ld script" > /usr/lib64/libgcc_s.so && \
+  echo "Use the shared library, but some functions are only in" >> /usr/lib64/libgcc_s.so && \
+  echo "the static library.  */" >> /usr/lib64/libgcc_s.so && \
+  echo "GROUP ( libgcc_s.so.1 -lgcc )" >> /usr/lib64/libgcc_s.so && \
+  sed -i -e 's/\*__block/\*__libc_block/g' /usr/include/unistd.h && \
+  echo -e ". /opt/rh/sclo-git25/enable\n. /opt/rh/llvm-toolset-7/enable\n. /opt/rh/devtoolset-8/enable\n" >> /home/build-user/.bashrc && \
+  chown -R build-user:build-user /home/build-user
 
 USER build-user
 
