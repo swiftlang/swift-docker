@@ -17,7 +17,8 @@ RUN yum -y update && yum -y install \
   libuuid \
   libxml2 \
   tar \
-  tzdata
+  tzdata \
+  zlib-devel
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 

@@ -16,7 +16,8 @@ RUN yum -y update && yum install --enablerepo=PowerTools -y \
   libstdc++-static \
   pkg-config \
   python2 \
-  sqlite
+  sqlite \
+  zlib-devel
 
 RUN ln -s /usr/bin/python2 /usr/bin/python
 
