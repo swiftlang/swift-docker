@@ -3,7 +3,9 @@ LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
-    apt-get -q install -y \
+    apt-get --no-install-recommends install -y \
+    apt-utils \
+    ca-certificates \
     binutils \
     git \
     libc6-dev \
@@ -41,7 +43,7 @@ ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
 RUN set -e; \
     # - Grab curl here so we cache better up above
     export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -q update && apt-get -q install -y curl && rm -rf /var/lib/apt/lists/* \
+    && apt-get -q update && apt-get --no-install-recommends -q install -y curl && rm -rf /var/lib/apt/lists/* \
     # - Latest Toolchain info
     && export $(curl -s ${SWIFT_WEBROOT}/latest-build.yml | grep 'download:' | sed 's/:[^:\/\/]/=/g')  \
     && export $(curl -s ${SWIFT_WEBROOT}/latest-build.yml | grep 'download_signature:' | sed 's/:[^:\/\/]/=/g')  \
