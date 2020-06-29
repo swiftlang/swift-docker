@@ -2,24 +2,6 @@ FROM amazonlinux:2
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
-RUN yum -y update && yum -y install \
-  binutils \
-  gcc \
-  git \
-  glibc-static \
-  gzip \
-  libbsd \
-  libcurl \
-  libedit \
-  libicu \
-  libsqlite \
-  libstdc++-static \
-  libuuid \
-  libxml2 \
-  tar \
-  tzdata \
-  zlib-devel
-
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 
 # pub   4096R/ED3D1561 2019-03-22 [expires: 2021-03-21]
@@ -47,9 +29,8 @@ RUN set -e; \
     && gpg --batch --quiet --keyserver ha.pool.sks-keyservers.net --recv-keys "$SWIFT_SIGNING_KEY" \
     && gpg --batch --verify swift.tar.gz.sig swift.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
-    && tar -xzf swift.tar.gz --directory / --strip-components=1 \
+    && yum -y update && yum -y install tar gzip \
+    && tar -xzf swift.tar.gz --directory / --strip-components=1 $SWIFT_VERSION-$SWIFT_PLATFORM/usr/lib/swift/linux \
     && chmod -R o+r /usr/lib/swift \
-    && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz
-
-# Print Installed Swift Version
-RUN swift --version
+    && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
+    && yum autoremove -y tar gzip

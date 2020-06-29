@@ -1,24 +1,6 @@
-FROM amazonlinux:2
+FROM centos:8
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
 LABEL description="Docker Container for the Swift programming language"
-
-RUN yum -y update && yum -y install \
-  binutils \
-  gcc \
-  git \
-  glibc-static \
-  gzip \
-  libbsd \
-  libcurl \
-  libedit \
-  libicu \
-  libsqlite \
-  libstdc++-static \
-  libuuid \
-  libxml2 \
-  tar \
-  tzdata \
-  zlib-devel
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 
@@ -26,7 +8,7 @@ RUN yum -y update && yum -y install \
 #       Key fingerprint = A62A E125 BBBF BB96 A6E0  42EC 925C C1CC ED3D 1561
 # uid                  Swift 5.x Release Signing Key <swift-infrastructure@swift.org
 ARG SWIFT_SIGNING_KEY=A62AE125BBBFBB96A6E042EC925CC1CCED3D1561
-ARG SWIFT_PLATFORM=amazonlinux2
+ARG SWIFT_PLATFORM=centos8
 ARG SWIFT_BRANCH=swift-5.2.4-release
 ARG SWIFT_VERSION=swift-5.2.4-RELEASE
 ARG SWIFT_WEBROOT=https://swift.org/builds/
@@ -47,9 +29,6 @@ RUN set -e; \
     && gpg --batch --quiet --keyserver ha.pool.sks-keyservers.net --recv-keys "$SWIFT_SIGNING_KEY" \
     && gpg --batch --verify swift.tar.gz.sig swift.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
-    && tar -xzf swift.tar.gz --directory / --strip-components=1 \
+    && tar -xzf swift.tar.gz --directory / --strip-components=1 $SWIFT_VERSION-$SWIFT_PLATFORM/usr/lib/swift/linux \
     && chmod -R o+r /usr/lib/swift \
     && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz
-
-# Print Installed Swift Version
-RUN swift --version
