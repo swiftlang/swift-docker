@@ -17,6 +17,8 @@ RUN yum -y update && yum install shadow-utils.x86_64 -y \
   sqlite \
   zlib-devel
 
+RUN sed -i -e 's/\*__block/\*__libc_block/g' /usr/include/unistd.h
+
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 
 # gpg --keyid-format LONG -k FAF6989E1BC16FEA
