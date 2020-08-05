@@ -5,9 +5,7 @@ RUN groupadd -g 998 build-user && \
 
 ENV DEBIAN_FRONTEND="noninteractive"
 
-RUN apt update
-
-RUN apt -y install      \
+RUN apt -y update && apt -y install \
   clang                 \
   cmake                 \
   git                   \
