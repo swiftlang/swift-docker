@@ -38,6 +38,10 @@ RUN yum -y install \
   wget             \
   which
 
+RUN mkdir -p /usr/local/lib/python3.7/site-packages/
+
+RUN easy_install-3.7 six
+
 USER build-user
 
 WORKDIR /home/build-user
