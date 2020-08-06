@@ -11,6 +11,7 @@ RUN yum install --enablerepo=PowerTools -y \
     autoconf              \
     clang                 \
     cmake                 \
+    diffutils             \
     git                   \
     libbsd-devel          \
     libcurl-devel         \
