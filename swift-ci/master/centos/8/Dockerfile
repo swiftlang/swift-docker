@@ -13,10 +13,12 @@ RUN yum install --enablerepo=PowerTools -y \
     cmake                 \
     diffutils             \
     git                   \
+    glibc-static          \
     libbsd-devel          \
     libcurl-devel         \
     libedit-devel         \
     libicu-devel          \
+    libstdc++-static      \
     libtool               \
     libuuid-devel         \
     libxml2-devel         \
