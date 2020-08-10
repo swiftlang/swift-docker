@@ -14,12 +14,14 @@ RUN apt -y update && apt -y install \
   libedit-dev           \
   libicu-dev            \
   libncurses5-dev       \
+  libpython3-dev        \
   libsqlite3-dev        \
   libxml2-dev           \
   ninja-build           \
   pkg-config            \
   python                \
   python-six            \
+  python3-distutils     \
   rsync                 \
   swig                  \
   systemtap-sdt-dev     \
