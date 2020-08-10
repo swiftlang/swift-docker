@@ -21,6 +21,7 @@ RUN apt -y update && apt -y install \
   pkg-config            \
   python                \
   python-six            \
+  python3-six           \
   python3-distutils     \
   rsync                 \
   swig                  \
