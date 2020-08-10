@@ -2,7 +2,7 @@ FROM ubuntu:18.04
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
 LABEL Description="Docker Container for the Swift programming language"
 
-RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && \
+RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
     apt-get -q install -y \
     libatomic1 \
     libcurl4 \
