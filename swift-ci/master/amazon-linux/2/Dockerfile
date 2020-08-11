@@ -15,7 +15,9 @@ RUN yum -y install \
   clang            \
   cmake            \
   curl-devel       \
+  gcc-c++          \
   git              \
+  glibc-static     \
   libbsd-devel     \
   libedit-devel    \
   libicu-devel     \
