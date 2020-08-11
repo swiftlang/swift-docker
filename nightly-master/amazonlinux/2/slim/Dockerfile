@@ -34,7 +34,7 @@ RUN set -e; \
     && curl -fSsL https://swift.org/keys/all-keys.asc | gpg --import -  \
     && gpg --batch --verify latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
-    && yum -y update && yum -y install tar gzip \
+    && yum -y install tar gzip \
     && tar -xzf latest_toolchain.tar.gz --directory / --strip-components=1 ${DOWNLOAD_DIR}-${OS_VER}/usr/lib/swift/linux \
     && chmod -R o+r /usr/lib/swift \
     && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \

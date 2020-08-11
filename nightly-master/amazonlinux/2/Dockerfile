@@ -2,7 +2,7 @@ FROM amazonlinux:2
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
-RUN yum -y update && yum -y install \
+RUN yum -y install \
   binutils \
   gcc \
   git \

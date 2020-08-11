@@ -1,6 +1,6 @@
 FROM amazonlinux:2
 
-RUN yum -y update && yum install shadow-utils.x86_64 -y
+RUN yum install shadow-utils.x86_64 -y
 
 RUN groupadd -g 998 build-user && \
     useradd -m -r -u 42 -g build-user build-user
@@ -10,7 +10,6 @@ RUN groupadd -g 998 build-user && \
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
 # Update and install needed build packages
-RUN yum -y update
 RUN yum -y group install "development tools"
 RUN yum -y install \
   clang            \

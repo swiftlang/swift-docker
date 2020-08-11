@@ -5,8 +5,6 @@ RUN groupadd -g 42 build-user && \
 
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 
-RUN yum -y update
-
 RUN yum install --enablerepo=PowerTools -y \
     autoconf              \
     clang                 \
