@@ -6,6 +6,7 @@ RUN groupadd -g 998 build-user && \
 ENV DEBIAN_FRONTEND="noninteractive"
 
 RUN apt -y update && apt -y install \
+  build-essential       \
   clang                 \
   cmake                 \
   git                   \
@@ -21,6 +22,7 @@ RUN apt -y update && apt -y install \
   pkg-config            \
   python                \
   python-six            \
+  python2-dev           \
   python3-six           \
   python3-distutils     \
   rsync                 \
