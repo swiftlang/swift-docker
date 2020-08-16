@@ -2,24 +2,6 @@ FROM amazonlinux:2
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
-RUN yum -y install \
-  binutils \
-  gcc \
-  git \
-  glibc-static \
-  gzip \
-  libbsd \
-  libcurl \
-  libedit \
-  libicu \
-  libsqlite \
-  libstdc++-static \
-  libuuid \
-  libxml2 \
-  tar \
-  tzdata \
-  zlib-devel
-
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 
 # gpg --keyid-format LONG -k FAF6989E1BC16FEA
@@ -52,12 +34,11 @@ RUN set -e; \
     && curl -fSsL https://swift.org/keys/all-keys.asc | gpg --import -  \
     && gpg --batch --verify latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
-    && tar -xzf latest_toolchain.tar.gz --directory / --strip-components=1 \
+    && yum -y install tar gzip \
+    && tar -xzf latest_toolchain.tar.gz --directory / --strip-components=1 ${DOWNLOAD_DIR}-${OS_VER}/usr/lib/swift/linux \
     && chmod -R o+r /usr/lib/swift \
     && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
-
-# Print Installed Swift Version
-RUN swift --version
+    && yum autoremove -y tar gzip
 
 RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd' \
     >> /etc/bashrc; \

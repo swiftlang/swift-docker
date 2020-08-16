@@ -1,24 +1,6 @@
-FROM amazonlinux:2
+FROM centos:8
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
 LABEL description="Docker Container for the Swift programming language"
-
-RUN yum -y install \
-  binutils \
-  gcc \
-  git \
-  glibc-static \
-  gzip \
-  libbsd \
-  libcurl \
-  libedit \
-  libicu \
-  libsqlite \
-  libstdc++-static \
-  libuuid \
-  libxml2 \
-  tar \
-  tzdata \
-  zlib-devel
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 
@@ -27,8 +9,8 @@ RUN yum -y install \
 #       8A7495662C3CD4AE18D95637FAF6989E1BC16FEA
 # uid                 [ unknown] Swift Automatic Signing Key #3 <swift-infrastructure@swift.org>
 ARG SWIFT_SIGNING_KEY=8A7495662C3CD4AE18D95637FAF6989E1BC16FEA
-ARG SWIFT_PLATFORM=amazonlinux
-ARG OS_MAJOR_VER=2
+ARG SWIFT_PLATFORM=centos
+ARG OS_MAJOR_VER=8
 ARG SWIFT_WEBROOT=https://swift.org/builds/development
 
 ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
@@ -52,12 +34,9 @@ RUN set -e; \
     && curl -fSsL https://swift.org/keys/all-keys.asc | gpg --import -  \
     && gpg --batch --verify latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
-    && tar -xzf latest_toolchain.tar.gz --directory / --strip-components=1 \
+    && tar -xzf latest_toolchain.tar.gz --directory / --strip-components=1 ${DOWNLOAD_DIR}-${OS_VER}/usr/lib/swift/linux \
     && chmod -R o+r /usr/lib/swift \
-    && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
-
-# Print Installed Swift Version
-RUN swift --version
+    && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz
 
 RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd' \
     >> /etc/bashrc; \
@@ -67,5 +46,3 @@ RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd' \
     "# Tag: $(cat .swift_tag)\t\t\t#\n" \
     "#\t\t\t\t\t\t\t\t#\n"  \
     "################################################################\n" > /etc/motd
-
-RUN echo 'source /etc/bashrc' >> /root/.bashrc

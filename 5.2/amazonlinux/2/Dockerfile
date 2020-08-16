@@ -2,7 +2,7 @@ FROM amazonlinux:2
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
-RUN yum -y update && yum -y install \
+RUN yum -y install \
   binutils \
   gcc \
   git \
@@ -27,8 +27,8 @@ RUN yum -y update && yum -y install \
 # uid                  Swift 5.x Release Signing Key <swift-infrastructure@swift.org
 ARG SWIFT_SIGNING_KEY=A62AE125BBBFBB96A6E042EC925CC1CCED3D1561
 ARG SWIFT_PLATFORM=amazonlinux2
-ARG SWIFT_BRANCH=swift-5.2.4-release
-ARG SWIFT_VERSION=swift-5.2.4-RELEASE
+ARG SWIFT_BRANCH=swift-5.2.5-release
+ARG SWIFT_VERSION=swift-5.2.5-RELEASE
 ARG SWIFT_WEBROOT=https://swift.org/builds/
 
 ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
@@ -36,7 +36,6 @@ ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
     SWIFT_BRANCH=$SWIFT_BRANCH \
     SWIFT_VERSION=$SWIFT_VERSION \
     SWIFT_WEBROOT=$SWIFT_WEBROOT
-
 
 RUN set -e; \
     SWIFT_WEBDIR="$SWIFT_WEBROOT/$SWIFT_BRANCH/$(echo $SWIFT_PLATFORM | tr -d .)/" \

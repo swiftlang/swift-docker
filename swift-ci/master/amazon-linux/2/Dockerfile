@@ -1,6 +1,6 @@
 FROM amazonlinux:2
 
-RUN yum -y update && yum install shadow-utils.x86_64 -y
+RUN yum install shadow-utils.x86_64 -y
 
 RUN groupadd -g 998 build-user && \
     useradd -m -r -u 42 -g build-user build-user
@@ -10,13 +10,14 @@ RUN groupadd -g 998 build-user && \
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
 # Update and install needed build packages
-RUN yum -y update
 RUN yum -y group install "development tools"
 RUN yum -y install \
   clang            \
   cmake            \
   curl-devel       \
+  gcc-c++          \
   git              \
+  glibc-static     \
   libbsd-devel     \
   libedit-devel    \
   libicu-devel     \
@@ -37,6 +38,10 @@ RUN yum -y install \
   uuid-devel       \
   wget             \
   which
+
+RUN mkdir -p /usr/local/lib/python3.7/site-packages/
+
+RUN easy_install-3.7 six
 
 USER build-user
 
