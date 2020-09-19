@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND="noninteractive"
 
 RUN apt-get update
 
-RUN apt-get -y --no-install-recommends install \
+RUN apt-get --no-install-recommends -y install \
   build-essential       \
   clang                 \
   cmake                 \
@@ -20,18 +20,16 @@ RUN apt-get -y --no-install-recommends install \
   libsqlite3-dev        \
   libxml2-dev           \
   ninja-build           \
-  python                \
-  python-dev            \
-  python-six            \
   pkg-config            \
+  python                \
+  python-six            \
   rsync                 \
   swig                  \
   systemtap-sdt-dev     \
   tzdata                \
   unzip                 \
-  vim                   \
-  uuid-dev		\
-  ca-certificates
+  ca-certificates	\
+  uuid-dev
 
 USER build-user
 
