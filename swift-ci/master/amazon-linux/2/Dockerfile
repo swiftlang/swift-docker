@@ -31,6 +31,7 @@ RUN yum -y install \
   python-devel     \
   python-pkgconfig \
   python-six       \
+  python3-devel    \
   rsync            \
   sqlite-devel     \
   swig             \
