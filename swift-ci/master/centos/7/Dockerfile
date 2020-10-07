@@ -26,6 +26,7 @@ RUN yum install --enablerepo=centosplus  -y \
     openssl-devel       \
     pexpect             \
     python-devel        \
+    python3-devel       \
     python-pygments     \
     python-six          \
     python36-pexpect    \
