@@ -3,7 +3,9 @@ LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
 LABEL Description="Docker Container for the Swift programming language"
 
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
-    apt-get -q install -y \
+    apt-get --no-install-recommends install -y \
+    apt-utils \
+    ca-certificates \
     libatomic1 \
     libbsd0 \
     libcurl3 \
@@ -23,7 +25,7 @@ ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
 # Download GPG keys, signature and Swift package, then unpack, cleanup and execute permissions for foundation libs
 RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | tr -d .)/$SWIFT_VERSION/$SWIFT_VERSION-$SWIFT_PLATFORM.tar.gz \
     && apt-get update \
-    && apt-get install -y curl \
+    && apt-get --no-install-recommends install -y curl \
     && curl -fSsL $SWIFT_URL -o swift.tar.gz \
     && curl -fSsL $SWIFT_URL.sig -o swift.tar.gz.sig \
     && export GNUPGHOME="$(mktemp -d)" \
