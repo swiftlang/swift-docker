@@ -4,7 +4,9 @@ LABEL Description="Docker Container for the Swift programming language"
 
 # Install related packages and set LLVM 3.9 as the compiler
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
-    apt-get -q install -y \
+    apt-get --no-install-recommends install -y \
+    apt-utils \
+    ca-certificates \
     make \
     libc6-dev \
     clang-3.9 \

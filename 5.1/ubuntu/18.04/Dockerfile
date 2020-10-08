@@ -3,7 +3,9 @@ LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
 LABEL Description="Docker Container for the Swift programming language"
 
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
-    apt-get -q install -y \
+    apt-get --no-install-recommends install -y \
+    apt-utils \
+    ca-certificates \
     libatomic1 \
     libcurl4 \
     libxml2 \
@@ -43,7 +45,7 @@ RUN set -e; \
     && SWIFT_SIG_URL="$SWIFT_BIN_URL.sig" \
     # - Grab curl here so we cache better up above
     && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -q update && apt-get -q install -y curl && rm -rf /var/lib/apt/lists/* \
+    && apt-get -q update && apt-get --no-install-recommends -q install -y curl && rm -rf /var/lib/apt/lists/* \
     # - Download the GPG keys, Swift toolchain, and toolchain signature, and verify.
     && export GNUPGHOME="$(mktemp -d)" \
     && curl -fsSL "$SWIFT_BIN_URL" -o swift.tar.gz "$SWIFT_SIG_URL" -o swift.tar.gz.sig \
