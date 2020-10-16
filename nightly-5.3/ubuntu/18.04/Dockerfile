@@ -6,6 +6,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     apt-get -q install -y \
     libatomic1 \
     libcurl4 \
+    libcurl4-openssl-dev \
     libxml2 \
     libedit2 \
     libsqlite3-0 \
