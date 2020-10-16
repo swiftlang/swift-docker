@@ -8,6 +8,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     git \
     libc6-dev \
     libcurl4 \
+    libcurl4-openssl-dev \
     libedit2 \
     libgcc-5-dev \
     libpython2.7 \
