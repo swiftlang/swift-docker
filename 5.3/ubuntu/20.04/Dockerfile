@@ -16,6 +16,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     libstdc++-9-dev \
     libxml2 \
     libz3-dev \
+    make \
     pkg-config \
     tzdata \
     zlib1g-dev \
