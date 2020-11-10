@@ -4,20 +4,19 @@ LABEL description="Docker Container for the Swift programming language"
 
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
     apt-get -q install -y \
-    libatomic1 \
-    libcurl3 \
-    libxml2 \
-    libedit2 \
-    libsqlite3-0 \
-    libc6-dev \
     binutils \
-    libgcc-5-dev \
-    libstdc++-5-dev \
-    zlib1g-dev \
-    libpython2.7 \
-    tzdata \
     git \
+    libc6-dev \
+    libcurl3 \
+    libedit2 \
+    libgcc-5-dev \
+    libpython2.7 \
+    libsqlite3-0 \
+    libstdc++-5-dev \
+    libxml2 \
     pkg-config \
+    tzdata \
+    zlib1g-dev \
     && rm -r /var/lib/apt/lists/*
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
@@ -37,7 +36,7 @@ ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
     OS_MAJOR_VER=$OS_MAJOR_VER \
     OS_MIN_VER=$OS_MIN_VER \
     OS_VER=$SWIFT_PLATFORM$OS_MAJOR_VER.$OS_MIN_VER \
-    SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM$OS_MAJOR_VER$OS_MIN_VER" 
+    SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM$OS_MAJOR_VER$OS_MIN_VER"
 
 RUN set -e; \
     # - Grab curl here so we cache better up above
@@ -67,7 +66,7 @@ RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd' \
     >> /etc/bash.bashrc; \
     echo " ################################################################\n" \
     "#\t\t\t\t\t\t\t\t#\n" \
-    "# Swift Nightly Docker Image\t\t\t\t#\n" \
+    "# Swift Nightly Docker Image\t\t\t\t\t#\n" \
     "# Tag: $(cat .swift_tag)\t\t\t#\n" \
     "#\t\t\t\t\t\t\t\t#\n"  \
     "################################################################\n" > /etc/motd

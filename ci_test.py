@@ -17,10 +17,16 @@ import subprocess
 import sys
 import os
 
-
-def run_command(cmd):
+def run_command(cmd, log_file=None):
     print("Running: {}".format(cmd))
-    p = subprocess.Popen(cmd, shell=True)
+    sys.stdout.flush()
+    if log_file:
+        file = open(log_file, "w")
+        p = subprocess.Popen(cmd, shell=True, stdout=file, stderr=file)
+    else:
+        p = subprocess.Popen(cmd, shell=True)
+      
+    (output, err) = p.communicate()
     return p.wait()
 
 
@@ -49,19 +55,29 @@ def main():
     suite_status = True
     dockerfiles = get_dockerfiles()
     for dockerfile in dockerfiles:
+        docker_dir = os.path.dirname(os.path.realpath(__file__))
         print("Testing {}".format(dockerfile))
-        cmd = "docker build {}".format(dockerfile)
-        status = run_command(cmd)
+        sys.stdout.flush()
+        log_file = dockerfile.replace(docker_dir,"").replace("/", "_")
+        log_file = "{}.log".format(log_file)
+        cmd = "docker build --no-cache=true {}".format(dockerfile)
+        status = run_command(cmd, log_file)
         results[dockerfile] = status
         if status != 0:
             suite_status = False
             results[dockerfile] = "FAILED"
         else:
             results[dockerfile] = "PASSED"
-        print("--- [{}] - {} ---".format(results[dockerfile], dockerfile))
 
+        cmd = "mv {log} {results}{log}".format(log=log_file, results=results[dockerfile])
+        run_command(cmd)
+        print("[{}] - {}".format(results[dockerfile], dockerfile))
+        sys.stdout.flush()
 
-    print_results(results)
+    for dockerfile in dockerfiles:
+        if results[dockerfile] == "FAILED":
+            print("[{}] - {}".format(results[dockerfile], dockerfile))
+
     if suite_status == False:
         sys.exit(1)
 

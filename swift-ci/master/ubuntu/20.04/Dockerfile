@@ -5,9 +5,8 @@ RUN groupadd -g 998 build-user && \
 
 ENV DEBIAN_FRONTEND="noninteractive"
 
-RUN apt update
-
-RUN apt -y install      \
+RUN apt -y update && apt -y install \
+  build-essential       \
   clang                 \
   cmake                 \
   git                   \
@@ -16,12 +15,16 @@ RUN apt -y install      \
   libedit-dev           \
   libicu-dev            \
   libncurses5-dev       \
+  libpython3-dev        \
   libsqlite3-dev        \
   libxml2-dev           \
   ninja-build           \
   pkg-config            \
   python                \
   python-six            \
+  python2-dev           \
+  python3-six           \
+  python3-distutils     \
   rsync                 \
   swig                  \
   systemtap-sdt-dev     \

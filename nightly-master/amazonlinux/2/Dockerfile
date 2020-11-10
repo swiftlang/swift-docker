@@ -2,7 +2,7 @@ FROM amazonlinux:2
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
-RUN yum -y update && yum -y install \
+RUN yum -y install \
   binutils \
   gcc \
   git \
@@ -17,7 +17,8 @@ RUN yum -y update && yum -y install \
   libuuid \
   libxml2 \
   tar \
-  tzdata
+  tzdata \
+  zlib-devel
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 
@@ -34,7 +35,7 @@ ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
     SWIFT_PLATFORM=$SWIFT_PLATFORM \
     OS_MAJOR_VER=$OS_MAJOR_VER \
     OS_VER=$SWIFT_PLATFORM$OS_MAJOR_VER \
-    SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM$OS_MAJOR_VER" 
+    SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM$OS_MAJOR_VER"
 
 RUN echo "${SWIFT_WEBROOT}/latest-build.yml"
 
@@ -59,10 +60,12 @@ RUN set -e; \
 RUN swift --version
 
 RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd' \
-    >> /etc/bash.bashrc; \
-    echo " ################################################################\n" \
+    >> /etc/bashrc; \
+    echo -e " ################################################################\n" \
     "#\t\t\t\t\t\t\t\t#\n" \
-    "# Swift Nightly Docker Image\t\t\t\t#\n" \
+    "# Swift Nightly Docker Image\t\t\t\t\t#\n" \
     "# Tag: $(cat .swift_tag)\t\t\t#\n" \
     "#\t\t\t\t\t\t\t\t#\n"  \
     "################################################################\n" > /etc/motd
+
+RUN echo 'source /etc/bashrc' >> /root/.bashrc
