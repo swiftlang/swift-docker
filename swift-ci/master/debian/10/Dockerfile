@@ -5,9 +5,7 @@ RUN groupadd -g 998 build-user && \
 
 ENV DEBIAN_FRONTEND="noninteractive"
 
-RUN apt-get update
-
-RUN apt-get -y --no-install-recommends install \
+RUN apt-get -y update && apt-get -y --no-install-recommends install \
   build-essential       \
   clang                 \
   cmake                 \
@@ -17,19 +15,21 @@ RUN apt-get -y --no-install-recommends install \
   libedit-dev           \
   libicu-dev            \
   libncurses5-dev       \
+  libpython3-dev        \
   libsqlite3-dev        \
   libxml2-dev           \
   ninja-build           \
-  python                \
-  python-dev            \
-  python-six            \
   pkg-config            \
+  python                \
+  python-six            \
+  python2-dev           \
+  python3-six           \
+  python3-distutils     \
   rsync                 \
   swig                  \
   systemtap-sdt-dev     \
   tzdata                \
   unzip                 \
-  vim                   \
   uuid-dev		\
   ca-certificates
 
