@@ -4,7 +4,7 @@ LABEL description="Docker Container for the Swift programming language"
 
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 
-RUN yum install --enablerepo=PowerTools -y \
+RUN yum install --enablerepo=powertools -y \
   binutils \
   gcc \
   git \
