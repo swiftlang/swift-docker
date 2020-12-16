@@ -9,8 +9,8 @@ LABEL description="Docker Container for the Swift programming language"
 # uid                  Swift 5.x Release Signing Key <swift-infrastructure@swift.org
 ARG SWIFT_SIGNING_KEY=A62AE125BBBFBB96A6E042EC925CC1CCED3D1561
 ARG SWIFT_PLATFORM=centos8
-ARG SWIFT_BRANCH=swift-5.3.1-release
-ARG SWIFT_VERSION=swift-5.3.1-RELEASE
+ARG SWIFT_BRANCH=swift-5.3.2-release
+ARG SWIFT_VERSION=swift-5.3.2-RELEASE
 ARG SWIFT_WEBROOT=https://swift.org/builds/
 
 ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
