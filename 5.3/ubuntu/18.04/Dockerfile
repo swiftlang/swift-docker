@@ -46,13 +46,19 @@ RUN set -e; \
     && apt-get -q update && apt-get -q install -y curl && rm -rf /var/lib/apt/lists/* \
     # - Download the GPG keys, Swift toolchain, and toolchain signature, and verify.
     && export GNUPGHOME="$(mktemp -d)" \
-    && curl -fsSL "$SWIFT_BIN_URL" -o swift.tar.gz "$SWIFT_SIG_URL" -o swift.tar.gz.sig \
-    && gpg --batch --quiet --keyserver ha.pool.sks-keyservers.net --recv-keys "$SWIFT_SIGNING_KEY" \
-    && gpg --batch --verify swift.tar.gz.sig swift.tar.gz \
-    # - Unpack the toolchain, set libs permissions, and clean up.
-    && tar -xzf swift.tar.gz --directory / --strip-components=1 \
-    && chmod -R o+r /usr/lib/swift \
-    && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
+    && if [ `uname -m` = "aarch64" ] ; then \
+        curl -L https://github.com/futurejones/swift-arm64/releases/download/v5.3.3-RELEASE/swiftlang-5.3.3-ubuntu-18.04-release-aarch64-4-2021-02-01.tar.gz --output swiftlang-5.3.3-ubuntu-18.04-release-aarch64-4-2021-02-01.tar.gz && \
+        tar -xf  swiftlang-5.3.3-ubuntu-18.04-release-aarch64-4-2021-02-01.tar.gz --directory / --strip-components=1 && \
+        export PATH=usr/bin:$PATH && \
+        rm -rf swiftlang-5.3.3-ubuntu-18.04-release-aarch64-4-2021-02-01.tar.gz; \
+    else \
+        curl -fsSL "$SWIFT_BIN_URL" -o swift.tar.gz "$SWIFT_SIG_URL" -o swift.tar.gz.sig \
+        && gpg --batch --quiet --keyserver ha.pool.sks-keyservers.net --recv-keys "$SWIFT_SIGNING_KEY" \
+        && gpg --batch --verify swift.tar.gz.sig swift.tar.gz \
+        && tar -xzf swift.tar.gz --directory / --strip-components=1 \
+        && chmod -R o+r /usr/lib/swift \
+        && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz; \
+    fi \
     && apt-get purge --auto-remove -y curl
 
 # Print Installed Swift Version
