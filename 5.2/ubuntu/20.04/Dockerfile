@@ -23,7 +23,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 
-# pub   4096R/ED3D1561 2019-03-22 [expires: 2021-03-21]
+# pub   4096R/ED3D1561 2019-03-22 [SC] [expires: 2023-03-23]
 #       Key fingerprint = A62A E125 BBBF BB96 A6E0  42EC 925C C1CC ED3D 1561
 # uid                  Swift 5.x Release Signing Key <swift-infrastructure@swift.org
 ARG SWIFT_SIGNING_KEY=A62AE125BBBFBB96A6E042EC925CC1CCED3D1561

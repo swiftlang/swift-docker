@@ -29,7 +29,7 @@ RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | 
     && export GNUPGHOME="$(mktemp -d)" \
     && set -e; \
         for key in \
-      # pub   4096R/ED3D1561 2019-03-22 [expires: 2021-03-21]
+      # pub   4096R/ED3D1561 2019-03-22 [SC] [expires: 2023-03-23]
       #       Key fingerprint = A62A E125 BBBF BB96 A6E0  42EC 925C C1CC ED3D 1561
       # uid                  Swift 5.x Release Signing Key <swift-infrastructure@swift.org>
           A62AE125BBBFBB96A6E042EC925CC1CCED3D1561 \
