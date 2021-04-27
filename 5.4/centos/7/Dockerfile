@@ -13,7 +13,7 @@ RUN yum install shadow-utils.x86_64 -y \
   libicu-devel \
   libstdc++-static \
   pkg-config \
-  python2 \
+  python3 \
   sqlite \
   zlib-devel
 

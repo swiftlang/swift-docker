@@ -14,7 +14,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     libgcc-5-dev \
     libstdc++-5-dev \
     zlib1g-dev \
-    libpython2.7 \
+    libpython3.5 \
     tzdata \
     git \
     pkg-config \

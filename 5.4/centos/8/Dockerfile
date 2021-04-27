@@ -15,11 +15,11 @@ RUN yum install --enablerepo=powertools -y \
   libicu-devel \
   libstdc++-static \
   pkg-config \
-  python2 \
+  python3 \
   sqlite \
   zlib-devel
 
-RUN ln -s /usr/bin/python2 /usr/bin/python
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 
