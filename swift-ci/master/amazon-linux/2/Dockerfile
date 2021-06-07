@@ -1,6 +1,6 @@
 FROM amazonlinux:2
 
-RUN yum install shadow-utils.x86_64 -y
+RUN yum install shadow-utils -y
 
 RUN groupadd -g 998 build-user && \
     useradd -m -r -u 42 -g build-user build-user
