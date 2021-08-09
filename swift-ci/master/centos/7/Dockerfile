@@ -39,6 +39,11 @@ RUN yum install --enablerepo=centosplus  -y \
     which               \
     zlib-devel
 
+# Install the current version of Node.js that swift-docc-render depends on:
+COPY install_node.sh /
+RUN /install_node.sh
+ENV PATH "$PATH:/usr/local/lib/nodejs/node/bin"
+
 RUN echo -e ". /opt/rh/sclo-git25/enable\n. /opt/rh/llvm-toolset-7/enable\n. /opt/rh/devtoolset-8/enable\n" >> /home/build-user/.bashrc
 
 RUN sed -i -e 's/\*__block/\*__libc_block/g' /usr/include/unistd.h

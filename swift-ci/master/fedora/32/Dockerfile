@@ -26,6 +26,11 @@ RUN dnf -y update && dnf install -y \
     rsync                       \
     swig 
 
+# Install the current version of Node.js that swift-docc-render depends on:
+COPY install_node.sh /
+RUN /install_node.sh
+ENV PATH "$PATH:/usr/local/lib/nodejs/node/bin"
+
 USER build-user
 
 WORKDIR /home/build-user

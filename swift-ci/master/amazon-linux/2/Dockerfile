@@ -40,6 +40,11 @@ RUN yum -y install \
   wget             \
   which
 
+# Install the current version of Node.js that swift-docc-render depends on:
+COPY install_node.sh /
+RUN /install_node.sh
+ENV PATH "$PATH:/usr/local/lib/nodejs/node/bin"
+
 RUN mkdir -p /usr/local/lib/python3.7/site-packages/
 
 RUN easy_install-3.7 six

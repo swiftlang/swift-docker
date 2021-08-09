@@ -37,6 +37,11 @@ RUN yum install --enablerepo=powertools -y \
     tar                   \
     which
 
+# Install the current version of Node.js that swift-docc-render depends on
+COPY install_node.sh /
+RUN /install_node.sh
+ENV PATH "$PATH:/usr/local/lib/nodejs/node/bin"
+
 RUN ln -s /usr/bin/python2 /usr/bin/python
 
 USER build-user

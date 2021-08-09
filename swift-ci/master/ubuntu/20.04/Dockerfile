@@ -32,6 +32,11 @@ RUN apt-get -y update && apt-get -y install \
   unzip                 \
   uuid-dev
 
+# Install the current version of Node.js that swift-docc-render depends on:
+COPY install_node.sh /
+RUN /install_node.sh
+ENV PATH "$PATH:/usr/local/lib/nodejs/node/bin"
+
 USER build-user
 
 WORKDIR /home/build-user

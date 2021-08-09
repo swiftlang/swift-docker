@@ -33,6 +33,11 @@ RUN apt-get -y update && apt-get -y --no-install-recommends install \
   uuid-dev		\
   ca-certificates
 
+# Install the current version of Node.js that swift-docc-render depends on:
+COPY install_node.sh /
+RUN /install_node.sh
+RUN echo "export PATH=$PATH:/usr/local/lib/nodejs/node/bin" >> /home/build-user/.bashrc
+
 USER build-user
 
 WORKDIR /home/build-user
