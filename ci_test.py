@@ -70,6 +70,10 @@ def main():
         log_file = dockerfile.replace(docker_dir,"").replace("/", "_")
         log_file = "{}.log".format(log_file)
         cmd = "docker build --no-cache=true {}".format(dockerfile)
+        if "buildx" in dockerfile:
+            # if "buildx" is part of the path, we want to use the new buildx build system and build
+            # for both amd64 and arm64.
+            cmd = "docker buildx build --platform linux/arm64,linux/amd64 --no-cache=true {}".format(dockerfile)
         status = run_command(cmd, log_file)
         results[dockerfile] = status
         if status != 0:
