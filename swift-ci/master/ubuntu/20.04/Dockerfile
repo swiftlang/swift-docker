@@ -5,7 +5,7 @@ RUN groupadd -g 998 build-user && \
 
 ENV DEBIAN_FRONTEND="noninteractive"
 
-RUN apt -y update && apt -y install \
+RUN apt-get -y update && apt-get -y install \
   build-essential       \
   clang                 \
   cmake                 \

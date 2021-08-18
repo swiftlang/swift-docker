@@ -1,13 +1,12 @@
-FROM ubuntu:19.10
+FROM ubuntu:18.04
 
 RUN groupadd -g 998 build-user && \
     useradd -m -r -u 998 -g build-user build-user
 
 ENV DEBIAN_FRONTEND="noninteractive"
 
-RUN apt update
-
-RUN apt -y install      \
+RUN apt -y update && apt -y install \
+  build-essential       \
   clang                 \
   cmake                 \
   git                   \
@@ -16,13 +15,15 @@ RUN apt -y install      \
   libedit-dev           \
   libicu-dev            \
   libncurses5-dev       \
-  libpython-dev         \
+  libpython3-dev        \
   libsqlite3-dev        \
   libxml2-dev           \
   ninja-build           \
   pkg-config            \
   python                \
   python-six            \
+  python3-six           \
+  python3-distutils     \
   rsync                 \
   swig                  \
   systemtap-sdt-dev     \
