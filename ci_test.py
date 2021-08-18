@@ -13,9 +13,12 @@
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+import urllib2
+import json
 import subprocess
 import sys
 import os
+
 
 def run_command(cmd, log_file=None):
     print("Running: {}".format(cmd))
@@ -32,12 +35,18 @@ def run_command(cmd, log_file=None):
 
 def get_dockerfiles():
     dockerfiles = []
-    docker_dir = os.path.dirname(os.path.realpath(__file__))
-    for root, dirs, files in os.walk(docker_dir):
-        for file in files:
-            if file == "Dockerfile":
-                 dockerfiles.append(root)
-    dockerfiles.sort(reverse=True)
+    GITHUB_API_URL = "https://api.github.com"
+    response = urllib2.urlopen("{}/repos/{}/pulls/{}/files".format(GITHUB_API_URL,
+                                                                   os.environ['ghprbGhRepository'],
+                                                                   os.environ['ghprbPullId']))
+    data = json.load(response)
+
+    for file_info in data:
+        filename = file_info['filename']
+        print(filename)
+        if "Dockerfile" in filename:
+            file_dir = filename.replace("Dockerfile", "")
+            dockerfiles.append(file_dir)
     return dockerfiles
 
 
