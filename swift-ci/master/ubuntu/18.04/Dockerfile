@@ -7,17 +7,25 @@ ENV DEBIAN_FRONTEND="noninteractive"
 
 RUN apt -y update && apt -y install \
   build-essential       \
+  autoconf              \
+  curl                  \
   clang                 \
   cmake                 \
   git                   \
   icu-devtools          \
+  libblocksruntime-dev  \
+  libbsd-dev            \
   libcurl4-openssl-dev  \
   libedit-dev           \
   libicu-dev            \
+  libkqueue-dev         \
   libncurses5-dev       \
+  libpython-dev         \
   libpython3-dev        \
   libsqlite3-dev        \
+  libtool               \
   libxml2-dev           \
+  llvm                  \
   ninja-build           \
   pkg-config            \
   python                \
