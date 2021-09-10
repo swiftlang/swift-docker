@@ -17,8 +17,8 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
 # uid                  Swift 5.x Release Signing Key <swift-infrastructure@swift.org
 ARG SWIFT_SIGNING_KEY=A62AE125BBBFBB96A6E042EC925CC1CCED3D1561
 ARG SWIFT_PLATFORM=ubuntu18.04
-ARG SWIFT_BRANCH=swift-5.4.2-release
-ARG SWIFT_VERSION=swift-5.4.2-RELEASE
+ARG SWIFT_BRANCH=swift-5.4.3-release
+ARG SWIFT_VERSION=swift-5.4.3-RELEASE
 ARG SWIFT_WEBROOT=https://swift.org/builds/
 
 ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
