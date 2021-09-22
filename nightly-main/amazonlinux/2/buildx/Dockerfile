@@ -1,5 +1,5 @@
 FROM amazonlinux:2 AS base
-LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
+LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
 RUN yum -y install \

@@ -1,5 +1,5 @@
 FROM ubuntu:16.04
-LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
+LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \

@@ -1,5 +1,5 @@
 FROM centos:8
-LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
+LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
