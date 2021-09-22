@@ -1,5 +1,5 @@
 FROM centos:8 AS base
-LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
+LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm

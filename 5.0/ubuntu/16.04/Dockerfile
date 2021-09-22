@@ -1,5 +1,5 @@
 FROM ubuntu:16.04
-LABEL maintainer="Swift Infrastructure <swift-infrastructure@swift.org>"
+LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL Description="Docker Container for the Swift programming language"
 
 RUN apt-get -q update && \
