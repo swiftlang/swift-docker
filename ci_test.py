@@ -20,14 +20,14 @@ import sys
 import os
 
 
-def run_command(cmd, log_file=None):
+def run_command(cmd, log_file=None, cwd=None):
     print("Running: {}".format(cmd))
     sys.stdout.flush()
     if log_file:
         file = open(log_file, "w")
-        p = subprocess.Popen(cmd, shell=True, stdout=file, stderr=file)
+        p = subprocess.Popen(cmd, shell=True, stdout=file, stderr=file, cwd=cwd)
     else:
-        p = subprocess.Popen(cmd, shell=True)
+        p = subprocess.Popen(cmd, shell=True, cwd=cwd)
       
     (output, err) = p.communicate()
     return p.wait()
@@ -45,8 +45,7 @@ def get_dockerfiles():
         filename = file_info['filename']
         print(filename)
         if "Dockerfile" in filename:
-            file_dir = filename.replace("Dockerfile", "")
-            dockerfiles.append(file_dir)
+            dockerfiles.append(filename)
     return dockerfiles
 
 
@@ -69,12 +68,25 @@ def main():
         sys.stdout.flush()
         log_file = dockerfile.replace(docker_dir,"").replace("/", "_")
         log_file = "{}.log".format(log_file)
-        cmd = "docker build --no-cache=true {}".format(dockerfile)
+        
+        # Get the root directory for this collection of Dockerfiles. For example, this could be
+        # 'swift-ci' or 'nightly-main'.
+        #
+        # This will allow the test runner to build the Dockerfile from this directory
+        # which may contain additional scripts necessary for the build process.
+        dockerfile_path_components = dockerfile.split(os.sep)
+        dockerfile_root_dir = os.path.join(docker_dir, dockerfile_path_components.pop(0))
+        
+        # Join the remaining path components as the relative path to this Dockerfile, from the root
+        # directory
+        dockerfile_relative_path = os.sep.join(dockerfile_path_components)
+        
+        cmd = "docker build --no-cache=true -f {} .".format(dockerfile_relative_path)
         if "buildx" in dockerfile:
             # if "buildx" is part of the path, we want to use the new buildx build system and build
             # for both amd64 and arm64.
-            cmd = "docker buildx build --platform linux/arm64,linux/amd64 --no-cache=true {}".format(dockerfile)
-        status = run_command(cmd, log_file)
+            cmd = "docker buildx build --platform linux/arm64,linux/amd64 --no-cache=true -f {} .".format(dockerfile_relative_path)
+        status = run_command(cmd, log_file, dockerfile_root_dir)
         results[dockerfile] = status
         if status != 0:
             suite_status = False
