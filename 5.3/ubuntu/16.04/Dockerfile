@@ -55,5 +55,11 @@ RUN set -e; \
     && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
     && apt-get purge --auto-remove -y curl
 
+
+RUN bash -c "echo '/usr/lib/swift/linux' > /etc/ld.so.conf.d/swift.conf;\
+             echo '/usr/lib/swift/clang/lib/linux' >> /etc/ld.so.conf.d/swift.conf;\
+             echo '/usr/lib/swift/pm' >> /etc/ld.so.conf.d/swift.conf;\
+             ldconfig"
+
 # Print Installed Swift Version
 RUN swift --version
