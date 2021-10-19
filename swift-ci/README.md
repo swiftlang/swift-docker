@@ -11,6 +11,8 @@ The Dockerfiles used for Continuous Integration are layed out under the top leve
 Under that, we have a directory for each of the target branches, e.g.
 Continuous Integration for Swift's `master` branch uses the `swift-ci/master` Dockerfiles.
 
+There is also a specific directory (`swift-docc-render`) for the Dockerfile used to build Swift-DocC-Render. Swift-DocC-Render builds separately from the rest of the projects in the Swift toolchain and ships a pre-built copy for use in the toolchain in the Swift-DocC-Render-Artifact repository.
+
 ## Continuous Integration
 
 This system is designed to support many distributions.
