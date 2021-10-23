@@ -21,7 +21,7 @@ ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_VERSION=$SWIFT_VERSION
 
 # Download GPG keys, signature and Swift package, then unpack, cleanup and execute permissions for foundation libs
-RUN SWIFT_URL=https://swift.org/builds/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | tr -d .)/$SWIFT_VERSION/$SWIFT_VERSION-$SWIFT_PLATFORM.tar.gz \
+RUN SWIFT_URL=https://download.swift.org/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" | tr -d .)/$SWIFT_VERSION/$SWIFT_VERSION-$SWIFT_PLATFORM.tar.gz \
     && apt-get update \
     && apt-get install -y curl gpg \
     && curl -fSsL $SWIFT_URL -o swift.tar.gz \
