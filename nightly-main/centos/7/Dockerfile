@@ -29,7 +29,7 @@ RUN sed -i -e 's/\*__block/\*__libc_block/g' /usr/include/unistd.h
 ARG SWIFT_SIGNING_KEY=8A7495662C3CD4AE18D95637FAF6989E1BC16FEA
 ARG SWIFT_PLATFORM=centos
 ARG OS_MAJOR_VER=7
-ARG SWIFT_WEBROOT=https://swift.org/builds/development
+ARG SWIFT_WEBROOT=https://download.swift.org/development
 
 ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
     SWIFT_PLATFORM=$SWIFT_PLATFORM \
