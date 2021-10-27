@@ -37,7 +37,7 @@ ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
     SWIFT_WEBROOT=$SWIFT_WEBROOT
 
 RUN set -e; \
-    SWIFT_WEBDIR="$SWIFT_WEBROOT/$SWIFT_BRANCH/$(echo $SWIFT_PLATFORM | tr -d .)/" \
+    SWIFT_WEBDIR="$SWIFT_WEBROOT/$SWIFT_BRANCH/$(echo $SWIFT_PLATFORM | tr -d .)" \
     && SWIFT_BIN_URL="$SWIFT_WEBDIR/$SWIFT_VERSION/$SWIFT_VERSION-$SWIFT_PLATFORM.tar.gz" \
     && SWIFT_SIG_URL="$SWIFT_BIN_URL.sig" \
     # - Download the GPG keys, Swift toolchain, and toolchain signature, and verify.
