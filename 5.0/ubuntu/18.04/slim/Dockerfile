@@ -34,7 +34,7 @@ RUN SWIFT_URL=https://download.swift.org/$SWIFT_BRANCH/$(echo "$SWIFT_PLATFORM" 
       # uid                  Swift 5.x Release Signing Key <swift-infrastructure@swift.org>
           A62AE125BBBFBB96A6E042EC925CC1CCED3D1561 \
         ; do \
-          gpg --quiet --keyserver ha.pool.sks-keyservers.net --recv-keys "$key"; \
+          gpg --quiet --keyserver keyserver.ubuntu.com --recv-keys "$key"; \
         done \
     && gpg --batch --verify --quiet swift.tar.gz.sig swift.tar.gz \
     && tar -xzf swift.tar.gz --directory / --strip-components=1 $SWIFT_VERSION-$SWIFT_PLATFORM/usr/lib/swift/linux \
