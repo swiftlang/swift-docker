@@ -24,7 +24,11 @@ docker run -it swift /bin/bash
 If you want to run the Swift REPL you will need to run the container with additional privileges:
 
 ```bash
+# If running Docker on Linux:
 docker run --security-opt seccomp=unconfined -it swift
+
+# If running Docker on macOS:
+docker run --privileged -it swift
 ```
 
 We also provide a "slim" image. Slim images are images designed just for running an already built Swift program. Consequently, they do not contain the Swift compiler.
@@ -40,7 +44,7 @@ RUN swift build -c release
 FROM swift:slim
 WORKDIR /root
 COPY --from=builder /root .
-CMD [".build/x86_64-unknown-linux/release/docker-test"]
+CMD [".build/release/docker-test"]
 ```
 
 ## Contributions
