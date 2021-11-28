@@ -28,7 +28,7 @@ RUN apt-get --no-install-recommends -y install \
   systemtap-sdt-dev     \
   tzdata                \
   unzip                 \
-  ca-certificates	\
+  ca-certificates       \
   uuid-dev
 
 USER build-user

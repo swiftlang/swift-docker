@@ -30,7 +30,7 @@ RUN apt-get -y update && apt-get -y --no-install-recommends install \
   systemtap-sdt-dev     \
   tzdata                \
   unzip                 \
-  uuid-dev		\
+  uuid-dev              \
   ca-certificates
 
 USER build-user
