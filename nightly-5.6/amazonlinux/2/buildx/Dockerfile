@@ -9,13 +9,13 @@ RUN yum -y install \
   glibc-static \
   gzip \
   libbsd \
-  libcurl \
+  libcurl-devel \
   libedit \
   libicu \
   libsqlite \
   libstdc++-static \
   libuuid \
-  libxml2 \
+  libxml2-devel \
   tar \
   tzdata \
   zlib-devel
@@ -32,7 +32,7 @@ ARG OS_MAJOR_VER=2
 ARG SWIFT_WEBROOT=https://download.swift.org/swift-5.6-branch
 
 # This is a small trick to enable if/else for arm64 and amd64.
-# Because of https://bugs.swift.org/browse/SR-14872 we need adjust tar options. 
+# Because of https://bugs.swift.org/browse/SR-14872 we need adjust tar options.
 FROM base AS base-amd64
 ARG OS_ARCH_SUFFIX=
 ARG ADDITIONAL_TAR_OPTIONS="--strip-components=1"

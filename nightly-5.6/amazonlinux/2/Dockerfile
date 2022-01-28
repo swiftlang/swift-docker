@@ -9,13 +9,13 @@ RUN yum -y install \
   glibc-static \
   gzip \
   libbsd \
-  libcurl \
+  libcurl-devel \
   libedit \
   libicu \
   libsqlite \
   libstdc++-static \
   libuuid \
-  libxml2 \
+  libxml2-devel \
   tar \
   tzdata \
   zlib-devel

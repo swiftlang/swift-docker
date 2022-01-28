@@ -5,8 +5,8 @@ LABEL Description="Docker Container for the Swift programming language"
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
     apt-get -q install -y \
     libatomic1 \
-    libcurl3 \
-    libxml2 \
+    libcurl3-openssl-dev \
+    libxml2-dev \
     libedit2 \
     libsqlite3-0 \
     libc6-dev \

@@ -8,10 +8,12 @@ RUN yum install shadow-utils.x86_64 -y \
   git \
   glibc-static \
   libbsd-devel \
+  libcurl-devel \
   libedit \
   libedit-devel \
   libicu-devel \
   libstdc++-static \
+  libxml2-devel \
   pkg-config \
   python2 \
   python3 \

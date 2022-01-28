@@ -10,10 +10,12 @@ RUN yum install --enablerepo=powertools -y \
   git \
   glibc-static \
   libbsd-devel \
+  libcurl-devel \
   libedit \
   libedit-devel \
   libicu-devel \
   libstdc++-static \
+  libxml2-devel \
   pkg-config \
   python2 \
   sqlite \
@@ -33,7 +35,7 @@ ARG OS_MAJOR_VER=8
 ARG SWIFT_WEBROOT=https://download.swift.org/development
 
 # This is a small trick to enable if/else for arm64 and amd64.
-# Because of https://bugs.swift.org/browse/SR-14872 we need adjust tar options. 
+# Because of https://bugs.swift.org/browse/SR-14872 we need adjust tar options.
 FROM base AS base-amd64
 ARG OS_ARCH_SUFFIX=
 ARG ADDITIONAL_TAR_OPTIONS="--strip-components=1"
