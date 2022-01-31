@@ -8,13 +8,13 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     git \
     gnupg2 \
     libc6-dev \
-    libcurl4 \
+    libcurl4-openssl-dev \
     libedit2 \
     libgcc-9-dev \
     libpython3.8 \
     libsqlite3-0 \
     libstdc++-9-dev \
-    libxml2 \
+    libxml2-dev \
     libz3-dev \
     pkg-config \
     tzdata \

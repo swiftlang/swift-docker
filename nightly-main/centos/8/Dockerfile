@@ -10,10 +10,12 @@ RUN yum install --enablerepo=powertools -y \
   git \
   glibc-static \
   libbsd-devel \
+  libcurl-devel \
   libedit \
   libedit-devel \
   libicu-devel \
   libstdc++-static \
+  libxml2-devel \
   pkg-config \
   python2 \
   sqlite \
