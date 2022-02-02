@@ -1,4 +1,4 @@
-FROM centos:centos8
+FROM quay.io/centos/centos:stream8
 
 RUN groupadd -g 42 build-user && \
     useradd -m -r -u 42 -g build-user build-user
