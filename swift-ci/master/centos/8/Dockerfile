@@ -7,7 +7,7 @@ RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.n
 
 RUN yum install --enablerepo=powertools -y \
     autoconf              \
-    clang                 \
+    clang-12.0.1          \
     cmake                 \
     diffutils             \
     git                   \
