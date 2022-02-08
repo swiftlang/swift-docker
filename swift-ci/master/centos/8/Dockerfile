@@ -24,6 +24,7 @@ RUN yum install --enablerepo=powertools -y \
     ncurses-devel         \
     ninja-build           \
     pcre-devel            \
+    procps-ng             \
     python2               \
     python2-devel         \
     python2-six           \
