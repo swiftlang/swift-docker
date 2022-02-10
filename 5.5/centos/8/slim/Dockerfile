@@ -1,4 +1,4 @@
-FROM centos:8
+FROM quay.io/centos/centos:stream8
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
@@ -9,8 +9,8 @@ LABEL description="Docker Container for the Swift programming language"
 # uid                  Swift 5.x Release Signing Key <swift-infrastructure@swift.org
 ARG SWIFT_SIGNING_KEY=A62AE125BBBFBB96A6E042EC925CC1CCED3D1561
 ARG SWIFT_PLATFORM=centos8
-ARG SWIFT_BRANCH=swift-5.5.2-release
-ARG SWIFT_VERSION=swift-5.5.2-RELEASE
+ARG SWIFT_BRANCH=swift-5.5.3-release
+ARG SWIFT_VERSION=swift-5.5.3-RELEASE
 ARG SWIFT_WEBROOT=https://download.swift.org
 
 ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
