@@ -39,14 +39,16 @@ ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
     SWIFT_WEBROOT=$SWIFT_WEBROOT
 
 RUN set -e; \
-    ARCH_NAME="$(arch)"; \
+    ARCH_NAME="$(dpkg --print-architecture)"; \
     url=; \
     case "${ARCH_NAME##*-}" in \
-        'aarch64') \
+        'amd64') \
+            OS_ARCH_SUFFIX=''; \
+            ;; \
+        'arm64') \
             OS_ARCH_SUFFIX='-aarch64'; \
             ;; \
-        *) \
-            OS_ARCH_SUFFIX='';\
+        *) echo >&2 "error: unsupported architecture: '$ARCH_NAME'"; exit 1 ;; \
     esac; \
     SWIFT_WEBDIR="$SWIFT_WEBROOT/$SWIFT_BRANCH/$(echo $SWIFT_PLATFORM | tr -d .)$OS_ARCH_SUFFIX" \
     && SWIFT_BIN_URL="$SWIFT_WEBDIR/$SWIFT_VERSION/$SWIFT_VERSION-$SWIFT_PLATFORM$OS_ARCH_SUFFIX.tar.gz" \
