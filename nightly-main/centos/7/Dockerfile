@@ -2,10 +2,13 @@ FROM centos:7
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
+# centos 7 ships with git 1.x which is too old for the toolchain usage, using RH software collections to install git 2.x
+RUN yum install -y centos-release-scl-rh
+
 RUN yum install shadow-utils.x86_64 -y \
   binutils \
   gcc \
-  git \
+  rh-git227-git \
   glibc-static \
   libbsd-devel \
   libcurl-devel \
@@ -19,6 +22,9 @@ RUN yum install shadow-utils.x86_64 -y \
   python3 \
   sqlite \
   zlib-devel
+
+# centos 7 ships with git 1.x which is too old for the toolchain usage
+RUN ln -s /opt/rh/rh-git227/root/bin/git /usr/bin/git
 
 RUN sed -i -e 's/\*__block/\*__libc_block/g' /usr/include/unistd.h
 
