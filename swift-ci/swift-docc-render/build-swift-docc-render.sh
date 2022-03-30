@@ -68,6 +68,9 @@ DOCKERFILE_PATH="$DIRECTORY_ROOT"/Dockerfile
 docker build -t swift-docc-render:latest \
   --no-cache \
   --build-arg SWIFT_DOCC_RENDER_BRANCH="$BRANCH" \
+  --build-arg http_proxy="$http_proxy" \
+  --build-arg https_proxy="$https_proxy" \
+  --build-arg no_proxy="$no_proxy \
   -f "$DOCKERFILE_PATH" \
   "$DIRECTORY_ROOT" 
 
