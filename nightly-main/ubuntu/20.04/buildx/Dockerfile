@@ -37,11 +37,9 @@ ARG SWIFT_WEBROOT=https://download.swift.org/development
 # Because of https://bugs.swift.org/browse/SR-14872 we need adjust tar options.
 FROM base AS base-amd64
 ARG OS_ARCH_SUFFIX=
-ARG ADDITIONAL_TAR_OPTIONS="--strip-components=1"
 
 FROM base AS base-arm64
 ARG OS_ARCH_SUFFIX=-aarch64
-ARG ADDITIONAL_TAR_OPTIONS=
 
 FROM base-$TARGETARCH AS final
 
@@ -66,7 +64,7 @@ RUN set -e; \
     && curl -fSsL https://swift.org/keys/all-keys.asc | gpg --import -  \
     && gpg --batch --verify latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
-    && tar -xzf latest_toolchain.tar.gz --directory / ${ADDITIONAL_TAR_OPTIONS} \
+    && tar -xzf latest_toolchain.tar.gz --directory / --strip-components=1 \
     && chmod -R o+r /usr/lib/swift \
     && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
     && apt-get purge --auto-remove -y curl
