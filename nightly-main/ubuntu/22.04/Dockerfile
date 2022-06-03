@@ -1,12 +1,24 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
     apt-get -q install -y \
-    libcurl4 \
-    libxml2 \
+    binutils \
+    git \
+    gnupg2 \
+    libc6-dev \
+    libcurl4-openssl-dev \
+    libedit2 \
+    libgcc-9-dev \
+    libpython3.8 \
+    libsqlite3-0 \
+    libstdc++-9-dev \
+    libxml2-dev \
+    libz3-dev \
+    pkg-config \
     tzdata \
+    zlib1g-dev \
     && rm -r /var/lib/apt/lists/*
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
@@ -17,7 +29,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
 # uid                 [ unknown] Swift Automatic Signing Key #3 <swift-infrastructure@swift.org>
 ARG SWIFT_SIGNING_KEY=8A7495662C3CD4AE18D95637FAF6989E1BC16FEA
 ARG SWIFT_PLATFORM=ubuntu
-ARG OS_MAJOR_VER=20
+ARG OS_MAJOR_VER=22
 ARG OS_MIN_VER=04
 ARG SWIFT_WEBROOT=https://download.swift.org/development
 
@@ -28,10 +40,12 @@ ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
     OS_VER=$SWIFT_PLATFORM$OS_MAJOR_VER.$OS_MIN_VER \
     SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM$OS_MAJOR_VER$OS_MIN_VER"
 
+RUN echo "${SWIFT_WEBROOT}/latest-build.yml"
+
 RUN set -e; \
-    # - Grab curl and gpg here so we cache better up above
+    # - Grab curl here so we cache better up above
     export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -q update && apt-get -q install -y curl gnupg && rm -rf /var/lib/apt/lists/* \
+    && apt-get -q update && apt-get -q install -y curl && rm -rf /var/lib/apt/lists/* \
     # - Latest Toolchain info
     && export $(curl -s ${SWIFT_WEBROOT}/latest-build.yml | grep 'download:' | sed 's/:[^:\/\/]/=/g')  \
     && export $(curl -s ${SWIFT_WEBROOT}/latest-build.yml | grep 'download_signature:' | sed 's/:[^:\/\/]/=/g')  \
@@ -44,10 +58,13 @@ RUN set -e; \
     && curl -fSsL https://swift.org/keys/all-keys.asc | gpg --import -  \
     && gpg --batch --verify latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
-    && tar -xzf latest_toolchain.tar.gz --directory / --strip-components=1 ${DOWNLOAD_DIR}-${OS_VER}/usr/lib/swift/linux \
+    && tar -xzf latest_toolchain.tar.gz --directory / --strip-components=1 \
     && chmod -R o+r /usr/lib/swift \
     && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
-    && apt-get purge --auto-remove -y curl gnupg
+    && apt-get purge --auto-remove -y curl
+
+# Print Installed Swift Version
+RUN swift --version
 
 RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd' \
     >> /etc/bash.bashrc; \
