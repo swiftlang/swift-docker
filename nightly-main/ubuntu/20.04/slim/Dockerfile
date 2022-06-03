@@ -17,7 +17,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
 # uid                 [ unknown] Swift Automatic Signing Key #3 <swift-infrastructure@swift.org>
 ARG SWIFT_SIGNING_KEY=8A7495662C3CD4AE18D95637FAF6989E1BC16FEA
 ARG SWIFT_PLATFORM=ubuntu
-ARG OS_MAJOR_VER=18
+ARG OS_MAJOR_VER=20
 ARG OS_MIN_VER=04
 ARG SWIFT_WEBROOT=https://download.swift.org/development
 
