@@ -8,6 +8,7 @@ RUN yum install --enablerepo=powertools -y \
   binutils \
   gcc \
   git \
+  unzip \
   glibc-static \
   libbsd-devel \
   libcurl-devel \

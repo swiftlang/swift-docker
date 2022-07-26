@@ -17,6 +17,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     libpython3.6 \
     tzdata \
     git \
+    unzip \
     pkg-config \
     && rm -r /var/lib/apt/lists/*
 
