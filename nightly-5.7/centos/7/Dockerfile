@@ -6,6 +6,7 @@ RUN yum install shadow-utils.x86_64 -y \
   binutils \
   gcc \
   git \
+  unzip \
   glibc-static \
   libbsd-devel \
   libcurl-devel \
