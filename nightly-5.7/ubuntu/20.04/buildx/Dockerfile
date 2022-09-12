@@ -6,6 +6,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     apt-get -q install -y \
     binutils \
     git \
+    unzip \
     gnupg2 \
     libc6-dev \
     libcurl4 \
