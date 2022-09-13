@@ -6,6 +6,7 @@ RUN yum -y install \
   binutils \
   gcc \
   git \
+  unzip \
   glibc-static \
   gzip \
   libbsd \
@@ -27,8 +28,8 @@ RUN yum -y install \
 # uid                  Swift 5.x Release Signing Key <swift-infrastructure@swift.org
 ARG SWIFT_SIGNING_KEY=A62AE125BBBFBB96A6E042EC925CC1CCED3D1561
 ARG SWIFT_PLATFORM=amazonlinux2
-ARG SWIFT_BRANCH=swift-5.6.1-release
-ARG SWIFT_VERSION=swift-5.6.1-RELEASE
+ARG SWIFT_BRANCH=swift-5.6.3-release
+ARG SWIFT_VERSION=swift-5.6.3-RELEASE
 ARG SWIFT_WEBROOT=https://download.swift.org
 
 ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \

@@ -44,7 +44,7 @@ def get_dockerfiles():
     for file_info in data:
         filename = file_info['filename']
         print(filename)
-        if "Dockerfile" in filename:
+        if "Dockerfile" in filename and not "windows" in filename:
             file_dir = filename.replace("Dockerfile", "")
             dockerfiles.append(file_dir)
     return dockerfiles
@@ -69,11 +69,11 @@ def main():
         sys.stdout.flush()
         log_file = dockerfile.replace(docker_dir,"").replace("/", "_")
         log_file = "{}.log".format(log_file)
-        cmd = "docker build --no-cache=true {}".format(dockerfile)
+        cmd = "docker build --no-cache=true --build-arg http_proxy={} --build-arg https_proxy={} {}".format(os.environ['http_proxy'], os.environ['https_proxy'], dockerfile)
         if "buildx" in dockerfile:
             # if "buildx" is part of the path, we want to use the new buildx build system and build
             # for both amd64 and arm64.
-            cmd = "docker buildx build --platform linux/arm64,linux/amd64 --no-cache=true {}".format(dockerfile)
+            cmd = "docker buildx build --platform linux/arm64,linux/amd64 --no-cache=true --driver-opt env.http_proxy={} --driver-opt env.https_proxy={} {}".format(os.environ['http_proxy'], os.environ['https_proxy'], dockerfile)
         status = run_command(cmd, log_file)
         results[dockerfile] = status
         if status != 0:

@@ -6,6 +6,7 @@ RUN yum -y install \
   binutils \
   gcc \
   git \
+  unzip \
   glibc-static \
   gzip \
   libbsd \

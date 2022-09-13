@@ -71,7 +71,7 @@ directory with the name `SourceCache`.
 md %UserProfile%\data\SourceCache
 cd %UserProfile%\data\SourceCache
 
-git clone -b stable/20211026 -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/apple/llvm-project
+git clone -b stable/20220426 -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/apple/llvm-project
 git clone -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/apple/swift
 git clone -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/apple/swift-cmark cmark
 git clone -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/apple/swift-experimental-string-processing
@@ -89,10 +89,9 @@ git clone -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonito
 git clone -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/apple/indexstore-db
 git clone -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/apple/sourcekit-lsp
 git clone -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/jpsim/Yams
-git clone -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/compnerd/swift-build
-git clone -b curl-7_77_0 -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/curl/curl
-git clone -b v2.9.12 -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/gnome/libxml2
-git clone -b v1.2.11 -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/madler/zlib
+git clone -t curl-7_77_0 -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/curl/curl
+git clone -t v2.9.12 -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/gnome/libxml2
+git clone -t v1.2.11 -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/madler/zlib
 git clone -b maint/maint-69 -c core.autocrlf=input -c core.symlink=true -c core.useBuiltinFSMonitor=false https://github.com/unicode-org/icu
 ```
 
