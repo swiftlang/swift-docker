@@ -71,7 +71,7 @@ def main():
         sys.stdout.flush()
         log_file = dockerfile.replace(docker_dir,"").replace("/", "_")
         log_file = "{}.log".format(log_file)
-        cmd = "docker build --no-cache=true -build-arg http_proxy={} --build-arg https_proxy={} {}".format(os.environ['http_proxy'], os.environ['https_proxy'], dockerfile)
+        cmd = "docker build --no-cache=true --build-arg http_proxy={} --build-arg https_proxy={} {}".format(os.environ['http_proxy'], os.environ['https_proxy'], dockerfile)
         if "buildx" in dockerfile:
             # if "buildx" is part of the path, we want to use the new buildx build system and build
             # for both amd64 and arm64.
