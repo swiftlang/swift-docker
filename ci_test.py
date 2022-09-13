@@ -44,7 +44,7 @@ def get_dockerfiles():
     for file_info in data:
         filename = file_info['filename']
         print(filename)
-        if "Dockerfile" in filename:
+        if "Dockerfile" in filename and not "windows" in filename:
             file_dir = filename.replace("Dockerfile", "")
             dockerfiles.append(file_dir)
     return dockerfiles
@@ -65,8 +65,6 @@ def main():
     dockerfiles = get_dockerfiles()
     for dockerfile in dockerfiles:
         docker_dir = os.path.dirname(os.path.realpath(__file__))
-        if "windows" in dockerfile:
-            continue
         print("Testing {}".format(dockerfile))
         sys.stdout.flush()
         log_file = dockerfile.replace(docker_dir,"").replace("/", "_")
