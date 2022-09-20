@@ -1,4 +1,4 @@
-FROM centos:7
+FROM swift:5.7-centos7
 
 RUN yum install shadow-utils.x86_64 -y
 
