@@ -1,4 +1,4 @@
-FROM swift:5.7-focal
+FROM ubuntu:20.04
 
 RUN groupadd -g 998 build-user && \
     useradd -m -r -u 998 -g build-user build-user

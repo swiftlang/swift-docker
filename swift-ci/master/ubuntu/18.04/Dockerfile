@@ -1,4 +1,4 @@
-FROM swift:5.7-bionic
+FROM ubuntu:18.04
 
 RUN groupadd -g 998 build-user && \
     useradd -m -r -u 998 -g build-user build-user
