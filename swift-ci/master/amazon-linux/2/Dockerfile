@@ -1,4 +1,4 @@
-FROM swift:5.7-amazonlinux-2
+FROM swift:5.7-amazonlinux2
 
 RUN yum install shadow-utils -y
 
