@@ -1,8 +1,8 @@
-FROM swift:5.7-centos7
+FROM centos:7
 
 RUN yum install shadow-utils.x86_64 -y
 
-RUN groupadd -g 1000 build-user && \
+RUN groupadd -g 998 build-user && \
     useradd -m -r -u 42 -g build-user build-user
 
 RUN yum install -y epel-release centos-release-scl
