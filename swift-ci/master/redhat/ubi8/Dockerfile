@@ -3,7 +3,6 @@ FROM redhat/ubi8
 RUN groupadd -g 42 build-user && \
     useradd -m -r -u 42 -g build-user build-user
 
-#RUN subscription-manager repos --enable codeready-builder-for-rhel-8-$(arch)-rpms
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 
 # Update and install needed build packages
@@ -30,7 +29,6 @@ RUN yum -y install \
   python2-devel         \
   python2-six           \
   python3               \
-#  python3-pexpect       \
   python3-six           \
   rsync                 \
   sqlite-devel          \
