@@ -18,6 +18,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     libxml2-dev \
     libz3-dev \
     pkg-config \
+    python3-lldb-13 \
     tzdata \
     zlib1g-dev \
     && rm -r /var/lib/apt/lists/*
