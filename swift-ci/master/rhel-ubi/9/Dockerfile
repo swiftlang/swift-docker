@@ -17,7 +17,8 @@ RUN yum install -y  \
   python3-devel     \
   rsync             \
   sqlite-devel      \
-  unzip
+  unzip             \
+  zip
 
 USER build-user
 
