@@ -16,7 +16,9 @@ RUN yum install -y  \
   ncurses-devel     \
   python3-devel     \
   rsync             \
-  sqlite-devel
+  sqlite-devel      \
+  unzip             \
+  zip
 
 USER build-user
 
