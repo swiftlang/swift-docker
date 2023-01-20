@@ -19,7 +19,7 @@ RUN yum install --enablerepo=centosplus  -y \
     libtool             \
     libuuid-devel       \
     libxml2-devel       \
-    llvm-toolset-7      \
+    llvm-toolset-7.0    \
     make                \
     ncurses-devel       \
     ninja-build         \
@@ -39,7 +39,7 @@ RUN yum install --enablerepo=centosplus  -y \
     which               \
     zlib-devel
 
-RUN echo -e ". /opt/rh/sclo-git25/enable\n. /opt/rh/llvm-toolset-7/enable\n. /opt/rh/devtoolset-8/enable\n" >> /home/build-user/.bashrc
+RUN echo -e ". /opt/rh/sclo-git25/enable\n. /opt/rh/llvm-toolset-7.0/enable\n. /opt/rh/devtoolset-8/enable\n" >> /home/build-user/.bashrc
 
 RUN sed -i -e 's/\*__block/\*__libc_block/g' /usr/include/unistd.h
 
