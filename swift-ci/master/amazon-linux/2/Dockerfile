@@ -1,8 +1,6 @@
-FROM amazonlinux:2
+FROM swift:amazonlinux2
 
-RUN yum install shadow-utils -y
-
-RUN groupadd -g 998 build-user && \
+RUN groupadd -g 1000 build-user && \
     useradd -m -r -u 42 -g build-user build-user
 
 # The build needs a package from the EPEL repo so that needs to be enabled.
@@ -12,7 +10,6 @@ RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.n
 # Update and install needed build packages
 RUN yum -y group install "development tools"
 RUN yum -y install \
-  clang            \
   cmake            \
   curl-devel       \
   gcc-c++          \
