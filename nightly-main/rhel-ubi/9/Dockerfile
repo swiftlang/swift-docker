@@ -19,10 +19,10 @@ RUN yum install -y  \
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 
-# gpg --keyid-format LONG -k FAF6989E1BC16FEA
-# pub   rsa4096/FAF6989E1BC16FEA 2019-11-07 [SC] [expires: 2021-11-06]
-#       8A7495662C3CD4AE18D95637FAF6989E1BC16FEA
-# uid                 [ unknown] Swift Automatic Signing Key #3 <swift-infrastructure@swift.org>
+# gpg --keyid-format LONG -k F167DF1ACF9CE069
+# pub   rsa4096/F167DF1ACF9CE069 2021-11-08 [SC] [expires: 2023-11-08]
+#       E813C892820A6FA13755B268F167DF1ACF9CE069
+# uid                 [ unknown] Swift Automatic Signing Key #4 <swift-infrastructure@forums.swift.org>
 ARG SWIFT_SIGNING_KEY=8A7495662C3CD4AE18D95637FAF6989E1BC16FEA
 ARG SWIFT_PLATFORM=ubi
 ARG OS_MAJOR_VER=9
