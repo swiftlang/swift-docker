@@ -40,7 +40,7 @@ RUN yum -y install \
   unzip            \
   uuid-devel       \
   wget             \
-  which
+  which            \
   zip
 
 RUN mkdir -p /usr/local/lib/python3.7/site-packages/
