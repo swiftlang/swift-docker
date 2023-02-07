@@ -30,8 +30,8 @@ RUN apt -y update && apt -y install \
   swig                  \
   systemtap-sdt-dev     \
   tzdata                \
-  unzip                 \
-  uuid-dev
+  uuid-dev              \
+  zip
 
 USER build-user
 

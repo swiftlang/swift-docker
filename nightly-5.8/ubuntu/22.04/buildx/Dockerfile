@@ -6,7 +6,6 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     apt-get -q install -y \
     binutils \
     git \
-    unzip \
     gnupg2 \
     libc6-dev \
     libcurl4-openssl-dev \
@@ -19,6 +18,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     libz3-dev \
     pkg-config \
     tzdata \
+    zip \
     zlib1g-dev \
     && rm -r /var/lib/apt/lists/*
 

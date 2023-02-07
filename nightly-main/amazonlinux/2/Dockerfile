@@ -6,7 +6,6 @@ RUN yum -y install \
   binutils \
   gcc \
   git \
-  unzip \
   glibc-static \
   gzip \
   libbsd \
@@ -19,6 +18,8 @@ RUN yum -y install \
   libxml2-devel \
   tar \
   tzdata \
+  unzip \
+  zip \
   zlib-devel
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little

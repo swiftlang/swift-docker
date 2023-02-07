@@ -8,7 +8,6 @@ RUN yum -y install \
   git \
   glibc-static \
   gzip \
-  unzip \
   libbsd \
   libcurl-devel \
   libedit \
@@ -19,6 +18,8 @@ RUN yum -y install \
   libxml2-devel \
   tar \
   tzdata \
+  unzip \
+  zip \
   zlib-devel
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little

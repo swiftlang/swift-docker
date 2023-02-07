@@ -21,6 +21,8 @@ RUN yum install shadow-utils.x86_64 -y \
   python2 \
   python3 \
   sqlite \
+  unzip \
+  zip \
   zlib-devel
 
 # Enable git 2.x from RH software collections for both login and non-login shells
