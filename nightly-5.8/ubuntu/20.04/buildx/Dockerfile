@@ -6,7 +6,6 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     apt-get -q install -y \
     binutils \
     git \
-    unzip \
     gnupg2 \
     libc6-dev \
     libcurl4 \
@@ -19,6 +18,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     libz3-dev \
     pkg-config \
     tzdata \
+    zip \
     zlib1g-dev \
     && rm -r /var/lib/apt/lists/*
 
@@ -35,7 +35,7 @@ ARG OS_MIN_VER=04
 ARG SWIFT_WEBROOT=https://download.swift.org/swift-5.8-branch
 
 # This is a small trick to enable if/else for arm64 and amd64.
-# Because of https://bugs.swift.org/browse/SR-14872 we need adjust tar options. 
+# Because of https://bugs.swift.org/browse/SR-14872 we need adjust tar options.
 FROM base AS base-amd64
 ARG OS_ARCH_SUFFIX=
 

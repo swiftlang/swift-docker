@@ -37,6 +37,8 @@ RUN yum install --enablerepo=centosplus  -y \
     sqlite-devel        \
     swig3               \
     which               \
+    unzip               \
+    zip                 \
     zlib-devel
 
 RUN echo -e ". /opt/rh/sclo-git25/enable\n. /opt/rh/llvm-toolset-7.0/enable\n. /opt/rh/devtoolset-8/enable\n" >> /home/build-user/.bashrc

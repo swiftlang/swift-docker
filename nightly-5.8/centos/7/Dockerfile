@@ -6,7 +6,6 @@ RUN yum install shadow-utils.x86_64 -y \
   binutils \
   gcc \
   git \
-  unzip \
   glibc-static \
   libbsd-devel \
   libcurl-devel \
@@ -19,6 +18,8 @@ RUN yum install shadow-utils.x86_64 -y \
   python2 \
   python3 \
   sqlite \
+  unzip \
+  zip \
   zlib-devel
 
 RUN sed -i -e 's/\*__block/\*__libc_block/g' /usr/include/unistd.h

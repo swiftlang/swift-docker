@@ -37,9 +37,11 @@ RUN yum -y install \
   sqlite-devel     \
   swig             \
   tzdata           \
+  unzip            \
   uuid-devel       \
   wget             \
   which
+  zip
 
 RUN mkdir -p /usr/local/lib/python3.7/site-packages/
 

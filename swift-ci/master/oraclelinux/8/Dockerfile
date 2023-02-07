@@ -36,7 +36,9 @@ RUN yum install --enablerepo=ol8_codeready_builder -y \
     swig                  \
     rsync                 \
     tar                   \
-    which
+    unzip                 \
+    which                 \
+    zip
 
 RUN ln -s /usr/bin/python2 /usr/bin/python
 
