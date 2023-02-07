@@ -7,7 +7,7 @@ RUN yum -y install \
   gcc \
   git \
   glibc-static \
-  unzip \
+  gzip \
   libbsd \
   libcurl-devel \
   libedit \
