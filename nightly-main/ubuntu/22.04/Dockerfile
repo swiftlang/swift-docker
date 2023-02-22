@@ -11,7 +11,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     libcurl4-openssl-dev \
     libedit2 \
     libgcc-9-dev \
-    libpython3.8 \
+    libpython3-dev \
     libsqlite3-0 \
     libstdc++-9-dev \
     libxml2-dev \
