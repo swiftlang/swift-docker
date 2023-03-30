@@ -73,7 +73,11 @@ def main():
         if "buildx" in dockerfile:
             # if "buildx" is part of the path, we want to use the new buildx build system and build
             # for both amd64 and arm64.
-            cmd = "docker buildx build --platform linux/arm64,linux/amd64 --no-cache=true --driver-opt env.http_proxy={} --driver-opt env.https_proxy={} {}".format(os.environ['http_proxy'], os.environ['https_proxy'], dockerfile)
+            cmd = "docker buildx create --use --driver-opt env.http_proxy={} --driver-opt env.https_proxy={}".format(os.environ['http_proxy'], os.environ['https_proxy'])
+            run_command(cmd, log_file)
+            cmd = "docker buildx inspect --bootstrap"
+            run_command(cmd, log_file)
+            cmd = "docker buildx build --platform linux/arm64,linux/amd64 --no-cache=true --build-arg env.http_proxy={} --build-arg env.https_proxy={} {}".format(os.environ['http_proxy'], os.environ['https_proxy'], dockerfile)
         status = run_command(cmd, log_file)
         results[dockerfile] = status
         if status != 0:
