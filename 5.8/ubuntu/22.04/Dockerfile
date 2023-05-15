@@ -11,10 +11,10 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     libc6-dev \
     libcurl4-openssl-dev \
     libedit2 \
-    libgcc-9-dev \
+    libgcc-11-dev \
     libpython3-dev \
     libsqlite3-0 \
-    libstdc++-9-dev \
+    libstdc++-11-dev \
     libxml2-dev \
     libz3-dev \
     pkg-config \
