@@ -7,7 +7,6 @@ ENV DEBIAN_FRONTEND="noninteractive"
 
 RUN apt -y update && apt -y install \
   build-essential       \
-  clang                 \
   cmake                 \
   git                   \
   icu-devtools          \
@@ -33,6 +32,43 @@ RUN apt -y update && apt -y install \
   tzdata                \
   uuid-dev              \
   zip
+
+ARG SWIFT_SIGNING_KEY=A62AE125BBBFBB96A6E042EC925CC1CCED3D1561
+ARG SWIFT_PLATFORM=ubuntu18.04
+ARG SWIFT_VERSION=5.8.1
+ARG SWIFT_BRANCH=swift-${SWIFT_VERSION}-release
+ARG SWIFT_TAG=swift-${SWIFT_VERSION}-RELEASE
+ARG SWIFT_WEBROOT=https://download.swift.org
+ARG SWIFT_PREFIX=/opt/swift/${SWIFT_VERSION}
+
+ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
+    SWIFT_PLATFORM=$SWIFT_PLATFORM \
+    SWIFT_VERSION=$SWIFT_VERSION \
+    SWIFT_BRANCH=$SWIFT_BRANCH \
+    SWIFT_TAG=$SWIFT_TAG \
+    SWIFT_WEBROOT=$SWIFT_WEBROOT \
+    SWIFT_PREFIX=$SWIFT_PREFIX
+
+RUN set -e; \
+    SWIFT_WEBDIR="$SWIFT_WEBROOT/$SWIFT_BRANCH/$(echo $SWIFT_PLATFORM | tr -d .)" \
+    && SWIFT_BIN_URL="$SWIFT_WEBDIR/$SWIFT_TAG/$SWIFT_TAG-$SWIFT_PLATFORM.tar.gz" \
+    && SWIFT_SIG_URL="$SWIFT_BIN_URL.sig" \
+    # - Grab curl here so we cache better up above
+    && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -q update && apt-get -q install -y curl && rm -rf /var/lib/apt/lists/* \
+    # - Download the GPG keys, Swift toolchain, and toolchain signature, and verify.
+    && export GNUPGHOME="$(mktemp -d)" \
+    && curl -fsSL "$SWIFT_BIN_URL" -o swift.tar.gz "$SWIFT_SIG_URL" -o swift.tar.gz.sig \
+    && gpg --batch --quiet --keyserver keyserver.ubuntu.com --recv-keys "$SWIFT_SIGNING_KEY" \
+    && gpg --batch --verify swift.tar.gz.sig swift.tar.gz \
+    # - Unpack the toolchain, set libs permissions, and clean up.
+    && mkdir -p $SWIFT_PREFIX \
+    && tar -xzf swift.tar.gz --directory $SWIFT_PREFIX --strip-components=1 \
+    && chmod -R o+r $SWIFT_PREFIX/usr/lib/swift \
+    && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
+    && apt-get purge --auto-remove -y curl
+
+ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
 
 USER build-user
 
