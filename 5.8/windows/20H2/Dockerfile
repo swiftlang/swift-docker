@@ -6,7 +6,7 @@ LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
 ARG GIT=https://github.com/git-for-windows/git/releases/download/v2.35.1.windows.2/Git-2.35.1.2-64-bit.exe
-ARG INSTALLER=https://download.swift.org/swift-5.8-release/windows10/swift-5.8-RELEASE/swift-5.8-RELEASE-windows10.exe
+ARG INSTALLER=https://download.swift.org/swift-5.8.1-release/windows10/swift-5.8.1-RELEASE/swift-5.8.1-RELEASE-windows10.exe
 ARG PYTHON=https://www.python.org/ftp/python/3.10.4/python-3.10.4-amd64.exe
 
 # restore the default Windows shell for correct batch processing
