@@ -29,8 +29,8 @@ RUN sed -i -e 's/\*__block/\*__libc_block/g' /usr/include/unistd.h
 # uid                  Swift 5.x Release Signing Key <swift-infrastructure@swift.org
 ARG SWIFT_SIGNING_KEY=A62AE125BBBFBB96A6E042EC925CC1CCED3D1561
 ARG SWIFT_PLATFORM=centos7
-ARG SWIFT_BRANCH=swift-5.8-release
-ARG SWIFT_VERSION=swift-5.8-RELEASE
+ARG SWIFT_BRANCH=swift-5.8.1-release
+ARG SWIFT_VERSION=swift-5.8.1-RELEASE
 ARG SWIFT_WEBROOT=https://download.swift.org
 
 ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
