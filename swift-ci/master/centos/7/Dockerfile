@@ -76,7 +76,7 @@ RUN set -e; \
     && ln -s /opt/swift/usr/lib/swift /usr/lib/swift \
     && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz
 
-ENV PATH="${PATH}:/opt/swift/usr/bin"
+ENV PATH="/opt/swift/usr/bin:${PATH}"
 
 RUN swift --version
 
