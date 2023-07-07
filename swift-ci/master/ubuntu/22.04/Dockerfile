@@ -24,6 +24,7 @@ RUN apt-get -y update && apt-get -y install \
   python2-dev           \
   python3-six           \
   python3-distutils     \
+  python3-pkg-resources \
   python3-psutil        \
   rsync                 \
   swig                  \
