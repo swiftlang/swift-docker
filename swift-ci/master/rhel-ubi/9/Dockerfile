@@ -19,7 +19,6 @@ RUN yum install -y  \
   unzip             \
   zip
 
-ARG SWIFT_SIGNING_KEY=A62AE125BBBFBB96A6E042EC925CC1CCED3D1561
 ARG SWIFT_PLATFORM=ubi9
 ARG SWIFT_VERSION=5.8.1
 ARG SWIFT_BRANCH=swift-${SWIFT_VERSION}-release
@@ -27,8 +26,7 @@ ARG SWIFT_TAG=swift-${SWIFT_VERSION}-RELEASE
 ARG SWIFT_WEBROOT=https://download.swift.org
 ARG SWIFT_PREFIX=/opt/swift/${SWIFT_VERSION}
 
-ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
-    SWIFT_PLATFORM=$SWIFT_PLATFORM \
+ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_VERSION=$SWIFT_VERSION \
     SWIFT_BRANCH=$SWIFT_BRANCH \
     SWIFT_TAG=$SWIFT_TAG \
@@ -54,7 +52,7 @@ RUN set -e; \
     # - Download the GPG keys, Swift toolchain, and toolchain signature, and verify.
     && export GNUPGHOME="$(mktemp -d)" \
     && curl -fsSL "$SWIFT_BIN_URL" -o swift.tar.gz "$SWIFT_SIG_URL" -o swift.tar.gz.sig \
-    && gpg --batch --quiet --keyserver keyserver.ubuntu.com --recv-keys "$SWIFT_SIGNING_KEY" \
+    && curl -fSsL https://swift.org/keys/all-keys.asc | gpg --import -  \
     && gpg --batch --verify swift.tar.gz.sig swift.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
     && mkdir -p $SWIFT_PREFIX \
