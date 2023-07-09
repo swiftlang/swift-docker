@@ -7,6 +7,7 @@ RUN yum install -y  \
   git               \
   gcc-c++           \
   cmake             \
+  diffutils         \
   make              \
   libcurl-devel     \
   libedit-devel     \
