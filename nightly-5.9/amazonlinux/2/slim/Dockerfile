@@ -35,8 +35,10 @@ RUN set -e; \
     && gpg --batch --verify latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
     && yum -y install tar gzip \
-    && tar -xzf latest_toolchain.tar.gz --directory / --strip-components=1 ${DOWNLOAD_DIR}-${OS_VER}/usr/lib/swift/linux \
-    && chmod -R o+r /usr/lib/swift \
+    && tar -xzf latest_toolchain.tar.gz --directory / --strip-components=1 \
+       ${DOWNLOAD_DIR}-${OS_VER}/usr/lib/swift/linux \
+       ${DOWNLOAD_DIR}-${OS_VER}/usr/libexec/swift/linux \
+    && chmod -R o+r /usr/lib/swift /usr/libexec/swift \
     && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
     && yum autoremove -y tar gzip
 
