@@ -15,6 +15,7 @@ RUN yum install -y  \
   libxml2-devel     \
   ncurses-devel     \
   python3-devel     \
+  readelf           \
   rsync             \
   sqlite-devel      \
   unzip             \
