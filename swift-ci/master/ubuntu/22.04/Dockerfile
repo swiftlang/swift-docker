@@ -65,20 +65,29 @@ RUN set -e; \
     # - Grab curl here so we cache better up above
     && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -q update && apt-get -q install -y curl && rm -rf /var/lib/apt/lists/* \
+    # - Download sccache
+    && SCCACHE_VERSION=v0.5.4 \
+    && curl -L "https://github.com/mozilla/sccache/releases/download/${SCCACHE_VERSION}/sccache-${SCCACHE_VERSION}-$(uname -m)-unknown-linux-musl.tar.gz" -o sccache.tar.gz \
+    && tar xzpvf sccache.tar.gz \
+    && mv "sccache-${SCCACHE_VERSION}-$(uname -m)-unknown-linux-musl/sccache" /usr/local/bin/ \
+    && chmod +x /usr/local/bin/sccache \
+    && rm -rf sccache.tar.gz "sccache-${SCCACHE_VERSION}-$(uname -m)-unknown-linux-musl" \
     # - Download the GPG keys, Swift toolchain, and toolchain signature, and verify.
-    && export GNUPGHOME="$(mktemp -d)" \
-    && curl -fsSL "$SWIFT_BIN_URL" -o swift.tar.gz "$SWIFT_SIG_URL" -o swift.tar.gz.sig \
-    && curl -fSsL https://swift.org/keys/all-keys.asc | gpg --import -  \
-    && gpg --batch --verify swift.tar.gz.sig swift.tar.gz \
+    # && export GNUPGHOME="$(mktemp -d)" \
+    # && curl -fsSL "$SWIFT_BIN_URL" -o swift.tar.gz "$SWIFT_SIG_URL" -o swift.tar.gz.sig \
+    # && curl -fSsL https://www.swift.org/keys/all-keys.asc | gpg --import -  \
+    # && gpg --batch --verify swift.tar.gz.sig swift.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
-    && mkdir -p $SWIFT_PREFIX \
-    && tar -xzf swift.tar.gz --directory $SWIFT_PREFIX --strip-components=1 \
-    && chmod -R o+r $SWIFT_PREFIX/usr/lib/swift \
-    && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
+    # && mkdir -p $SWIFT_PREFIX \
+    # && tar -xzf swift.tar.gz --directory $SWIFT_PREFIX --strip-components=1 \
+    # && chmod -R o+r $SWIFT_PREFIX/usr/lib/swift \
+    # && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
     && apt-get purge --auto-remove -y curl
 
 ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
 
 USER build-user
+
+RUN sccache --version
 
 WORKDIR /home/build-user
