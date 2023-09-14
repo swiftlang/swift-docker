@@ -68,6 +68,19 @@ RUN set -e; \
     && chmod -R o+r /usr/lib/swift \
     && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz
 
+# The devtoolset-8 that the Swift runtime is built against uses new
+# functionality in the backdeploy `libstdc++_noshared.a` in devtoolset-a.
+# A linkerscript in the devtoolset ensures that it is picked up appropriately.
+# When dynamically linking the runtime, this static archive is merged into the
+# shared object. When static linking, the compat library needs to be available
+# to be merged into the final shared object/executable.
+#
+# Symlink it from the devtoolset into the static swift resource directory
+RUN yum install -y centos-release-scl
+RUN yum install -y devtoolset-8
+RUN ln -s /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/libstdc++_nonshared.a /usr/lib/swift_static/linux && \
+    ln -s /opt/rh/devtoolset-8/root/usr/lib/gcc/x86_64-redhat-linux/8/libstdc++.so /usr/lib/swift_static/linux
+
 # Print Installed Swift Version
 RUN swift --version
 
