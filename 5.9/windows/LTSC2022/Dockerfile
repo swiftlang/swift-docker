@@ -1,6 +1,6 @@
 # escape=`
 
-FROM mcr.microsoft.com/windows/servercore:ltsc2022-amd64 AS windows
+FROM mcr.microsoft.com/windows/servercore:ltsc2022 AS windows
 
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
