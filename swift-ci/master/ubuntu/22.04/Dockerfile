@@ -39,6 +39,8 @@ ARG SWIFT_BRANCH=swift-${SWIFT_VERSION}-release
 ARG SWIFT_TAG=swift-${SWIFT_VERSION}-RELEASE
 ARG SWIFT_WEBROOT=https://download.swift.org
 ARG SWIFT_PREFIX=/opt/swift/${SWIFT_VERSION}
+ARG SWIFT_CI_WAMR_VERSION=1.2.3
+ARG SWIFT_CI_WAMR_PREFIX=/opt/wamr-${SWIFT_CI_WAMR_VERSION}
 
 ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_VERSION=$SWIFT_VERSION \
@@ -75,9 +77,18 @@ RUN set -e; \
     && tar -xzf swift.tar.gz --directory $SWIFT_PREFIX --strip-components=1 \
     && chmod -R o+r $SWIFT_PREFIX/usr/lib/swift \
     && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
+    # - Install wamr WebAssembly runtime under /usr/local/ for testing
+    && WAMR_BUILD_DIR=/tmp/wamr-build \
+    && WAMR_SOURCE_TARBALL_URL="https://github.com/bytecodealliance/wasm-micro-runtime/archive/refs/tags/WAMR-${SWIFT_CI_WAMR_VERSION}.tar.gz" \
+    && mkdir -p "$WAMR_BUILD_DIR" \
+    && curl -L "$WAMR_SOURCE_TARBALL_URL" | tar -xz --strip-component 1 -C "$WAMR_BUILD_DIR" \
+    && cmake -G Ninja -B "$WAMR_BUILD_DIR" -DWAMR_BUILD_AOT:BOOL=NO "$WAMR_BUILD_DIR/product-mini/platforms/linux/" \
+    && cmake --build "$WAMR_BUILD_DIR" \
+    && cmake --install "$WAMR_BUILD_DIR" --prefix "$SWIFT_CI_WAMR_PREFIX" \
+    && rm -rf "$WAMR_BUILD_DIR" \
     && apt-get purge --auto-remove -y curl
 
-ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
+ENV PATH="${SWIFT_PREFIX}/usr/bin:${SWIFT_CI_WAMR_PREFIX}/bin:${PATH}"
 
 USER build-user
 
