@@ -15,9 +15,9 @@ RUN dnf --allowerasing -y install \
   libstdc++-static \
   libuuid \
   libxml2-devel \
+  sqlite-libs \
   tar \
   tzdata \
-  sqlite-libs \
   zlib-devel
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
