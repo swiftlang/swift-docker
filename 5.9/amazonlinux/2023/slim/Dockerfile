@@ -47,5 +47,5 @@ RUN set -e; \
     && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
     && dnf -y swap gnupg2-full gnupg2-minimal \
     # - Disable removal protection for the package systemd bundled with gnupg2-full.
-    && rm /etc/dnf/protect.d/systemd.conf \
+    && rm /etc/dnf/protected.d/systemd.conf \
     && dnf autoremove -y tar gzip systemd
