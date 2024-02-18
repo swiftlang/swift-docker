@@ -1,17 +1,13 @@
 FROM amazonlinux:2023
 
-RUN yum install shadow-utils -y
+RUN dnf install shadow-utils -y
 
 RUN groupadd -g 998 build-user && \
     useradd -m -r -u 42 -g build-user build-user
 
-# The build needs a package from the EPEL repo so that needs to be enabled.
-# https://www.tecmint.com/install-epel-repository-on-centos/
-# RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-
 # Update and install needed build packages
-RUN yum -y group install "development tools"
-RUN yum -y install \
+RUN dnf -y group install "development tools"
+RUN dnf -y install \
   cmake            \
   curl-devel       \
   gcc-c++          \
@@ -42,7 +38,7 @@ RUN yum -y install \
   zip
 
 # Additional dependencies specifically for Amazon Linux 2023
-RUN yum install -y \
+RUN dnf install -y \
   libmpc-devel \
   texinfo
 
