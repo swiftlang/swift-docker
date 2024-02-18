@@ -22,6 +22,8 @@ RUN yum -y install \
   zip \
   zlib-devel
 
+RUN ln -s /bin/ld /usr/bin/ld.gold
+
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 
 # gpg --keyid-format LONG -k FAF6989E1BC16FEA

@@ -21,6 +21,8 @@ RUN yum -y install \
   tzdata \
   zlib-devel
 
+RUN ln -s /bin/ld /usr/bin/ld.gold
+
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 
 # pub   4096R/ED3D1561 2019-03-22 [SC] [expires: 2023-03-23]
