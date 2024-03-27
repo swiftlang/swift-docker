@@ -16,6 +16,7 @@ RUN yum -y install \
   libstdc++-static \
   libuuid \
   libxml2-devel \
+  openssl-devel \
   tar \
   tzdata \
   unzip \
