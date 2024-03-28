@@ -127,8 +127,8 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
 # Install Swift toolchain.
-ARG SWIFT_RELEASE_METADATA=http://download.swift.org/development/windows10/latest-build.yml
-RUN $env:Release = curl.exe -sL ${env:SWIFT_RELEASE_METADATA} | python -c 'import json, sys, yaml; print(json.dumps(yaml.safe_load(sys.stdin.read()), default = str))'; \
+ARG SWIFT_RELEASE_METADATA=http://download.swift.org/development/windows10/latest-build.json
+RUN $env:Release = curl.exe -sL ${env:SWIFT_RELEASE_METADATA};                  \
     $env:SWIFT = "https://download.swift.org/development/windows10/$($($env:Release | ConvertFrom-JSON).dir)/$($($env:Release | ConvertFrom-JSON).download)"; \
     Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:SWIFT});             \
     Invoke-WebRequest -Uri ${env:SWIFT} -OutFile installer.exe;                 \
