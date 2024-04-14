@@ -40,11 +40,12 @@ RUN set -e; \
     && chmod -R o+r /usr/lib/swift /usr/libexec/swift \
     && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz
 
-RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd' \
-    >> /etc/bashrc; \
-    echo -e " ################################################################\n" \
-    "#\t\t\t\t\t\t\t\t#\n" \
-    "# Swift Nightly Docker Image\t\t\t\t\t#\n" \
-    "# Tag: $(cat .swift_tag)\t\t\t#\n" \
-    "#\t\t\t\t\t\t\t\t#\n"  \
-    "################################################################\n" > /etc/motd
+RUN echo "[ -n \"\${TERM:-}\" -a -r /etc/motd ] && cat /etc/motd" >> /etc/bashrc; \
+    ( \
+      printf "################################################################\n"; \
+      printf "# %-60s #\n" ""; \
+      printf "# %-60s #\n" "Swift Nightly Docker Image"; \
+      printf "# %-60s #\n" "Tag: $(cat .swift_tag)"; \
+      printf "# %-60s #\n" ""; \
+      printf "################################################################\n" \
+    ) > /etc/motd
