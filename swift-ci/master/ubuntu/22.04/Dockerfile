@@ -8,6 +8,7 @@ ENV DEBIAN_FRONTEND="noninteractive"
 RUN apt-get -y update && apt-get -y install \
   build-essential       \
   cmake                 \
+  file                  \
   git                   \
   icu-devtools          \
   libcurl4-openssl-dev  \
