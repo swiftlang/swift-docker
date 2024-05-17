@@ -23,6 +23,7 @@ RUN apt-get -y update && apt-get -y install \
   python3-six           \
   python3-pkg-resources \
   python3-psutil        \
+  python3-setuptools    \
   rsync                 \
   swig                  \
   systemtap-sdt-dev     \
