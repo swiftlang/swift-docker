@@ -53,4 +53,4 @@ Contributions via pull requests are welcome and encouraged :)
 
 ## License
 
-docker-swift is licensed under the [Apache License, Version 2.0](LICENSE.md).
+swift-docker is licensed under the [Apache License, Version 2.0](LICENSE.md).
