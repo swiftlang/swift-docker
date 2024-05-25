@@ -20,6 +20,8 @@ RUN yum install -y \
   clang               \
   perl-podlators      \
   which               \
+  git                 \
+  cmake               \
   diffutils
 
 USER build-user
