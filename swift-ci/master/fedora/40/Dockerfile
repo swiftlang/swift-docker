@@ -22,6 +22,8 @@ RUN yum install -y    \
   which               \
   git                 \
   cmake               \
+  zip                 \
+  unzip               \
   diffutils
 
 USER build-user
