@@ -1,0 +1,73 @@
+diff --git a/src/locale/locale_map.c b/src/locale/locale_map.c
+index da61f7fc..097da1ad 100644
+--- a/src/locale/locale_map.c
++++ b/src/locale/locale_map.c
+@@ -31,7 +31,7 @@ static const char envvars[][12] = {
+ volatile int __locale_lock[1];
+ volatile int *const __locale_lockptr = __locale_lock;
+ 
+-const struct __locale_map *__get_locale(int cat, const char *val)
++const struct __locale_map *__get_locale(int cat, const char *locale)
+ {
+ 	static void *volatile loc_head;
+ 	const struct __locale_map *p;
+@@ -39,6 +39,7 @@ const struct __locale_map *__get_locale(int cat, const char *val)
+ 	const char *path = 0, *z;
+ 	char buf[256];
+ 	size_t l, n;
++	const char *val = locale;
+ 
+ 	if (!*val) {
+ 		(val = getenv("LC_ALL")) && *val ||
+@@ -92,22 +93,18 @@ const struct __locale_map *__get_locale(int cat, const char *val)
+ 		}
+ 	}
+ 
+-	/* If no locale definition was found, make a locale map
+-	 * object anyway to store the name, which is kept for the
+-	 * sake of being able to do message translations at the
+-	 * application level. */
+-	if (!new && (new = malloc(sizeof *new))) {
+-		new->map = __c_dot_utf8.map;
+-		new->map_size = __c_dot_utf8.map_size;
+-		memcpy(new->name, val, n);
+-		new->name[n] = 0;
+-		new->next = loc_head;
+-		loc_head = new;
+-	}
++	/* If no locale definition was found, and we specified a
++	 * locale name of "", return the C.UTF-8 locale. */
++	if (!new && !*locale) new = (void *)&__c_dot_utf8;
+ 
+ 	/* For LC_CTYPE, never return a null pointer unless the
+ 	 * requested name was "C" or "POSIX". */
+ 	if (!new && cat == LC_CTYPE) new = (void *)&__c_dot_utf8;
+ 
++	/* Returning NULL means "C locale"; if we get here and
++	 * there's no locale, return failure instead. */
++	if (!new)
++		return LOC_MAP_FAILED;
++
+ 	return new;
+ }
+diff --git a/src/locale/setlocale.c b/src/locale/setlocale.c
+index 360c4437..9842d95d 100644
+--- a/src/locale/setlocale.c
++++ b/src/locale/setlocale.c
+@@ -28,12 +28,14 @@ char *setlocale(int cat, const char *name)
+ 			const char *p = name;
+ 			for (i=0; i<LC_ALL; i++) {
+ 				const char *z = __strchrnul(p, ';');
+-				if (z-p <= LOCALE_NAME_MAX) {
++				if (z-p > LOCALE_NAME_MAX)
++					lm = LOC_MAP_FAILED;
++				else {
+ 					memcpy(part, p, z-p);
+ 					part[z-p] = 0;
+ 					if (*z) p = z+1;
++					lm = __get_locale(i, part);
+ 				}
+-				lm = __get_locale(i, part);
+ 				if (lm == LOC_MAP_FAILED) {
+ 					UNLOCK(__locale_lock);
+ 					return 0;
