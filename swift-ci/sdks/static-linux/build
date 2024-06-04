@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# ===----------------------------------------------------------------------===
+#
+#  Swift Static SDK for Linux: Top-level Build Script
+#
+#  This source file is part of the Swift.org open source project
+#
+#  Copyright (c) 2024 Apple Inc. and the Swift project authors
+#  Licensed under Apache License v2.0 with Runtime Library Exception
+#
+#  See https://swift.org/LICENSE.txt for license information
+#  See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+#
+# ===----------------------------------------------------------------------===
+
+DOCKER=docker
+
+# Build the Docker image
+$(DOCKER) build -t static-swift-linux .
+
+# Check-out the sources
+scripts/fetch-source.sh --clone-with-ssh --source-dir source
+
+mkdir -p products
+
+# Run the build
+$(DOCKER) run -it --rm \
+          -v ./source:/source \
+          -v ./products:/products \
+          static-swift-linux \
+          /scripts/build.sh --source-dir /source --products-dir /products
