@@ -1,4 +1,5 @@
-FROM amazonlinux:2
+FROM fedora:39
+
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
@@ -7,20 +8,13 @@ RUN yum -y install \
   gcc \
   git \
   unzip \
-  glibc-static \
-  gzip \
-  libbsd \
   libcurl-devel \
-  libedit \
-  libicu \
-  libsqlite \
-  libstdc++-static \
-  libuuid \
+  libedit-devel \
+  libicu-devel \
+  sqlite-devel \
+  libuuid-devel \
   libxml2-devel \
-  openssl-devel \
-  tar \
-  tzdata \
-  zlib-devel
+  python3-devel
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 
@@ -28,7 +22,7 @@ RUN yum -y install \
 #       Key fingerprint = A62A E125 BBBF BB96 A6E0  42EC 925C C1CC ED3D 1561
 # uid                  Swift 5.x Release Signing Key <swift-infrastructure@swift.org
 ARG SWIFT_SIGNING_KEY=A62AE125BBBFBB96A6E042EC925CC1CCED3D1561
-ARG SWIFT_PLATFORM=amazonlinux2
+ARG SWIFT_PLATFORM=fedora39
 ARG SWIFT_BRANCH=swift-5.10.1-release
 ARG SWIFT_VERSION=swift-5.10.1-RELEASE
 ARG SWIFT_WEBROOT=https://download.swift.org
