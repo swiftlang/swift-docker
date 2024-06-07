@@ -24,10 +24,17 @@ if [ -t 1 ]; then
     fi
 fi
 
-bold=$(tput bold)
-white=$(tput setaf 15)
-grey=$(tput setaf 8)
-reset=$(tput sgr0)
+if [[ -n "$TERM" ]]; then
+  bold=""
+  white=""
+  grey=""
+  reset=""
+else
+  bold=$(tput bold)
+  white=$(tput setaf 15)
+  grey=$(tput setaf 8)
+  reset=$(tput sgr0)
+fi
 
 function cleanup {
     echo "${reset}"
