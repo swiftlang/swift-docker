@@ -158,7 +158,7 @@ header "Fetching Swift"
 mkdir -p swift-project
 pushd swift-project >/dev/null
 
-git clone ${github}apple/swift.git
+[[ -d swift ]] || git clone ${github}apple/swift.git
 cd swift
 
 # Get its dependencies
@@ -178,7 +178,7 @@ popd >/dev/null
 # Fetch Musl (can't clone using ssh)
 header "Fetching Musl"
 
-git clone https://git.musl-libc.org/git/musl
+[[ -d musl ]] || git clone https://git.musl-libc.org/git/musl
 pushd musl >/dev/null 2>&1
 git checkout v${MUSL_VERSION}
 popd >/dev/null 2>&1
@@ -186,7 +186,7 @@ popd >/dev/null 2>&1
 # Fetch libxml2
 header "Fetching libxml2"
 
-git clone ${github}GNOME/libxml2.git
+[[ -d libxml2 ]] || git clone ${github}GNOME/libxml2.git
 pushd libxml2 >/dev/null 2>&1
 git checkout v${LIBXML2_VERSION}
 popd >/dev/null 2>&1
@@ -194,7 +194,7 @@ popd >/dev/null 2>&1
 # Fetch curl
 header "Fetching curl"
 
-git clone ${github}curl/curl.git
+[[ -d curl ]] || git clone ${github}curl/curl.git
 pushd curl >/dev/null 2>&1
 git checkout curl-$(echo ${CURL_VERSION} | tr '.' '_')
 popd >/dev/null 2>&1
@@ -202,7 +202,7 @@ popd >/dev/null 2>&1
 # Fetch BoringSSL (also can't clone using ssh)
 header "Fetching BoringSSL"
 
-git clone https://boringssl.googlesource.com/boringssl
+[[ -d boringssl ]] || git clone https://boringssl.googlesource.com/boringssl
 pushd boringssl >/dev/null 2>&1
 git checkout ${BORINGSSL_VERSION}
 popd >/dev/null 2>&1
@@ -210,7 +210,7 @@ popd >/dev/null 2>&1
 # Fetch ICU
 header "Fetching ICU"
 
-git clone ${github}unicode-org/icu.git
+[[ -d icu ]] || git clone ${github}unicode-org/icu.git
 pushd icu >/dev/null 2>&1
 git checkout ${ICU_VERSION}
 popd >/dev/null 2>&1
@@ -218,7 +218,7 @@ popd >/dev/null 2>&1
 # Fetch zlib
 header "Fetching zlib"
 
-git clone ${github}madler/zlib.git
+[[ -d zlib ]] || git clone ${github}madler/zlib.git
 pushd zlib >/dev/null 2>&1
 git checkout v${ZLIB_VERSION}
 popd >/dev/null 2>&1
