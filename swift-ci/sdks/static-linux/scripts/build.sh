@@ -912,6 +912,6 @@ header "Outputting compressed bundle"
 
 quiet_pushd "${build_dir}"
 mkdir -p "${products_dir}"
-tar cvf "${products_dir}/${bundle}.tar.gz" "${bundle}"
+tar cvzf "${products_dir}/${bundle}.tar.gz" "${bundle}"
 quiet_popd
 
