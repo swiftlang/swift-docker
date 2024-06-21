@@ -78,6 +78,8 @@ RUN set -e; \
 
 ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
 
+RUN echo PATH="${SWIFT_PREFIX}/usr/bin:${PATH}" >> /etc/profile
+
 USER build-user
 
 WORKDIR /home/build-user
