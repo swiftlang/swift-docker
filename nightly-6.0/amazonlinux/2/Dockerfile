@@ -17,6 +17,7 @@ RUN yum -y install \
   libuuid \
   libxml2-devel \
   openssl-devel \
+  python3-libs \
   tar \
   tzdata \
   unzip \
