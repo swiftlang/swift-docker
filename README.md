@@ -6,6 +6,8 @@
 
 #### You can find the Docker Hub repo here: [https://hub.docker.com/_/swift/](https://hub.docker.com/_/swift/)
 
+#### Nightly image tags are published here: [https://hub.docker.com/r/swiftlang/swift](https://hub.docker.com/r/swiftlang/swift)
+
 
 ### Usage
 
