@@ -231,10 +231,10 @@ function run() {
 
 header "Building CMake from source"
 
-quiet_pushd ${source_dir}/cmake
+quiet_pushd ${source_dir}/swift-project/cmake
 run ./bootstrap --no-qt-gui -- -DCMAKE_USE_OPENSSL=OFF
 run make -j$parallel_jobs
-run export PATH=${source_dir}/cmake/bin:$PATH
+run export PATH=${source_dir}/swift-project/cmake/bin:$PATH
 quiet_popd
 run cmake --version
 
@@ -651,7 +651,7 @@ EOF
         --musl-path=${build_dir}/sdk_root \
         --linux-static-arch=$arch \
         --install-destdir=$sdk_root \
-        --cmake ${source_dir}/cmake/bin/cmake \
+        --cmake=${source_dir}/swift-project/cmake/bin/cmake \
         --install-prefix=/usr \
         --swift-install-components="libexec;stdlib;sdk-overlay" \
         --extra-cmake-options="-DSWIFT_SHOULD_BUILD_EMBEDDED_STDLIB=NO -DLLVM_USE_LINKER=lld -DLLVM_NO_DEAD_STRIP=On" \
