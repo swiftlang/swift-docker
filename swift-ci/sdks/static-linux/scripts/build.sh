@@ -346,7 +346,7 @@ EOF
         echo "Fixing $header"
         sed -i -E "s:#define[ \t]+__NEED_([_A-Za-z][_A-Za-z0-9]*):#include <bits/types/\1.h>:g;/#include <bits\/alltypes.h>/d" $header
     done
-    mkdir _modules
+    mkdir -p _modules
     for header in assert complex ctype errno fenv float inttypes iso646 \
                          limits locale math setjmp stdalign stdarg stdatomic \
                          stdbool stddef stdint stdio stdlib string tgmath \
@@ -548,7 +548,7 @@ EOF
     mkdir -p ${sdk_root}/usr/lib/swift_static/linux-static
     quiet_pushd ${sdk_root}/usr/lib/swift_static/linux-static
     for library in data i18n test tu uc; do
-        ln -s ../../libicu${library}.a libicu${library}swift.a
+        ln -sf ../../libicu${library}.a libicu${library}swift.a
     done
     quiet_popd
 
@@ -677,7 +677,7 @@ EOF
     lld=$(find ${build_dir}/swift -name 'ld.lld')
 
     # Add the Swift compiler to the CMake toolchain file
-    cat >> build/$arch/toolchain.cmake <<EOF
+    cat >> ${build_dir}/$arch/toolchain.cmake <<EOF
 set(CMAKE_Swift_FLAGS "-static-stdlib -use-ld=${lld} -sdk ${sdk_root} -target ${arch}-swift-linux-musl -resource-dir ${sdk_root}/usr/lib/swift_static -Xclang-linker -resource-dir -Xclang-linker ${sdk_resource_dir}")
 set(CMAKE_Swift_COMPILER ${swiftc})
 EOF
