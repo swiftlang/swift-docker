@@ -136,8 +136,10 @@ while [ "$#" -gt 0 ]; do
             archs="$2"; shift ;;
         --version)
             static_linux_sdk_version="$2"; shift ;;
+        -j|--jobs)
+            parallel_jobs=$2; shift ;;
         *)
-            usage; exit 0 ;;
+            echo "Unknown argument '$1'"; usage; exit 0 ;;
     esac
     shift
 done
