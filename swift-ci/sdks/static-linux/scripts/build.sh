@@ -234,9 +234,16 @@ function run() {
 header "Building CMake from source"
 
 quiet_pushd ${source_dir}/swift-project/cmake
-run ./bootstrap --no-qt-gui -- -DCMAKE_USE_OPENSSL=OFF
-run make -j$parallel_jobs
-run export PATH=${source_dir}/swift-project/cmake/bin:$PATH
+run cmake -G 'Ninja' ./ \
+    -B ${source_dir}/swift-project/cmake/build \
+    -DCMAKE_INSTALL_PREFIX=${source_dir}/swift-project/cmake/install \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_USE_OPENSSL=OFF \
+    -DBUILD_CursesDialog=OFF \
+    -DBUILD_TESTING=OFF
+run ninja -C ${source_dir}/swift-project/cmake/build
+run ninja -C ${source_dir}/swift-project/cmake/build install
+run export PATH="${source_dir}/swift-project/cmake/install/bin:$PATH"
 quiet_popd
 run cmake --version
 
