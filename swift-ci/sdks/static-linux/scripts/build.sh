@@ -136,8 +136,10 @@ while [ "$#" -gt 0 ]; do
             archs="$2"; shift ;;
         --version)
             static_linux_sdk_version="$2"; shift ;;
+        -j|--jobs)
+            parallel_jobs=$2; shift ;;
         *)
-            usage; exit 0 ;;
+            echo "Unknown argument '$1'"; usage; exit 0 ;;
     esac
     shift
 done
@@ -232,9 +234,16 @@ function run() {
 header "Building CMake from source"
 
 quiet_pushd ${source_dir}/swift-project/cmake
-run ./bootstrap --no-qt-gui -- -DCMAKE_USE_OPENSSL=OFF
-run make -j$parallel_jobs
-run export PATH=${source_dir}/swift-project/cmake/bin:$PATH
+run cmake -G 'Ninja' ./ \
+    -B ${source_dir}/swift-project/cmake/build \
+    -DCMAKE_INSTALL_PREFIX=${source_dir}/swift-project/cmake/install \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_USE_OPENSSL=OFF \
+    -DBUILD_CursesDialog=OFF \
+    -DBUILD_TESTING=OFF
+run ninja -C ${source_dir}/swift-project/cmake/build
+run ninja -C ${source_dir}/swift-project/cmake/build install
+run export PATH="${source_dir}/swift-project/cmake/install/bin:$PATH"
 quiet_popd
 run cmake --version
 
@@ -283,7 +292,7 @@ for arch in $archs; do
     cp -rT $clang_resource_dir/include $sdk_resource_dir/include
 
     cc="${swift_dir}/bin/clang -target $triple -resource-dir ${sdk_resource_dir} --sysroot ${sdk_root}"
-    cxx="${swift_dir}/bin/clang++ -target $triple -resource-dir ${sdk_resource_dir} --sysroot ${sdk_root}"
+    cxx="${swift_dir}/bin/clang++ -target $triple -resource-dir ${sdk_resource_dir} --sysroot ${sdk_root} -stdlib=libc++ -unwindlib=libunwind"
     as="$cc"
 
     # Creating this gets rid of a warning
@@ -337,7 +346,7 @@ EOF
         echo "Fixing $header"
         sed -i -E "s:#define[ \t]+__NEED_([_A-Za-z][_A-Za-z0-9]*):#include <bits/types/\1.h>:g;/#include <bits\/alltypes.h>/d" $header
     done
-    mkdir _modules
+    mkdir -p _modules
     for header in assert complex ctype errno fenv float inttypes iso646 \
                          limits locale math setjmp stdalign stdarg stdatomic \
                          stdbool stddef stdint stdio stdlib string tgmath \
@@ -391,14 +400,14 @@ set(CMAKE_SYSTEM_PROCESSOR ${arch})
 set(CMAKE_ASM_COMPILER_TARGET ${triple})
 set(CMAKE_C_COMPILER_TARGET ${triple})
 set(CMAKE_CXX_COMPILER_TARGET ${triple})
-set(CMAKE_SWIFT_COMPILER_TARGET ${triple})
+set(CMAKE_Swift_COMPILER_TARGET ${triple})
 set(CMAKE_SYSROOT ${sdk_root})
 
 set(CMAKE_CROSSCOMPILING=YES)
-set(CMAKE_EXE_LINKER_FLAGS "-rtlib=compiler-rt -stdlib=libc++ -fuse-ld=lld -lc++ -lc++abi")
+set(CMAKE_EXE_LINKER_FLAGS "-unwindlib=libunwind -rtlib=compiler-rt -stdlib=libc++ -fuse-ld=lld -lc++ -lc++abi")
 
 set(CMAKE_C_COMPILER ${swift_dir}/bin/clang -resource-dir ${sdk_resource_dir})
-set(CMAKE_CXX_COMPILER ${swift_dir}/bin/clang++ -resource-dir ${sdk_resource_dir})
+set(CMAKE_CXX_COMPILER ${swift_dir}/bin/clang++ -resource-dir ${sdk_resource_dir} -stdlib=libc++)
 set(CMAKE_ASM_COMPILER ${swift_dir}/bin/clang -resource-dir ${sdk_resource_dir})
 set(CMAKE_FIND_ROOT_PATH ${sdk_root})
 EOF
@@ -414,6 +423,7 @@ EOF
         -G Ninja \
         -DCMAKE_TOOLCHAIN_FILE=${build_dir}/$arch/toolchain.cmake \
         -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" \
+        -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY \
         -DCOMPILER_RT_BUILD_BUILTINS=ON \
         -DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
         -DCOMPILER_RT_BUILD_MEMPROF=OFF \
@@ -483,6 +493,9 @@ EOF
     run ninja -j$parallel_jobs install
     quiet_popd
 
+    ldflags="-fuse-ld=lld -rtlib=compiler-rt -unwindlib=libunwind"
+    cxxldflags="-fuse-ld=lld -rtlib=compiler-rt -unwind=libunwind -lc++ -lc++abi"
+
     # -----------------------------------------------------------------------
 
     header "Building zlib for $arch"
@@ -492,6 +505,8 @@ EOF
     run /bin/env \
           CC="$cc" \
           CXX="$cxx" \
+          LDFLAGS="$ldflags" \
+          CXXLDFLAGS="$cxxldflags" \
           AS="$as" \
           AR="ar" RANLIB="ranlib" \
           "${source_dir}/zlib/configure" \
@@ -521,6 +536,7 @@ EOF
         --enable-strict --disable-icuio \
         --disable-plugins --disable-dyload --disable-extras \
         --disable-samples --disable-layoutex --with-data-packaging=auto \
+        LDFLAGS="$cxxldflags" \
         CC="$cc" \
         CXX="$cxx" \
         AS="$as" \
@@ -532,7 +548,7 @@ EOF
     mkdir -p ${sdk_root}/usr/lib/swift_static/linux-static
     quiet_pushd ${sdk_root}/usr/lib/swift_static/linux-static
     for library in data i18n test tu uc; do
-        ln -s ../../libicu${library}.a libicu${library}swift.a
+        ln -sf ../../libicu${library}.a libicu${library}swift.a
     done
     quiet_popd
 
@@ -542,7 +558,7 @@ EOF
 
     run cmake -G Ninja -S ${source_dir}/libxml2 -B ${build_dir}/$arch/libxml2 \
           -DCMAKE_TOOLCHAIN_FILE=${build_dir}/$arch/toolchain.cmake \
-          -DCMAKE_EXTRA_LINK_FLAGS="-rtlib=compiler-rt -stdlib=libc++ -fuse-ld=lld -lc++ -lc++abi" \
+          -DCMAKE_EXTRA_LINK_FLAGS="-rtlib=compiler-rt -unwindlib=libunwind -stdlib=libc++ -fuse-ld=lld -lc++ -lc++abi" \
           -DCMAKE_BUILD_TYPE=RelWithDebInfo \
           -DCMAKE_INSTALL_PREFIX=$sdk_root/usr \
           -DBUILD_SHARED_LIBS=NO \
@@ -644,14 +660,13 @@ EOF
     run ${source_dir}/swift-project/swift/utils/build-script -r \
         --reconfigure \
         --compiler-vendor=apple \
-        --bootstrapping bootstrapping \
+        --bootstrapping hosttools \
         --build-linux-static --install-swift \
         --stdlib-deployment-targets linux-x86_64,linux-static-$arch \
         --build-stdlib-deployment-targets all \
         --musl-path=${build_dir}/sdk_root \
         --linux-static-arch=$arch \
         --install-destdir=$sdk_root \
-        --cmake=${source_dir}/swift-project/cmake/bin/cmake \
         --install-prefix=/usr \
         --swift-install-components="libexec;stdlib;sdk-overlay" \
         --extra-cmake-options="-DSWIFT_SHOULD_BUILD_EMBEDDED_STDLIB=NO -DLLVM_USE_LINKER=lld -DLLVM_NO_DEAD_STRIP=On" \
@@ -662,7 +677,7 @@ EOF
     lld=$(find ${build_dir}/swift -name 'ld.lld')
 
     # Add the Swift compiler to the CMake toolchain file
-    cat >> build/$arch/toolchain.cmake <<EOF
+    cat >> ${build_dir}/$arch/toolchain.cmake <<EOF
 set(CMAKE_Swift_FLAGS "-static-stdlib -use-ld=${lld} -sdk ${sdk_root} -target ${arch}-swift-linux-musl -resource-dir ${sdk_root}/usr/lib/swift_static -Xclang-linker -resource-dir -Xclang-linker ${sdk_resource_dir}")
 set(CMAKE_Swift_COMPILER ${swiftc})
 EOF
@@ -682,6 +697,7 @@ EOF
           -DCMAKE_REQUIRED_DEFINITIONS=-D_GNU_SOURCE \
           -DCMAKE_BUILD_TYPE=RelWithDebInfo \
           -DCMAKE_INSTALL_PREFIX=$sdk_root/usr \
+          -DCMAKE_Swift_COMPILER_WORKS=YES \
           -DBUILD_SHARED_LIBS=NO \
           -DENABLE_SWIFT=YES \
           -DSWIFT_SYSTEM_NAME=linux-static
@@ -706,6 +722,9 @@ EOF
           -DSWIFT_SYSTEM_NAME=linux-static \
           -DFOUNDATION_PATH_TO_LIBDISPATCH_SOURCE=${source_dir}/swift-project/swift-corelibs-libdispatch \
           -DFOUNDATION_PATH_TO_LIBDISPATCH_BUILD=${build_dir}/$arch/dispatch \
+          -D_SwiftFoundation_SourceDIR=${source_dir}/swift-project/swift-foundation \
+          -D_SwiftFoundationICU_SourceDIR=${source_dir}/swift-project/swift-foundation-icu \
+          -DCMAKE_Swift_COMPILER_WORKS=YES \
           -Ddispatch_DIR=${build_dir}/$arch/dispatch/cmake/modules
 
     quiet_pushd ${build_dir}/$arch/foundation
@@ -924,4 +943,3 @@ quiet_pushd "${build_dir}"
 mkdir -p "${products_dir}"
 tar cvzf "${products_dir}/${bundle}.tar.gz" "${bundle}"
 quiet_popd
-
