@@ -3,7 +3,7 @@ on: [pull_request]
 
 env:
   ghprbPullId: ${{ github.event.number }}
-  ghprbGhRepository: ${{ github.event.repository.name }}
+  ghprbGhRepository: ${{ github.repository_owner }}/${{ github.event.repository.name }}
 
 jobs:
    build:
