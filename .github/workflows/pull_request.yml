@@ -1,0 +1,14 @@
+name: Build Docker images
+on: [pull_request]
+
+env:
+  ghprbPullId: ${{ github.event.number }}
+  ghprbGhRepository: ${{ github.event.repository.name }}
+
+jobs:
+   build:
+     name: Build Docker images
+     runs-on: ubuntu-latest
+     steps:
+      - uses: actions/checkout@v4
+      - run: ./ci_test.py
