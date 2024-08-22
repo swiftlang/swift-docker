@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ci_test - Build all Dockerfiles -*- python -*-
 #
 # This source file is part of the Swift.org open source project
 #
-# Copyright (c) 2019 Apple Inc. and the Swift project authors
+# Copyright (c) 2024 Apple Inc. and the Swift project authors
 # Licensed under Apache License v2.0 with Runtime Library Exception
 #
 # See https://swift.org/LICENSE.txt for license information
@@ -13,7 +13,7 @@
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-import urllib2
+import urllib.request
 import json
 import subprocess
 import sys
@@ -36,7 +36,7 @@ def run_command(cmd, log_file=None):
 def get_dockerfiles():
     dockerfiles = []
     GITHUB_API_URL = "https://api.github.com"
-    response = urllib2.urlopen("{}/repos/{}/pulls/{}/files".format(GITHUB_API_URL,
+    response = urllib.request.urlopen("{}/repos/{}/pulls/{}/files".format(GITHUB_API_URL,
                                                                    os.environ['ghprbGhRepository'],
                                                                    os.environ['ghprbPullId']))
     data = json.load(response)
