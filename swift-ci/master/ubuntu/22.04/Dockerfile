@@ -12,6 +12,7 @@ RUN apt-get -y update && apt-get -y install \
   git                   \
   icu-devtools          \
   libc++-15-dev         \
+  libc++abi-15-dev      \
   libcurl4-openssl-dev  \
   libedit-dev           \
   libicu-dev            \
