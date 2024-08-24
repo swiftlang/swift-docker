@@ -90,6 +90,7 @@ def main():
         run_command(cmd)
         print("[{}] - {}".format(results[dockerfile], dockerfile))
         sys.stdout.flush()
+        run_command("docker image prune -f")
 
     for dockerfile in dockerfiles:
         if results[dockerfile] == "FAILED":
