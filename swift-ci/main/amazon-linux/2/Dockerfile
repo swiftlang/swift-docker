@@ -30,6 +30,7 @@ RUN yum -y install \
   python-devel     \
   python-pkgconfig \
   python-six       \
+  python3-pip      \
   python3-devel    \
   python3-psutil   \
   rsync            \

@@ -23,6 +23,7 @@ RUN apt -y update && apt -y install \
   python-six            \
   python-pkg-resources  \
   python3-six           \
+  python3-pip           \
   python3-distutils     \
   python3-pkg-resources \
   python3-psutil        \
