@@ -6,8 +6,7 @@ RUN groupadd -g 998 build-user && \
     useradd -m -r -u 42 -g build-user build-user
 
 # The build needs a package from the EPEL repo so that needs to be enabled.
-# https://www.tecmint.com/install-epel-repository-on-centos/
-RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+RUN amazon-linux-extras install epel -y
 
 # Update and install needed build packages
 RUN yum -y group install "development tools"
@@ -30,6 +29,7 @@ RUN yum -y install \
   python-devel     \
   python-pkgconfig \
   python-six       \
+  python3-pip      \
   python3-devel    \
   python3-psutil   \
   rsync            \

@@ -20,6 +20,7 @@ RUN apt-get -y update && apt-get -y install \
   ninja-build           \
   pkg-config            \
   python3-six           \
+  python3-pip           \
   python3-distutils     \
   python3-pkg-resources \
   python3-psutil        \
