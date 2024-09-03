@@ -32,7 +32,7 @@ RUN apt-get -y update && apt-get -y install \
   zip
 
 COPY swift-ci/dependencies/requirements.txt /dependencies/
-RUN pip3 install -r /dependencies/requirements.txt
+RUN pip3 install -r /dependencies/requirements.txt --break-system-packages
 
 ARG SWIFT_PLATFORM=ubuntu23.10
 ARG SWIFT_VERSION=5.10.1
