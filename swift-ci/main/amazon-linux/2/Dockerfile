@@ -44,6 +44,9 @@ RUN yum -y install \
 
 RUN mkdir -p /usr/local/lib/python3.7/site-packages/
 
+COPY swift-ci/dependencies/requirements.txt /dependencies/
+RUN pip3 install -r /dependencies/requirements.txt
+
 RUN easy_install-3.7 six
 
 ARG SWIFT_PLATFORM=amazonlinux2

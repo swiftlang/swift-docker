@@ -32,6 +32,9 @@ RUN apt-get -y update && apt-get -y install \
   uuid-dev              \
   zip
 
+COPY swift-ci/dependencies/requirements.txt /dependencies/
+RUN pip3 install -r /dependencies/requirements.txt
+
 ARG SWIFT_PLATFORM=ubuntu24.04
 ARG SWIFT_VERSION=5.10.1
 ARG SWIFT_BRANCH=swift-${SWIFT_VERSION}-release
