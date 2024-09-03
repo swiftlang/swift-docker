@@ -34,6 +34,9 @@ RUN apt -y update && apt -y install \
   uuid-dev              \
   zip
 
+COPY swift-ci/dependencies/requirements.txt /dependencies/
+RUN pip3 install -r /dependencies/requirements.txt
+
 ARG SWIFT_PLATFORM=ubuntu18.04
 ARG SWIFT_VERSION=5.8.1
 ARG SWIFT_BRANCH=swift-${SWIFT_VERSION}-release
