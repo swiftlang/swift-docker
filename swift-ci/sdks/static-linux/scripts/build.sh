@@ -724,6 +724,7 @@ EOF
           -DFOUNDATION_PATH_TO_LIBDISPATCH_BUILD=${build_dir}/$arch/dispatch \
           -D_SwiftFoundation_SourceDIR=${source_dir}/swift-project/swift-foundation \
           -D_SwiftFoundationICU_SourceDIR=${source_dir}/swift-project/swift-foundation-icu \
+          -D_SwiftCollections_SourceDIR=${source_dir}/swift-project/swift-collections \
           -DCMAKE_Swift_COMPILER_WORKS=YES \
           -Ddispatch_DIR=${build_dir}/$arch/dispatch/cmake/modules
 
