@@ -24,6 +24,9 @@ ARG BORINGSSL_VERSION=fips-20220613
 ARG ICU_VERSION=maint/maint-69
 ARG ZLIB_VERSION=1.3.1
 
+# Architecture to build on (empty means x86-64)
+ARG OS_ARCH_SUFFIX=
+
 # ............................................................................
 
 # Install development tools
@@ -62,7 +65,7 @@ ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
     OS_MAJOR_VER=$OS_MAJOR_VER \
     OS_MINOR_VER=$OS_MINOR_VER \
     OS_VER=$SWIFT_PLATFORM$OS_MAJOR_VER.$OS_MINOR_VER \
-    SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM$OS_MAJOR_VER$OS_MINOR_VER"
+    SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM$OS_MAJOR_VER$OS_MINOR_VER$OS_ARCH_SUFFIX"
 
 COPY scripts/install-swift.sh /scripts/install-swift.sh
 RUN chmod ugo+x /scripts/install-swift.sh
