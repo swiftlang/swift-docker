@@ -147,7 +147,7 @@ done
 # Work out the host architecture
 case $(arch) in
     arm64|aarch64)
-        host_arch=arm64
+        host_arch=aarch64
         ;;
     amd64|x86_64)
         host_arch=x86_64
@@ -768,6 +768,17 @@ EOF
     mv -f "$linkfile.bak" "$linkfile"
 
     # -----------------------------------------------------------------------
+
+    # HACK: Until swift-collections is fixed to install in the right place,
+    # we need to move it from the wrong location to the right location; check
+    # for it in the wrong location and move it if we find it.
+    static_dir=$sdk_root/usr/lib/swift_static
+    if [ -f $static_dir/linux/lib_FoundationCollections.a ]; then
+        mv $static_dir/linux/lib_FoundationCollections.a \
+           $static_dir/linux-static/lib_FoundationCollections.a
+        mv $static_dir/linux/_FoundationCollections.swiftmodule \
+           $static_dir/linux-static/_FoundationCollections.swiftmodule
+    fi
 
     # We don't need the Linux libraries here, but turning off the Linux build
     # causes trouble, so we're going to end up building them anyway.
