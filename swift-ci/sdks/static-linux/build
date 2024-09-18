@@ -14,10 +14,25 @@
 #
 # ===----------------------------------------------------------------------===
 
-DOCKER=docker
+if [[ "$DOCKER" == "" ]]; then
+    DOCKER=docker
+fi
+
+case $(arch) in
+    arm64|aarch64)
+        OS_ARCH_SUFFIX=-aarch64
+        ;;
+    amd64|x86_64)
+        OS_ARCH_SUFFIX=
+        ;;
+    *)
+        echo "Unknown architecture $(arch)"
+        exit 1
+        ;;
+esac
 
 # Build the Docker image
-$(DOCKER) build -t static-swift-linux .
+$DOCKER build --build-arg OS_ARCH_SUFFIX=$OS_ARCH_SUFFIX -t static-swift-linux .
 
 # Check-out the sources
 scripts/fetch-source.sh --clone-with-ssh --source-dir source
@@ -25,7 +40,7 @@ scripts/fetch-source.sh --clone-with-ssh --source-dir source
 mkdir -p products
 
 # Run the build
-$(DOCKER) run -it --rm \
+$DOCKER run -it --rm \
           -v ./source:/source \
           -v ./products:/products \
           static-swift-linux \

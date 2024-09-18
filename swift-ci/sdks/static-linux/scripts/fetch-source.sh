@@ -164,7 +164,7 @@ cd swift
 # Get its dependencies
 header "Fetching Swift Dependencies"
 
-extra_args=--skip-history
+extra_args="--skip-history --all-repositories"
 if [[ $SWIFT_VERSION == scheme:* ]]; then
     utils/update-checkout ${clone_arg} --scheme ${SWIFT_VERSION#scheme:} ${extra_args}
 elif [[ $SWIFT_VERSION == tag:* ]]; then

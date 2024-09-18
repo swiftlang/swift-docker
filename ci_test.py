@@ -16,19 +16,22 @@ from __future__ import absolute_import, print_function, unicode_literals
 import urllib.request
 import json
 import subprocess
+import shlex
 import sys
 import os
 
 
 def run_command(cmd, log_file=None):
-    print("Running: {}".format(cmd))
+    if isinstance(cmd, str):
+        cmd = shlex.split(cmd)
+    print("Running: {}".format(shlex.join(cmd)))
     sys.stdout.flush()
     if log_file:
         file = open(log_file, "w")
-        p = subprocess.Popen(cmd, shell=True, stdout=file, stderr=file)
     else:
-        p = subprocess.Popen(cmd, shell=True)
-      
+        file = None
+    p = subprocess.Popen(cmd, stdout=file, stderr=file)
+
     (output, err) = p.communicate()
     return p.wait()
 
@@ -62,22 +65,37 @@ def main():
     results = {}
     suite_status = True
     dockerfiles = get_dockerfiles()
+    root_dir = os.path.dirname(os.path.realpath(__file__))
     for dockerfile in dockerfiles:
-        docker_dir = os.path.dirname(os.path.realpath(__file__))
+        # Make sure everything is relative
+        dockerfile = os.path.relpath(os.path.realpath(dockerfile), root_dir)
+
+        docker_dir, docker_name = os.path.split(dockerfile)
+
         print("Testing {}".format(dockerfile))
         sys.stdout.flush()
-        log_file = dockerfile.replace(docker_dir,"").replace("/", "_")
+        log_file = dockerfile.replace("/", "_")
         log_file = "{}.log".format(log_file)
-        cmd = "docker build --no-cache=true -f {dockerfile} .".format(dockerfile=dockerfile)
+        cmd = [
+            'docker', 'build', '--no-cache=true',
+            '-f', dockerfile,
+            docker_dir
+        ]
         if "buildx" in dockerfile:
             # if "buildx" is part of the path, we want to use the new buildx build system and build
             # for both amd64 and arm64.
-            cmd = "docker buildx create --use"
-            run_command(cmd, log_file)
-            cmd = "docker buildx inspect --bootstrap"
-            run_command(cmd, log_file)
-            cmd = "docker buildx build --platform linux/arm64,linux/amd64 --no-cache=true -f {dockerfile} .".format(dockerfile=dockerfile)
-        status = run_command(cmd, log_file)
+            run_command("docker buildx create --use", log_file=log_file)
+            run_command("docker buildx inspect --bootstrap", log_file=log_file)
+
+            cmd = [
+                'docker', 'buildx', 'build',
+                '--platform', 'linux/arm64,linux/amd64',
+                '--no-cache=true',
+                '-f', dockerfile,
+                docker_dir
+            ]
+
+        status = run_command(cmd, log_file=log_file)
         results[dockerfile] = status
         if status != 0:
             suite_status = False
@@ -85,7 +103,9 @@ def main():
         else:
             results[dockerfile] = "PASSED"
 
-        cmd = "mv {log} {results}{log}".format(log=log_file, results=results[dockerfile])
+        cmd = [
+            'mv', log_file, results[dockerfile] + log_file
+        ]
         run_command(cmd)
         print("[{}] - {}".format(results[dockerfile], dockerfile))
         sys.stdout.flush()

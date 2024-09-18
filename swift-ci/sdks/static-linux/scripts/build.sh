@@ -144,6 +144,20 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
+# Work out the host architecture
+case $(arch) in
+    arm64|aarch64)
+        host_arch=arm64
+        ;;
+    amd64|x86_64)
+        host_arch=x86_64
+        ;;
+    *)
+        echo "Unknown host architecture $(arch)"
+        exit 1
+        ;;
+esac
+
 # Change the commas for spaces
 archs="${archs//,/ }"
 
@@ -662,7 +676,7 @@ EOF
         --compiler-vendor=apple \
         --bootstrapping hosttools \
         --build-linux-static --install-swift \
-        --stdlib-deployment-targets linux-x86_64,linux-static-$arch \
+        --stdlib-deployment-targets linux-$host_arch,linux-static-$arch \
         --build-stdlib-deployment-targets all \
         --musl-path=${build_dir}/sdk_root \
         --linux-static-arch=$arch \
@@ -724,6 +738,7 @@ EOF
           -DFOUNDATION_PATH_TO_LIBDISPATCH_BUILD=${build_dir}/$arch/dispatch \
           -D_SwiftFoundation_SourceDIR=${source_dir}/swift-project/swift-foundation \
           -D_SwiftFoundationICU_SourceDIR=${source_dir}/swift-project/swift-foundation-icu \
+          -D_SwiftCollections_SourceDIR=${source_dir}/swift-project/swift-collections \
           -DCMAKE_Swift_COMPILER_WORKS=YES \
           -Ddispatch_DIR=${build_dir}/$arch/dispatch/cmake/modules
 
