@@ -739,7 +739,7 @@ EOF
           -D_SwiftFoundation_SourceDIR=${source_dir}/swift-project/swift-foundation \
           -D_SwiftFoundationICU_SourceDIR=${source_dir}/swift-project/swift-foundation-icu \
           -D_SwiftCollections_SourceDIR=${source_dir}/swift-project/swift-collections \
-          -DSwiftFoundation_MACRO=/usr/local/swift/lib/swift/host/plugins/libFoundationMacros.so
+          -DSwiftFoundation_MACRO=/usr/local/swift/lib/swift/host/plugins/libFoundationMacros.so \
           -DCMAKE_Swift_COMPILER_WORKS=YES \
           -Ddispatch_DIR=${build_dir}/$arch/dispatch/cmake/modules
 
