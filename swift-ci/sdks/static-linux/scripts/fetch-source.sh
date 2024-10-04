@@ -55,7 +55,7 @@ usage: fetch-source.sh [--swift-scheme <scheme>|--swift-tag <tag>
                        [--musl-version <version>] [--libxml2-version <version>]
                        [--curl-version <version>]
                        [--boringssl-version <version>]
-                       [--icu-version <version>] [--zlib-version <version>]
+                       [--zlib-version <version>]
                        [--clone-with-ssh]
                        [--source-dir <path>]
 
@@ -76,7 +76,6 @@ SDK for Swift.  Options are:
   --libxml2-version <version>
   --curl-version <version>
   --boringssl-version <version>
-  --icu-version <version>
   --zlib-version <version>
                       Select the versions of other dependencies.
 EOF
@@ -97,9 +96,6 @@ if [[ -z "${CURL_VERSION}" ]]; then
 fi
 if [[ -z "${BORINGSSL_VERSION}" ]]; then
     BORINGSSL_VERSION=fips-20220613
-fi
-if [[ -z "${ICU_VERSION}" ]]; then
-    ICU_VERSION=maint/maint-69
 fi
 if [[ -z "${ZLIB_VERSION}" ]]; then
     ZLIB_VERSION=1.3.1
@@ -122,8 +118,6 @@ while [ "$#" -gt 0 ]; do
             CURL_VERSION="$2"; shift ;;
         --boringssl-version)
             BORINGSSL_VERSION="$2"; shift ;;
-        --icu-version)
-            ICU_VERSION="$2"; shift ;;
         --zlib-version)
             ZLIB_VERSION="$2"; shift ;;
         --clone-with-ssh)
@@ -205,14 +199,6 @@ header "Fetching BoringSSL"
 [[ -d boringssl ]] || git clone https://boringssl.googlesource.com/boringssl
 pushd boringssl >/dev/null 2>&1
 git checkout ${BORINGSSL_VERSION}
-popd >/dev/null 2>&1
-
-# Fetch ICU
-header "Fetching ICU"
-
-[[ -d icu ]] || git clone ${github}unicode-org/icu.git
-pushd icu >/dev/null 2>&1
-git checkout ${ICU_VERSION}
 popd >/dev/null 2>&1
 
 # Fetch zlib
