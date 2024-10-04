@@ -108,9 +108,6 @@ declare_package libxml2 "libxml2" "MIT" \
 declare_package curl "curl" "MIT" "https://curl.se"
 declare_package boringssl "boringssl" "OpenSSL AND ISC AND MIT" \
                 "https://boringssl.googlesource.com/boringssl/"
-declare_package icu "icu" \
-                "Unicode-3.0 AND ICU AND BSD-3-Clause AND NAIST-2003 AND MIT" \
-                "https://icu.unicode.org"
 declare_package zlib "zlib" "Zlib" "https://zlib.net"
 
 # Parse command line arguments
@@ -209,8 +206,6 @@ curl_version=${curl_desc#curl-}
 
 boringssl_version=$(describe ${source_dir}/boringssl)
 
-icu_version=$(describe ${source_dir}/icu)
-
 zlib_version=$(versionFromTag ${source_dir}/zlib)
 
 function quiet_pushd {
@@ -237,7 +232,6 @@ echo "  - Musl FTS ${musl_fts_version}"
 echo "  - libxml2 ${libxml2_version}"
 echo "  - curl ${curl_version}"
 echo "  - BoringSSL ${boringssl_version}"
-echo "  - ICU ${icu_version}"
 echo "  - zlib ${zlib_version}"
 
 function run() {
@@ -273,14 +267,6 @@ else
     echo "failed"
     exit 1
 fi
-
-header "Building ICU for host system"
-
-mkdir -p ${build_dir}/icu
-quiet_pushd ${build_dir}/icu
-run "${source_dir}/icu/icu4c/source/configure"
-run make -j$parallel_jobs
-quiet_popd
 
 for arch in $archs; do
 
@@ -537,37 +523,6 @@ EOF
 
     # -----------------------------------------------------------------------
 
-    header "Building ICU for $arch"
-
-    mkdir -p ${build_dir}/$arch/icu
-    quiet_pushd ${build_dir}/$arch/icu
-    run "${source_dir}/icu/icu4c/source/configure" \
-        --host=$triple \
-        --prefix=$sdk_root/usr \
-        --libdir=$sdk_root/usr/lib \
-        --with-cross-build=${build_dir}/icu \
-        --disable-shared --enable-static \
-        --enable-strict --disable-icuio \
-        --disable-plugins --disable-dyload --disable-extras \
-        --disable-samples --disable-layoutex --with-data-packaging=auto \
-        LDFLAGS="$cxxldflags" \
-        CC="$cc" \
-        CXX="$cxx" \
-        AS="$as" \
-        AR="ar" RANLIB="ranlib"
-    make -j$parallel_jobs install
-    quiet_popd
-
-    # Install symlinks for the "swift" version
-    mkdir -p ${sdk_root}/usr/lib/swift_static/linux-static
-    quiet_pushd ${sdk_root}/usr/lib/swift_static/linux-static
-    for library in data i18n test tu uc; do
-        ln -sf ../../libicu${library}.a libicu${library}swift.a
-    done
-    quiet_popd
-
-    # -----------------------------------------------------------------------
-
     header "Building libxml2 for $arch"
 
     run cmake -G Ninja -S ${source_dir}/libxml2 -B ${build_dir}/$arch/libxml2 \
@@ -577,7 +532,7 @@ EOF
           -DCMAKE_INSTALL_PREFIX=$sdk_root/usr \
           -DBUILD_SHARED_LIBS=NO \
           -DLIBXML2_WITH_PYTHON=NO \
-          -DLIBXML2_WITH_ICU=YES \
+          -DLIBXML2_WITH_ICU=NO \
           -DLIBXML2_WITH_LZMA=NO
 
     quiet_pushd ${build_dir}/$arch/libxml2
