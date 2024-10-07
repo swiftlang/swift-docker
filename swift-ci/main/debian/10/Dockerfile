@@ -23,6 +23,7 @@ RUN apt-get -y update && apt-get -y --no-install-recommends install \
   python                \
   python-six            \
   python2-dev           \
+  python3-pip           \
   python3-six           \
   python3-distutils     \
   rsync                 \
@@ -32,6 +33,9 @@ RUN apt-get -y update && apt-get -y --no-install-recommends install \
   unzip                 \
   uuid-dev              \
   ca-certificates
+
+COPY swift-ci/dependencies/requirements.txt /dependencies/
+RUN pip3 install -r /dependencies/requirements.txt
 
 USER build-user
 

@@ -22,6 +22,7 @@ RUN apt-get -y update && apt-get -y install \
   ninja-build           \
   pkg-config            \
   python3-distutils     \
+  python3-pip           \
   python3-pkg-resources \
   python3-psutil        \
   rsync                 \
@@ -45,6 +46,9 @@ ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_TAG=$SWIFT_TAG \
     SWIFT_WEBROOT=$SWIFT_WEBROOT \
     SWIFT_PREFIX=$SWIFT_PREFIX
+
+COPY swift-ci/dependencies/requirements.txt /dependencies/
+RUN pip3 install -r /dependencies/requirements.txt --break-system-packages
 
 RUN set -e; \
     ARCH_NAME="$(dpkg --print-architecture)"; \

@@ -25,12 +25,16 @@ RUN apt-get -y update && apt-get -y install \
   python2-dev           \
   python3-six           \
   python3-distutils     \
+  python3-pip           \
   rsync                 \
   swig                  \
   systemtap-sdt-dev     \
   tzdata                \
   unzip                 \
   uuid-dev
+
+COPY swift-ci/dependencies/requirements.txt /dependencies/
+RUN pip3 install -r /dependencies/requirements.txt
 
 USER build-user
 

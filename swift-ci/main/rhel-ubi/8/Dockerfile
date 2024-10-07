@@ -15,10 +15,14 @@ RUN yum install -y  \
   libxml2-devel     \
   ncurses-devel     \
   python3-devel     \
+  python3-pip       \
   rsync             \
   sqlite-devel      \
   unzip             \
   zip
+
+COPY swift-ci/dependencies/requirements.txt /dependencies/
+RUN pip3 install -r /dependencies/requirements.txt
 
 USER build-user
 
