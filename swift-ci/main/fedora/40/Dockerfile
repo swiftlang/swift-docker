@@ -11,6 +11,7 @@ RUN yum install -y    \
   libuuid-devel       \
   libxml2-devel       \
   python3             \
+  python3-pip         \
   python3-devel       \
   python3-distro      \
   python3-setuptools  \
@@ -25,6 +26,9 @@ RUN yum install -y    \
   zip                 \
   unzip               \
   diffutils
+
+COPY swift-ci/dependencies/requirements.txt /dependencies/
+RUN pip3 install -r /dependencies/requirements.txt
 
 USER build-user
 

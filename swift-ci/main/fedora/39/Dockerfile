@@ -11,6 +11,7 @@ RUN yum install -y \
   libuuid-devel       \
   libxml2-devel       \
   python3             \
+  python3-pip         \
   python3-devel       \
   python3-distro      \
   python3-setuptools  \
@@ -39,6 +40,9 @@ ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_TAG=$SWIFT_TAG \
     SWIFT_WEBROOT=$SWIFT_WEBROOT \
     SWIFT_PREFIX=$SWIFT_PREFIX
+
+COPY swift-ci/dependencies/requirements.txt /dependencies/
+RUN pip3 install -r /dependencies/requirements.txt
 
 RUN set -e; \
     ARCH_NAME="$(rpm --eval '%{_arch}')"; \
