@@ -22,6 +22,7 @@ RUN apt-get --no-install-recommends -y install \
   ninja-build           \
   pkg-config            \
   python                \
+  python3-pip           \
   python-six            \
   rsync                 \
   swig                  \
@@ -30,6 +31,9 @@ RUN apt-get --no-install-recommends -y install \
   unzip                 \
   ca-certificates       \
   uuid-dev
+
+COPY swift-ci/dependencies/requirements.txt /dependencies/
+RUN pip3 install -r /dependencies/requirements.txt
 
 USER build-user
 
