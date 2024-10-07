@@ -18,7 +18,6 @@ RUN dnf -y update && dnf install -y \
     make                        \
     ninja-build                 \
     python-unversioned-command  \
-    python27                    \
     python3                     \
     python3-pip                 \
     python3-devel               \
