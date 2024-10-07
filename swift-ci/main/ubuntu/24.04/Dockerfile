@@ -11,6 +11,8 @@ RUN apt-get -y update && apt-get -y install \
   cmake                 \
   git                   \
   icu-devtools          \
+  libc++-18-dev         \
+  libc++abi-18-dev      \
   libcurl4-openssl-dev  \
   libedit-dev           \
   libicu-dev            \
