@@ -70,7 +70,7 @@ def main():
         # Make sure everything is relative
         dockerfile = os.path.relpath(os.path.realpath(dockerfile), root_dir)
 
-        docker_dir, docker_name = os.path.split(dockerfile)
+        docker_dir = "."
 
         print("Testing {}".format(dockerfile))
         sys.stdout.flush()
