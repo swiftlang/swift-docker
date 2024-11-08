@@ -30,7 +30,8 @@ RUN apt-get -y update && apt-get -y install \
   systemtap-sdt-dev     \
   tzdata                \
   uuid-dev              \
-  zip
+  zip                   \
+  libstdc++-12-dev
 
 
 ARG SWIFT_PLATFORM=debian12

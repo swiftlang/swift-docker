@@ -14,7 +14,9 @@ RUN yum -y install \
   sqlite-devel \
   libuuid-devel \
   libxml2-devel \
-  python3-devel
+  python3-devel \
+  libstdc++-devel \
+  libstdc++-static
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
 

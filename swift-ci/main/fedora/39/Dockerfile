@@ -25,7 +25,9 @@ RUN yum install -y \
   cmake               \
   zip                 \
   unzip               \
-  diffutils
+  diffutils           \
+  libstdc++-devel     \
+  libstdc++-static
 
 ARG SWIFT_PLATFORM=fedora39
 ARG SWIFT_VERSION=5.10.1
