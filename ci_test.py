@@ -74,11 +74,12 @@ def main():
 
         print("Testing {}".format(dockerfile))
         sys.stdout.flush()
-        log_file = dockerfile.replace("/", "_")
-        log_file = "{}.log".format(log_file)
+        image_name = dockerfile.replace("/", "_").replace("-", "_").lower()
+        log_file = f'{dockerfile.replace("/", "_")}.log'
         cmd = [
             'docker', 'build', '--no-cache=true',
             '-f', dockerfile,
+            '-t', image_name,
             docker_dir
         ]
         if "buildx" in dockerfile:
@@ -92,6 +93,7 @@ def main():
                 '--platform', 'linux/arm64,linux/amd64',
                 '--no-cache=true',
                 '-f', dockerfile,
+                '-t', image_name,
                 docker_dir
             ]
 
@@ -109,7 +111,8 @@ def main():
         run_command(cmd)
         print("[{}] - {}".format(results[dockerfile], dockerfile))
         sys.stdout.flush()
-        run_command("docker image prune -f")
+        run_command(f"docker image rm {image_name}")
+    run_command("docker image prune -f")
 
     for dockerfile in dockerfiles:
         if results[dockerfile] == "FAILED":
