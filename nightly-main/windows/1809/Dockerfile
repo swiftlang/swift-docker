@@ -127,11 +127,11 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
 # Install Swift toolchain.
-ARG SWIFT_RELEASE_METADATA=http://download.swift.org/development/windows10/latest-build.json
-RUN $env:Release = curl.exe -sL ${env:SWIFT_RELEASE_METADATA};                  \
-    $env:SWIFT_URL = "\"https://download.swift.org/development/windows10/$($($env:Release | ConvertFrom-JSON).dir)/$($($env:Release | ConvertFrom-JSON).download)\"";   \
-    Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:SWIFT_URL});         \
-    Invoke-WebRequest -Uri ${env:SWIFT_URL} -OutFile installer.exe;             \
+ARG SWIFT_RELEASE_METADATA=https://download.swift.org/development/windows10/latest-build.json
+RUN $Release = curl.exe -sL ${env:SWIFT_RELEASE_METADATA} | ConvertFrom-JSON;   \
+    $SWIFT_URL = "\"https://download.swift.org/development/windows10/$($Release.dir)/$($Release.download)\""; \
+    Write-Host -NoNewLine ('Downloading {0} ... ' -f ${SWIFT_URL});             \
+    Invoke-WebRequest -Uri ${SWIFT_URL} -OutFile installer.exe;                 \
     Write-Host '✓';                                                             \
     Write-Host -NoNewLine 'Installing Swift ... ';                              \
     $Process =                                                                  \
