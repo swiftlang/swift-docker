@@ -22,7 +22,7 @@ case $(arch) in
     arm64|aarch64)
         OS_ARCH_SUFFIX=-aarch64
         ;;
-    amd64|x86_64)
+    i386|amd64|x86_64)
         OS_ARCH_SUFFIX=
         ;;
     *)
