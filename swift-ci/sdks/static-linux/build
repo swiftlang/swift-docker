@@ -43,5 +43,6 @@ mkdir -p products
 $DOCKER run -it --rm \
           -v ./source:/source \
           -v ./products:/products \
+          -m 10G \
           static-swift-linux \
           /scripts/build.sh --source-dir /source --products-dir /products
