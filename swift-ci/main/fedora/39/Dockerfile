@@ -27,7 +27,8 @@ RUN yum install -y \
   unzip               \
   diffutils           \
   libstdc++-devel     \
-  libstdc++-static
+  libstdc++-static    \
+  glibc-static
 
 ARG SWIFT_PLATFORM=fedora39
 ARG SWIFT_VERSION=5.10.1

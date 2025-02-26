@@ -13,9 +13,11 @@ RUN yum -y install \
   gcc-c++ \
   clang \
   git \
+  glibc-static \
   libbsd-devel \
   libedit-devel \
   libicu-devel \
+  libstdc++-static \
   libuuid-devel \
   libxml2-devel \
   ncurses-devel \
