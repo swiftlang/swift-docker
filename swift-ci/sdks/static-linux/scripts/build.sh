@@ -931,7 +931,7 @@ header "Install SDK"
 swift sdk install "${products_dir}/${bundle}.tar.gz"
 
 header "Build Hello World"
-quite_pushd "${build_dir}"
+quiet_pushd "${build_dir}"
 mkdir -p hello-world
 cd hello-world
 swift package init --type executable
