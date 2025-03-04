@@ -926,3 +926,27 @@ quiet_pushd "${build_dir}"
 mkdir -p "${products_dir}"
 tar cvzf "${products_dir}/${bundle}.tar.gz" "${bundle}"
 quiet_popd
+
+header "Install SDK"
+swift sdk install "${products_dir}/${bundle}.tar.gz"
+
+header "Build Hello World"
+quiet_pushd "${build_dir}"
+mkdir -p hello-world
+cd hello-world
+swift package init --type executable
+for arch in $archs; do
+    swift build --swift-sdk ${arch}-swift-linux-musl
+done
+quiet_popd
+
+header "Run Hello World"
+quiet_pushd "${build_dir}/hello-world"
+native_arch=$(uname -p)
+native_binary=.build/${native_arch}-swift-linux-musl/debug/hello-world
+if [[ -x "${native_binary}" ]]; then
+    "${native_binary}"
+else
+    echo "No binary for ${native_arch}"
+fi
+quiet_popd
