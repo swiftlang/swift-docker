@@ -22,7 +22,7 @@ case $(arch) in
     arm64|aarch64)
         OS_ARCH_SUFFIX=-aarch64
         ;;
-    i386|amd64|x86_64)
+    amd64|x86_64)
         OS_ARCH_SUFFIX=
         ;;
     *)
@@ -32,7 +32,7 @@ case $(arch) in
 esac
 
 # Build the Docker image
-$DOCKER build $DOCKER_EXTRA_ARGS --build-arg OS_ARCH_SUFFIX=$OS_ARCH_SUFFIX -t static-swift-linux .
+$DOCKER build --build-arg OS_ARCH_SUFFIX=$OS_ARCH_SUFFIX -t static-swift-linux .
 
 # Check-out the sources
 scripts/fetch-source.sh --clone-with-ssh --source-dir source
@@ -43,6 +43,5 @@ mkdir -p products
 $DOCKER run -it --rm \
           -v ./source:/source \
           -v ./products:/products \
-          -m 10G \
           static-swift-linux \
           /scripts/build.sh --source-dir /source --products-dir /products
