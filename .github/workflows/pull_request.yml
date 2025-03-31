@@ -21,3 +21,25 @@ jobs:
           name: docker-logs
           path: |
             *.log
+
+   static-linux-build:
+     name: Build Static Linux image
+     runs-on: ubuntu-latest
+     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Build Docker images
+        working-directory: swift-ci/sdks/static-linux
+        run: ./build
+
+   android-build:
+     name: Build Android image
+     runs-on: ubuntu-latest
+     if: false
+     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Build Docker images
+        working-directory: swift-ci/sdks/android
+        run: ./build
+
