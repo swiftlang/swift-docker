@@ -5,7 +5,7 @@ LABEL description="Docker Container for the Swift programming language"
 
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
     apt-get -q install -y \
-    binutils-gold \
+    binutils \
     libicu-dev \
     libcurl4-openssl-dev \
     libedit-dev \
