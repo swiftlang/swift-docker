@@ -5,6 +5,7 @@ LABEL description="Docker Container for the Swift programming language"
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
     apt-get -q install -y \
     binutils \
+    curl \
     git \
     gnupg2 \
     libc6-dev \
@@ -50,11 +51,7 @@ ARG PLATFORM_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM$OS_MAJOR_VER$OS_MIN_VER$OS_
 RUN echo "${PLATFORM_WEBROOT}/latest-build.yml"
 
 RUN set -e; \
-    # - Grab curl here so we cache better up above
-    export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -q update && apt-get -q install -y curl && rm -rf /var/lib/apt/lists/* \
-    # - Latest Toolchain info
-    && export $(curl -s ${PLATFORM_WEBROOT}/latest-build.yml | grep 'download:' | sed 's/:[^:\/\/]/=/g')  \
+    export $(curl -s ${PLATFORM_WEBROOT}/latest-build.yml | grep 'download:' | sed 's/:[^:\/\/]/=/g')  \
     && export $(curl -s ${PLATFORM_WEBROOT}/latest-build.yml | grep 'download_signature:' | sed 's/:[^:\/\/]/=/g')  \
     && export DOWNLOAD_DIR=$(echo $download | sed "s/-${OS_VER}.tar.gz//g") \
     && echo $DOWNLOAD_DIR > .swift_tag \
