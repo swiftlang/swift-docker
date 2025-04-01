@@ -26,12 +26,14 @@ ARG SWIFT_PLATFORM=ubi9
 ARG SWIFT_BRANCH=swift-6.1.3-release
 ARG SWIFT_VERSION=swift-6.1.3-RELEASE
 ARG SWIFT_WEBROOT=https://download.swift.org
+ARG SWIFT_PREFIX=/opt/swift/6.1
 
 ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
     SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_BRANCH=$SWIFT_BRANCH \
     SWIFT_VERSION=$SWIFT_VERSION \
-    SWIFT_WEBROOT=$SWIFT_WEBROOT
+    SWIFT_WEBROOT=$SWIFT_WEBROOT \
+    SWIFT_PREFIX=$SWIFT_PREFIX
 
 RUN set -e; \
     ARCH_NAME="$(rpm --eval '%{_arch}')"; \
@@ -55,9 +57,15 @@ RUN set -e; \
     && gpg --batch --quiet --keyserver keyserver.ubuntu.com --recv-keys "$SWIFT_SIGNING_KEY" \
     && gpg --batch --verify swift.tar.gz.sig swift.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
-    && tar -xzf swift.tar.gz --directory / --strip-components=1 \
-    && chmod -R o+r /usr/lib/swift \
+    && mkdir -p $SWIFT_PREFIX \
+    && tar -xzf swift.tar.gz --directory $SWIFT_PREFIX --strip-components=1 \
+    && chmod -R o+r $SWIFT_PREFIX/usr/lib/swift \
+    # This is a compatibility workaround for those who expect `swift` to be in `/usr/bin/`.
+    && ln -sf $SWIFT_PREFIX/usr/bin/* /usr/bin/ \
     && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz
+
+ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${SWIFT_PREFIX}/usr/lib/swift/linux"
 
 # Print Installed Swift Version
 RUN swift --version
