@@ -6,17 +6,16 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     apt-get -q install -y \
     binutils \
     git \
-    unzip \
     gnupg2 \
     libc6-dev \
     libcurl4-openssl-dev \
+    libncurses5-dev       \
     libedit2 \
     libgcc-13-dev \
     libpython3-dev \
     libsqlite3-0 \
     libstdc++-13-dev \
     libxml2-dev \
-    libncurses-dev \
     libz3-dev \
     pkg-config \
     tzdata \

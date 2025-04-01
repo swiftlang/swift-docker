@@ -11,15 +11,14 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     libcurl4-openssl-dev \
     libncurses5-dev       \
     libedit2 \
-    libgcc-11-dev \
+    libgcc-13-dev \
     libpython3-dev \
     libsqlite3-0 \
-    libstdc++-11-dev \
+    libstdc++-13-dev \
     libxml2-dev \
     libz3-dev \
     pkg-config \
     tzdata \
-    zip \
     zlib1g-dev \
     && rm -r /var/lib/apt/lists/*
 
