@@ -5,30 +5,19 @@ LABEL description="Docker Container for the Swift programming language"
 RUN groupadd -g 998 build-user && \
     useradd -m -r -u 998 -g build-user build-user
 
-RUN yum install -y \
-  libcurl-devel       \
-  libedit-devel       \
-  libicu-devel        \
-  sqlite-devel        \
-  libuuid-devel       \
-  libxml2-devel       \
-  python3             \
-  python3-pip         \
-  python3-devel       \
-  python3-distro      \
-  python3-setuptools  \
-  python3-six         \
-  rsync               \
-  swig                \
-  clang               \
-  perl-podlators      \
-  which               \
-  git                 \
-  cmake               \
-  zip                 \
-  unzip               \
-  diffutils           \
-  libstdc++-devel     \
+RUN yum -y install \
+  binutils \
+  gcc \
+  git \
+  unzip \
+  libcurl-devel \
+  libedit-devel \
+  libicu-devel \
+  sqlite-devel \
+  libuuid-devel \
+  libxml2-devel \
+  python3-devel \
+  libstdc++-devel \
   libstdc++-static
 
 
