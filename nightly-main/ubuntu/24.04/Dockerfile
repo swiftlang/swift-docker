@@ -5,18 +5,18 @@ LABEL description="Docker Container for the Swift programming language"
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
     apt-get -q install -y \
     binutils \
+    curl \
     git \
-    unzip \
     gnupg2 \
     libc6-dev \
     libcurl4-openssl-dev \
+    libncurses5-dev       \
     libedit2 \
     libgcc-13-dev \
     libpython3-dev \
     libsqlite3-0 \
     libstdc++-13-dev \
     libxml2-dev \
-    libncurses-dev \
     libz3-dev \
     pkg-config \
     tzdata \
@@ -46,11 +46,7 @@ ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
 RUN echo "${SWIFT_WEBROOT}/latest-build.yml"
 
 RUN set -e; \
-    # - Grab curl here so we cache better up above
-    export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -q update && apt-get -q install -y curl && rm -rf /var/lib/apt/lists/* \
-    # - Latest Toolchain info
-    && export $(curl -s ${SWIFT_WEBROOT}/latest-build.yml | grep 'download:' | sed 's/:[^:\/\/]/=/g')  \
+    export $(curl -s ${SWIFT_WEBROOT}/latest-build.yml | grep 'download:' | sed 's/:[^:\/\/]/=/g')  \
     && export $(curl -s ${SWIFT_WEBROOT}/latest-build.yml | grep 'download_signature:' | sed 's/:[^:\/\/]/=/g')  \
     && export DOWNLOAD_DIR=$(echo $download | sed "s/-${OS_VER}.tar.gz//g") \
     && echo $DOWNLOAD_DIR > .swift_tag \
