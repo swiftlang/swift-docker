@@ -3,7 +3,6 @@ LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
 # Everything up to here should cache nicely between Swift versions, assuming dev dependencies change little
-
 # gpg --keyid-format LONG -k F167DF1ACF9CE069
 # pub   rsa4096/F167DF1ACF9CE069 2021-11-08 [SC] [expires: 2025-11-09]
 #       E813C892820A6FA13755B268F167DF1ACF9CE069
@@ -31,7 +30,7 @@ RUN set -e; \
     && export GNUPGHOME="$(mktemp -d)" \
     && curl -fsSL ${SWIFT_WEBROOT}/${DOWNLOAD_DIR}/${download} -o latest_toolchain.tar.gz \
     ${SWIFT_WEBROOT}/${DOWNLOAD_DIR}/${download_signature} -o latest_toolchain.tar.gz.sig \
-    && curl -fSsL https://swift.org/keys/all-keys.asc | gpg --import -  \
+    && curl -fSsL --compressed https://swift.org/keys/all-keys.asc | gpg --import -  \
     && gpg --batch --verify latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
     && yum -y install tar gzip \
