@@ -33,13 +33,129 @@ jobs:
         run: ./build
 
    android-build:
-     name: Build Android image
-     runs-on: ubuntu-latest
-     if: false
+     name: Build Android ${{ matrix.arch }} SDK
+     strategy:
+       fail-fast: false
+       matrix:
+         # blank arch builds all (aarch64,x86_64,armv7)
+         #arch: ['']
+         # builds only x86_64 to speed up the validation
+         #arch: ['x86_64']
+         # build both the quick (x86_64) and complete (aarch64,x86_64,armv7) SDKs
+         arch: ['x86_64', '']
+     runs-on: ubuntu-24.04
      steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Build Docker images
+      - name: Install Dependencies
+        run: |
+          sudo apt install -q ninja-build patchelf
+      - name: Build Android SDK
         working-directory: swift-ci/sdks/android
-        run: ./build
+        run: |
+          TARGET_ARCHS=${{ matrix.arch }} ./build
+      - name: Get artifact info
+        id: info
+        shell: bash
+        run: |
+          set -ex
+          SWIFT_ROOT=$(dirname ${{ runner.temp }}/swift-android-sdk/host-toolchain/*/usr)
+          echo "swift-root=${SWIFT_ROOT}" >> $GITHUB_OUTPUT
+          echo "swift-path=${SWIFT_ROOT}/usr/bin/swift" >> $GITHUB_OUTPUT
+
+          ARTIFACT_BUILD=$(realpath ${{ runner.temp }}/swift-android-sdk/build/*.artifactbundle)
+          ARTIFACT_PATH=$(realpath ${{ runner.temp }}/swift-android-sdk/products/*.artifactbundle.tar.gz)
+          echo "artifact-path=${ARTIFACT_PATH}" >> $GITHUB_OUTPUT
+          echo "sdk-id=x86_64-unknown-linux-android28" >> $GITHUB_OUTPUT
+
+          ARTIFACT_EXT=".artifactbundle.tar.gz"
+          ARTIFACT_NAME="$(basename ${ARTIFACT_PATH} ${ARTIFACT_EXT})"
+          # artifacts need a unique name so we suffix with the matrix arch(s)
+          if [[ ! -z "${{ matrix.arch }}" ]]; then
+            ARTIFACT_NAME="${ARTIFACT_NAME}-$(echo ${{ matrix.arch }} | tr ',' '-')"
+          fi
+          ARTIFACT_NAME="${ARTIFACT_NAME}${ARTIFACT_EXT}"
+
+          # There is no way to prevent even a single-file artifact from being zipped:
+          # https://github.com/actions/upload-artifact?tab=readme-ov-file#zip-archives
+          # so the actual artifact download will look like:
+          # swift-6.1-RELEASE_android-0.1-x86_64.artifactbundle.tar.gz.zip
+          echo "artifact-name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+
+          # validate some required paths in the artifactbundle
+          pushd ${ARTIFACT_BUILD}/*/*/usr
+            ls lib/swift/android
+            ls lib/swift/android/*
+            ls lib/swift/android/*/swiftrt.o
+            ls lib/*-linux-android/*/crtbegin_dynamic.o
+
+            ls lib/swift_static-*
+            ls lib/swift_static-*/android
+            ls lib/swift_static-*/android/libFoundationEssentials.a
+
+            ls lib/*-linux-android/libFoundationEssentials.so
+            ls lib/*-linux-android/libFoundationNetworking.so
+            ls lib/*-linux-android/libFoundationInternationalization.so
+            ls lib/*-linux-android/lib_FoundationICU.so
+            ls lib/*-linux-android/libFoundationXML.so
+            ls lib/*-linux-android/libTesting.so
+
+            ls lib/swift/clang/lib
+            ls lib/swift/clang/lib/linux
+            ls lib/swift/clang/lib/linux/*/libunwind.a
+          popd
+      - name: Upload SDK artifactbundle
+        uses: actions/upload-artifact@v4
+        with:
+          compression-level: 0
+          name: ${{ steps.info.outputs.artifact-name }}
+          path: ${{ steps.info.outputs.artifact-path }}
+      - name: Cleanup
+        run: |
+          # need to free up some space or else when installing we get: No space left on device
+          rm -rf ${{ runner.temp }}/swift-android-sdk/{build,src}
+      - name: Install artifactbundle
+        shell: bash
+        run: |
+          set -ex
+          ${{ steps.info.outputs.swift-path }} sdk install ${{ steps.info.outputs.artifact-path }}
+          ${{ steps.info.outputs.swift-path }} sdk configure --show-configuration $(${{ steps.info.outputs.swift-path }} sdk list | head -n 1) ${{ steps.info.outputs.sdk-id }}
+          # recent releases require that ANDROID_NDK_ROOT *not* be set
+          # see https://github.com/finagolfin/swift-android-sdk/issues/207
+          echo "ANDROID_NDK_ROOT=" >> $GITHUB_ENV
+
+      - name: Create Demo Project
+        run: |
+          cd ${{ runner.temp }}
+          mkdir DemoProject
+          cd DemoProject
+          ${{ steps.info.outputs.swift-path }} --version
+          ${{ steps.info.outputs.swift-path }} package init
+          echo 'import Foundation' >> Sources/DemoProject/DemoProject.swift
+          echo 'import FoundationEssentials' >> Sources/DemoProject/DemoProject.swift
+          echo 'import FoundationXML' >> Sources/DemoProject/DemoProject.swift
+          echo 'import FoundationNetworking' >> Sources/DemoProject/DemoProject.swift
+          echo 'import Dispatch' >> Sources/DemoProject/DemoProject.swift
+          echo 'import Android' >> Sources/DemoProject/DemoProject.swift
+      - name: Test Demo Project on Android
+        uses: skiptools/swift-android-action@v2
+        with:
+          # only test for the complete arch SDK build to speed up CI
+          run-tests: ${{ matrix.arch == '' }}
+          package-path: ${{ runner.temp }}/DemoProject
+          installed-sdk: ${{ steps.info.outputs.sdk-id }}
+          installed-swift: ${{ steps.info.outputs.swift-root }}
+
+      - name: Checkout swift-algorithms
+        uses: actions/checkout@v4
+        with:
+          repository: apple/swift-algorithms
+          path: swift-algorithms
+      - name: Test swift-algorithms
+        uses: skiptools/swift-android-action@v2
+        with:
+          run-tests: ${{ matrix.arch == '' }}
+          package-path: swift-algorithms
+          installed-sdk: ${{ steps.info.outputs.sdk-id }}
+          installed-swift: ${{ steps.info.outputs.swift-root }}
 
