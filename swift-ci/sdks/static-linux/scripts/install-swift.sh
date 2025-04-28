@@ -47,7 +47,7 @@ curl -fsSL "${SWIFT_WEBROOT}/${download_dir}/${download_signature}" -o toolchain
 
 echo "Fetching keys"
 
-curl -fsSL https://swift.org/keys/all-keys.asc | gpg --import -
+curl -fsSL --compressed https://swift.org/keys/all-keys.asc | gpg --import -
 
 echo "Verifying signature"
 
