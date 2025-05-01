@@ -456,7 +456,6 @@ EOF
 mkdir -p $swift_res_root/usr/lib/swift/clang/lib
 cp -r $host_toolchain/lib/clang/*/include $swift_res_root/usr/lib/swift/clang
 
-
 for arch in $archs; do
     quiet_pushd ${sdk_staging}/${arch}/usr
         rm -r bin
