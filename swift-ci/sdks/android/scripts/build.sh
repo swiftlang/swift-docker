@@ -1,6 +1,10 @@
 #!/bin/bash
 # Swift SDK for Android: Build Script
-set -e
+set -ex
+
+# temporary for splitting out NDK installation from the rest of the SDK
+#NDK_LOCATION=${NDK_LOCATION:-"merged"}
+NDK_LOCATION=${NDK_LOCATION:-"external"}
 
 # Docker sets TERM to xterm if using a pty; we probably want
 # xterm-256color, otherwise we only get eight colors
@@ -188,7 +192,7 @@ if [[ $swift_version == swift-* ]]; then
 fi
 
 if [[ -z "$sdk_name" ]]; then
-    sdk_name=swift-${swift_version}_android-${android_sdk_version}
+    sdk_name=swift-${swift_version}-android-${android_sdk_version}
 fi
 
 libxml2_version=$(versionFromTag ${source_dir}/libxml2)
@@ -212,14 +216,13 @@ header "Swift Android SDK build script"
 swift_dir=$(realpath $(dirname "$swiftc")/..)
 HOST=linux-x86_64
 #HOST=$(uname -s -m | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
-ndk_toolchain=$ndk_home/toolchains/llvm/prebuilt/$HOST
-
+ndk_installation=$ndk_home/toolchains/llvm/prebuilt/$HOST
 
 echo "Swift found at ${swift_dir}"
 echo "Host toolchain found at ${host_toolchain}"
 ${host_toolchain}/bin/swift --version
 echo "Android NDK found at ${ndk_home}"
-${ndk_toolchain}/bin/clang --version
+${ndk_installation}/bin/clang --version
 echo "Building for ${archs}"
 echo "Sources are in ${source_dir}"
 echo "Build will happen in ${build_dir}"
@@ -387,7 +390,7 @@ for arch in $archs; do
         # need to remove symlink that gets created in the NDK to the previous arch's build
         # or else we get errors like:
         # error: could not find module '_Builtin_float' for target 'x86_64-unknown-linux-android'; found: aarch64-unknown-linux-android, at: /home/runner/work/_temp/swift-android-sdk/ndk/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/swift/android/_Builtin_float.swiftmodule
-        rm -f $ndk_toolchain/sysroot/usr/lib/swift
+        rm -f $ndk_installation/sysroot/usr/lib/swift
     quiet_popd
     groupend
 done
@@ -425,12 +428,22 @@ EOF
 mkdir -p $sdk_base
 quiet_pushd $sdk_base
 
-#sysroot_path="ndk-sysroot"
-#sysroot_path="android-27c-sysroot"
-sysroot_path="sysroot"
-cp -a ${ndk_toolchain}/sysroot ${sysroot_path}
+cp -a ${build_dir}/sdk_root ${sdk_staging}
 
-cat > $sysroot_path/SDKSettings.json <<EOF
+if [ "${NDK_LOCATION}" = "external" ]; then
+    swift_res_root="swift-resources"
+    ndk_sysroot="ndk-sysroot"
+    cp -a ${ndk_installation}/sysroot ${ndk_sysroot}
+else
+    merged_sysroot_path="sysroot"
+    swift_res_root=${merged_sysroot_path}
+    ndk_sysroot=${merged_sysroot_path}
+    cp -a ${ndk_installation}/sysroot ${ndk_sysroot}
+fi
+
+mkdir -p ${swift_res_root}
+
+cat > $swift_res_root/SDKSettings.json <<EOF
 {
   "DisplayName": "Swift Android SDK",
   "Version": "${android_sdk_version}",
@@ -439,10 +452,10 @@ cat > $sysroot_path/SDKSettings.json <<EOF
 }
 EOF
 
-cp -a ${build_dir}/sdk_root ${sdk_staging}
 # Copy necessary headers and libraries from the toolchain and NDK clang resource directories
-mkdir -p $sysroot_path/usr/lib/swift/clang/lib
-cp -r $host_toolchain/lib/clang/*/include $sysroot_path/usr/lib/swift/clang
+mkdir -p $swift_res_root/usr/lib/swift/clang/lib
+cp -r $host_toolchain/lib/clang/*/include $swift_res_root/usr/lib/swift/clang
+
 
 for arch in $archs; do
     quiet_pushd ${sdk_staging}/${arch}/usr
@@ -455,26 +468,50 @@ for arch in $archs; do
             arch_triple="arm-linux-androideabi"
         fi
 
-        mkdir lib/${arch_triple}
-        mv lib/pkgconfig lib/swift/android/lib*.{a,so} lib/${arch_triple}
+        rm -r lib/swift{,_static}/clang
+        if [ "${NDK_LOCATION}" = "external" ]; then
+            #mkdir lib/swift-$arch
+            #mv lib/pkgconfig lib/swift/android/lib*.{a,so} lib/swift-$arch
+            mv lib/swift lib/swift-$arch
+            ln -s ../swift/clang lib/swift-$arch/clang
+        else
+            mkdir lib/${arch_triple}
+            mv lib/pkgconfig lib/swift/android/lib*.{a,so} lib/${arch_triple}
+        fi
 
         mv lib/swift_static lib/swift_static-$arch
         mv lib/lib*.a lib/swift_static-$arch/android
 
-        rm -r lib/swift{,_static-$arch}/clang
+        ln -sv ../swift/clang lib/swift_static-$arch/clang
 
-        mkdir -p lib/swift/clang/lib
-        cp -a ${ndk_toolchain}/lib/clang/*/lib/linux lib/swift/clang/lib
-        ln -s ../swift/clang lib/swift_static-$arch/clang
+        # copy the clang libraries that we need to build for each architecture
+        aarch=${arch/armv7/arm}
+        mkdir -p lib/swift/clang/lib/linux/${aarch}
+
+        # match clang version 21, 22, etc.
+        cp -av ${ndk_installation}/lib/clang/[0-9]*/lib/linux/libclang_rt.builtins-${aarch}-android.a lib/swift/clang/lib/linux/
+        cp -av ${ndk_installation}/lib/clang/[0-9]*/lib/linux/${aarch}/libunwind.a lib/swift/clang/lib/linux/${aarch}/
     quiet_popd
 
-    # now sync the massaged sdk_root into the sysroot_path
-    rsync -a ${sdk_staging}/${arch}/usr ${sysroot_path}
+    # now sync the massaged sdk_root into the swift_res_root
+    rsync -a ${sdk_staging}/${arch}/usr ${swift_res_root}
 done
 
-rm -r ${sysroot_path}/usr/share/{doc,man}
-rm -r ${sysroot_path}/usr/{include,lib}/{i686,riscv64}-linux-android
-rm -r ${sysroot_path}/usr/lib/swift/clang/lib/linux/*{i[36]86,riscv64}*
+if [ "${NDK_LOCATION}" = "external" ]; then
+    # need to manually copy over swiftrt.o or else:
+    # error: link command failed with exit code 1 (use -v to see invocation)
+    # clang: error: no such file or directory: '${HOME}/.swiftpm/swift-sdks/swift-6.2-DEVELOPMENT-SNAPSHOT-2025-04-24-a-android-0.1.artifactbundle/swift-android/ndk-sysroot/usr/lib/swift/android/x86_64/swiftrt.o'
+    # see: https://github.com/swiftlang/swift-driver/pull/1822#issuecomment-2762811807
+    for arch in $archs; do
+        mkdir -p ${ndk_sysroot}/usr/lib/swift/android/${arch}
+        ln -srv ${swift_res_root}/usr/lib/swift-${arch}/android/${arch}/swiftrt.o ${ndk_sysroot}/usr/lib/swift/android/${arch}/swiftrt.o
+    done
+else
+    rm -r ${swift_res_root}/usr/{include,lib}/{i686,riscv64}-linux-android
+    rm -r ${swift_res_root}/usr/lib/swift/clang/lib/linux/*{i[36]86,riscv64}*
+fi
+
+rm -r ${swift_res_root}/usr/share/{doc,man}
 rm -r ${sdk_staging}
 
 cat > swift-sdk.json <<EOF
@@ -497,13 +534,23 @@ for api in $(eval echo "{$android_api..36}"); do
     },
 EOF
         fi
+
+        if [ "${NDK_LOCATION}" = "external" ]; then
+            SWIFT_RES_DIR="swift-${arch}"
+        else
+            SWIFT_RES_DIR="swift"
+        fi
+        SWIFT_STATIC_RES_DIR="swift_static-${arch}"
+
         cat >> swift-sdk.json <<EOF
     "${arch}-unknown-linux-android${api}": {
-      "sdkRootPath": "${sysroot_path}",
-      "swiftResourcesPath": "${sysroot_path}/usr/lib/swift",
-      "swiftStaticResourcesPath": "${sysroot_path}/usr/lib/swift_static-${arch}",
+      "sdkRootPath": "${ndk_sysroot}",
+      "swiftResourcesPath": "${swift_res_root}/usr/lib/${SWIFT_RES_DIR}",
+      "swiftStaticResourcesPath": "${swift_res_root}/usr/lib/${SWIFT_STATIC_RES_DIR}",
       "toolsetPaths": [ "swift-toolset.json" ]
 EOF
+      #"librarySearchPaths": [ "${swift_res_root}/usr/lib/swift-x86_64/android/x86_64" ],
+      #"includeSearchPaths": [ "${ndk_sysroot}/usr/include" ],
     done
 done
 

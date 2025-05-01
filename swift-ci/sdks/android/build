@@ -13,12 +13,28 @@ mkdir -p ${SDKROOT}
 # Install a Swift host toolchain if it isn't already present
 SWIFT_ROOT=${SDKROOT}/host-toolchain
 HOST_OS=ubuntu$(lsb_release -sr)
-SWIFT_VERSION=6.1
-SWIFT_TAG="swift-${SWIFT_VERSION}-RELEASE"
-SWIFT_BRANCH="swift-$(echo $SWIFT_TAG | cut -d- -f2)-release"
+
+#BUILD_VERSION='release'
+#BUILD_VERSION='trunk'
+BUILD_VERSION=${BUILD_VERSION:-'devel'}
+
+if [ "${BUILD_VERSION}" = 'release' ]; then
+    LATEST_TOOLCHAIN_VERSION=$(curl -sL https://github.com/apple/swift/releases | grep -m1 swift-6.1 | cut -d- -f2)
+    SWIFT_TAG="swift-${LATEST_TOOLCHAIN_VERSION}-RELEASE"
+    SWIFT_BRANCH="swift-$(echo $SWIFT_TAG | cut -d- -f2)-release"
+elif [ "${BUILD_VERSION}" = 'devel' ]; then
+    LATEST_TOOLCHAIN_VERSION=$(curl -sL https://github.com/apple/swift/tags | grep -m1 swift-6.2-DEV | cut -d- -f8-10)
+    SWIFT_TAG="swift-6.2-DEVELOPMENT-SNAPSHOT-${LATEST_TOOLCHAIN_VERSION}-a"
+    SWIFT_BRANCH="swift-$(echo $SWIFT_TAG | cut -d- -f2)-branch"
+else
+    LATEST_TOOLCHAIN_VERSION=$(curl -sL https://github.com/apple/swift/tags | grep -m1 swift-DEV | cut -d- -f7-9)
+    SWIFT_TAG="swift-DEVELOPMENT-SNAPSHOT-${LATEST_TOOLCHAIN_VERSION}-a"
+    SWIFT_BRANCH="development"
+fi
+
 SWIFT_BASE=$SWIFT_TAG-$HOST_OS
 
-if [[ ! -d $SWIFT_ROOT ]]; then
+if [[ ! -d "$SWIFT_ROOT/$SWIFT_BASE" ]]; then
     mkdir -p $SWIFT_ROOT
     pushd $SWIFT_ROOT
 
@@ -75,7 +91,11 @@ if [[ ! -d ${PATCHDIR} ]]; then
         # swift-android-ci.patch is not needed, since it is only used for llbuild, etc.
         #git apply -C1 $PATCHDIR/swift-android-ci.patch
         #git apply -v $PATCHDIR/swift-android-ci-release.patch
-        git apply -v $PATCHDIR/swift-android-testing-release.patch
+        if [ "${BUILD_VERSION}" = 'release' ]; then
+            git apply -v $PATCHDIR/swift-android-testing-release.patch
+        else
+            git apply -v $PATCHDIR/swift-android-testing-except-release.patch
+        fi
 
         perl -pi -e 's%String\(cString: getpass%\"fake\" //%' swiftpm/Sources/PackageRegistryCommand/PackageRegistryCommand+Auth.swift
         # disable backtrace() for Android (needs either API33+ or libandroid-execinfo, or to manually add in backtrace backport)

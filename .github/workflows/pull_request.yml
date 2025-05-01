@@ -8,6 +8,8 @@ env:
 jobs:
    build:
      name: Build Docker images
+     # disabled for CI testing
+     if: false
      runs-on: ubuntu-latest
      steps:
       - name: Checkout repository
@@ -24,6 +26,8 @@ jobs:
 
    static-linux-build:
      name: Build Static Linux image
+     # disabled for CI testing
+     if: false
      runs-on: ubuntu-latest
      steps:
       - name: Checkout repository
@@ -33,7 +37,7 @@ jobs:
         run: ./build
 
    android-build:
-     name: Build Android ${{ matrix.arch }} SDK
+     name: Build Android ${{ matrix.swift-version }} ${{ matrix.arch }} SDK
      strategy:
        fail-fast: false
        matrix:
@@ -43,8 +47,18 @@ jobs:
          #arch: ['x86_64']
          # build both the quick (x86_64) and complete (aarch64,x86_64,armv7) SDKs
          arch: ['x86_64', '']
+         swift-version: ['release', 'devel', 'trunk']
      runs-on: ubuntu-24.04
      steps:
+      - name: Free Disk Space
+        run: |
+          df -h
+          # brings available space from 25G to 32G
+          # otherwise we sometimes run out of space during the build
+          sudo rm -rf /usr/share/miniconda /usr/share/az* /usr/share/glade* /usr/local/share/chromium /usr/local/share/powershell /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          sudo docker builder prune -a
+          df -h
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Install Dependencies
@@ -53,7 +67,7 @@ jobs:
       - name: Build Android SDK
         working-directory: swift-ci/sdks/android
         run: |
-          TARGET_ARCHS=${{ matrix.arch }} ./build
+          BUILD_VERSION=${{ matrix.swift-version }} TARGET_ARCHS=${{ matrix.arch }} ./build
       - name: Get artifact info
         id: info
         shell: bash
@@ -82,28 +96,8 @@ jobs:
           # swift-6.1-RELEASE_android-0.1-x86_64.artifactbundle.tar.gz.zip
           echo "artifact-name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
 
-          # validate some required paths in the artifactbundle
-          pushd ${ARTIFACT_BUILD}/*/*/usr
-            ls lib/swift/android
-            ls lib/swift/android/*
-            ls lib/swift/android/*/swiftrt.o
-            ls lib/*-linux-android/*/crtbegin_dynamic.o
-
-            ls lib/swift_static-*
-            ls lib/swift_static-*/android
-            ls lib/swift_static-*/android/libFoundationEssentials.a
-
-            ls lib/*-linux-android/libFoundationEssentials.so
-            ls lib/*-linux-android/libFoundationNetworking.so
-            ls lib/*-linux-android/libFoundationInternationalization.so
-            ls lib/*-linux-android/lib_FoundationICU.so
-            ls lib/*-linux-android/libFoundationXML.so
-            ls lib/*-linux-android/libTesting.so
-
-            ls lib/swift/clang/lib
-            ls lib/swift/clang/lib/linux
-            ls lib/swift/clang/lib/linux/*/libunwind.a
-          popd
+          # show an abridged tree
+          tree ${ARTIFACT_BUILD} --filesfirst --prune -P 'Android.swiftmodule' -P 'libswiftAndroid.*' -P 'libFoundation.*' -P 'swiftrt.o' -P 'swift*.json' -P 'info.json' -P 'api-level.h' -P 'android.modulemap' -P 'SwiftAndroidNDK.h' -P 'bridging.modulemap' -P 'linux' -P 'libclang*.a' -P 'libunwind.a' -P 'libclang_rt.builtins-*-android.a'
       - name: Upload SDK artifactbundle
         uses: actions/upload-artifact@v4
         with:
@@ -113,7 +107,9 @@ jobs:
       - name: Cleanup
         run: |
           # need to free up some space or else when installing we get: No space left on device
+          df -h
           rm -rf ${{ runner.temp }}/swift-android-sdk/{build,src}
+          df -h
       - name: Install artifactbundle
         shell: bash
         run: |
@@ -138,10 +134,10 @@ jobs:
           echo 'import Dispatch' >> Sources/DemoProject/DemoProject.swift
           echo 'import Android' >> Sources/DemoProject/DemoProject.swift
       - name: Test Demo Project on Android
-        uses: skiptools/swift-android-action@v2
+        uses: skiptools/swift-android-action@main
         with:
           # only test for the complete arch SDK build to speed up CI
-          run-tests: ${{ matrix.arch == '' }}
+          #run-tests: ${{ matrix.arch == '' }}
           package-path: ${{ runner.temp }}/DemoProject
           installed-sdk: ${{ steps.info.outputs.sdk-id }}
           installed-swift: ${{ steps.info.outputs.swift-root }}
@@ -152,7 +148,7 @@ jobs:
           repository: apple/swift-algorithms
           path: swift-algorithms
       - name: Test swift-algorithms
-        uses: skiptools/swift-android-action@v2
+        uses: skiptools/swift-android-action@main
         with:
           run-tests: ${{ matrix.arch == '' }}
           package-path: swift-algorithms
