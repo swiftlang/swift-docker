@@ -38,6 +38,7 @@ $DOCKER build --build-arg OS_ARCH_SUFFIX=$OS_ARCH_SUFFIX -t static-swift-linux .
 scripts/fetch-source.sh --clone-with-ssh --source-dir source
 
 mkdir -p products
+chmod ugo+w products
 
 # Run the build
 $DOCKER run -it --rm \
