@@ -107,5 +107,5 @@ if [[ ! -d ${PATCHDIR} ]]; then
     popd
 fi
 
-./scripts/build.sh --products-dir ${SDKROOT}/products --source-dir ${SDKROOT}/src --build-dir ${SDKROOT}/build --ndk-home ${ANDROID_NDK_HOME} --android-api ${ANDROID_API} --host-toolchain ${HOST_TOOLCHAIN} --archs ${TARGET_ARCHS}
+./scripts/build.sh --products-dir ${SDKROOT}/products --source-dir ${SDKROOT}/src --build-dir ${SDKROOT}/build --ndk-home ${ANDROID_NDK_HOME} --android-api ${ANDROID_API} --host-toolchain ${HOST_TOOLCHAIN} --archs ${TARGET_ARCHS} ${@}
 

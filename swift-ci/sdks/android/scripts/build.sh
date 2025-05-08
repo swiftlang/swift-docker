@@ -1,10 +1,6 @@
 #!/bin/bash
 # Swift SDK for Android: Build Script
-set -ex
-
-# temporary for splitting out NDK installation from the rest of the SDK
-#NDK_LOCATION=${NDK_LOCATION:-"merged"}
-NDK_LOCATION=${NDK_LOCATION:-"external"}
+set -e
 
 # Docker sets TERM to xterm if using a pty; we probably want
 # xterm-256color, otherwise we only get eight colors
@@ -145,6 +141,8 @@ while [ "$#" -gt 0 ]; do
             sdk_name="$2"; shift ;;
         --archs)
             archs="$2"; shift ;;
+        --build)
+            build_type="$2"; shift ;;
         --version)
             android_sdk_version="$2"; shift ;;
         -j|--jobs)
@@ -430,17 +428,7 @@ quiet_pushd $sdk_base
 
 cp -a ${build_dir}/sdk_root ${sdk_staging}
 
-if [ "${NDK_LOCATION}" = "external" ]; then
-    swift_res_root="swift-resources"
-    ndk_sysroot="ndk-sysroot"
-    cp -a ${ndk_installation}/sysroot ${ndk_sysroot}
-else
-    merged_sysroot_path="sysroot"
-    swift_res_root=${merged_sysroot_path}
-    ndk_sysroot=${merged_sysroot_path}
-    cp -a ${ndk_installation}/sysroot ${ndk_sysroot}
-fi
-
+swift_res_root="swift-resources"
 mkdir -p ${swift_res_root}
 
 cat > $swift_res_root/SDKSettings.json <<EOF
@@ -456,7 +444,6 @@ EOF
 mkdir -p $swift_res_root/usr/lib/swift/clang/lib
 cp -r $host_toolchain/lib/clang/*/include $swift_res_root/usr/lib/swift/clang
 
-
 for arch in $archs; do
     quiet_pushd ${sdk_staging}/${arch}/usr
         rm -r bin
@@ -469,15 +456,8 @@ for arch in $archs; do
         fi
 
         rm -r lib/swift{,_static}/clang
-        if [ "${NDK_LOCATION}" = "external" ]; then
-            #mkdir lib/swift-$arch
-            #mv lib/pkgconfig lib/swift/android/lib*.{a,so} lib/swift-$arch
-            mv lib/swift lib/swift-$arch
-            ln -s ../swift/clang lib/swift-$arch/clang
-        else
-            mkdir lib/${arch_triple}
-            mv lib/pkgconfig lib/swift/android/lib*.{a,so} lib/${arch_triple}
-        fi
+        mv lib/swift lib/swift-$arch
+        ln -s ../swift/clang lib/swift-$arch/clang
 
         mv lib/swift_static lib/swift_static-$arch
         mv lib/lib*.a lib/swift_static-$arch/android
@@ -497,18 +477,85 @@ for arch in $archs; do
     rsync -a ${sdk_staging}/${arch}/usr ${swift_res_root}
 done
 
-if [ "${NDK_LOCATION}" = "external" ]; then
+ndk_sysroot="ndk-sysroot"
+
+# whether to include the ndk-sysroot in the SDK bundle
+INCLUDE_NDK_SYSROOT=${INCLUDE_NDK_SYSROOT:-0}
+if [[ ${INCLUDE_NDK_SYSROOT} != 1 ]]; then
+    # if we do not include the NDK, then create an install script
+    #ANDROID_NDK_HOME="/opt/homebrew/share/android-ndk"
+    mkdir scripts/
+    cat > scripts/setup-android-sdk.sh <<'EOF'
+#/bin/sh
+# this script will setup the ndk-sysroot with links to the
+# local installation indicated by ANDROID_NDK_HOME
+set -e
+if [ -z "${ANDROID_NDK_HOME}" ]; then
+    echo "$(basename $0): error: missing environment variable ANDROID_NDK_HOME"
+    exit 1
+fi
+PREBUILT="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt"
+if [ ! -d "${PREBUILT}" ]; then
+    echo "$(basename $0): error: ANDROID_NDK_HOME not found: ${PREBUILT}"
+    exit 1
+fi
+DESTINATION=$(dirname $(dirname $(realpath $0)))/ndk-sysroot
+# clear out any previous NDK setup
+rm -rf ${DESTINATION}
+
+# copy vs. link the NDK files
+SWIFT_ANDROID_NDK_LINK=${SWIFT_ANDROID_NDK_LINK:-1}
+if [[ "${SWIFT_ANDROID_NDK_LINK}" != 1 ]]; then
+    ANDROID_NDK_DESC="copied"
+    cp -a ${PREBUILT}/*/sysroot ${DESTINATION}
+else
+    ANDROID_NDK_DESC="linked"
+    mkdir -p ${DESTINATION}/usr/lib
+    ln -s $(realpath ${PREBUILT}/*/sysroot/usr/include) ${DESTINATION}/usr/include
+    for triplePath in ${PREBUILT}/*/sysroot/usr/lib/*; do
+        triple=$(basename ${triplePath})
+        ln -s $(realpath ${triplePath}) ${DESTINATION}/usr/lib/${triple}
+    done
+fi
+
+# copy each architecture's swiftrt.o into the sysroot,
+# working around https://github.com/swiftlang/swift/pull/79621
+for swiftrt in ${DESTINATION}/../swift-resources/usr/lib/swift-*/android/*/swiftrt.o; do
+    arch=$(basename $(dirname ${swiftrt}))
+    mkdir -p ${DESTINATION}/usr/lib/swift/android/${arch}
+    cp -a ${swiftrt} ${DESTINATION}/usr/lib/swift/android/${arch}
+done
+
+echo "$(basename $0): success: ndk-sysroot ${ANDROID_NDK_DESC} to Android SDK"
+EOF
+    chmod +x scripts/setup-android-sdk.sh
+else
+    COPY_NDK_SYSROOT=${COPY_NDK_SYSROOT:-1}
+    if [[ ${COPY_NDK_SYSROOT} == 1 ]]; then
+        cp -a ${ndk_installation}/sysroot ${ndk_sysroot}
+    else
+        # rather than copying the sysroot, we can instead make links to
+        # the various sub-folders this won't work for the distribution,
+        # since the NDK is going to be located in different places
+        # for different machines
+        mkdir -p ${ndk_sysroot}/usr/lib
+        ln -sv $(realpath ${ndk_installation}/sysroot/usr/include) ${ndk_sysroot}/usr/include
+        for triplePath in ${ndk_installation}/sysroot/usr/lib/*; do
+            triple=$(basename ${triplePath})
+            ln -sv $(realpath ${triplePath}) ${ndk_sysroot}/usr/lib/${triple}
+            ls ${ndk_sysroot}/usr/lib/${triple}/
+        done
+    fi
+
     # need to manually copy over swiftrt.o or else:
     # error: link command failed with exit code 1 (use -v to see invocation)
     # clang: error: no such file or directory: '${HOME}/.swiftpm/swift-sdks/swift-6.2-DEVELOPMENT-SNAPSHOT-2025-04-24-a-android-0.1.artifactbundle/swift-android/ndk-sysroot/usr/lib/swift/android/x86_64/swiftrt.o'
     # see: https://github.com/swiftlang/swift-driver/pull/1822#issuecomment-2762811807
+    # should be fixed by: https://github.com/swiftlang/swift/pull/79621
     for arch in $archs; do
         mkdir -p ${ndk_sysroot}/usr/lib/swift/android/${arch}
         ln -srv ${swift_res_root}/usr/lib/swift-${arch}/android/${arch}/swiftrt.o ${ndk_sysroot}/usr/lib/swift/android/${arch}/swiftrt.o
     done
-else
-    rm -r ${swift_res_root}/usr/{include,lib}/{i686,riscv64}-linux-android
-    rm -r ${swift_res_root}/usr/lib/swift/clang/lib/linux/*{i[36]86,riscv64}*
 fi
 
 rm -r ${swift_res_root}/usr/share/{doc,man}
@@ -535,11 +582,7 @@ for api in $(eval echo "{$android_api..36}"); do
 EOF
         fi
 
-        if [ "${NDK_LOCATION}" = "external" ]; then
-            SWIFT_RES_DIR="swift-${arch}"
-        else
-            SWIFT_RES_DIR="swift"
-        fi
+        SWIFT_RES_DIR="swift-${arch}"
         SWIFT_STATIC_RES_DIR="swift_static-${arch}"
 
         cat >> swift-sdk.json <<EOF
