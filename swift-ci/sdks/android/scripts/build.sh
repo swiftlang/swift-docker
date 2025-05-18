@@ -344,6 +344,7 @@ for arch in $archs; do
             -DCURLSSLOPT_NATIVE_CA=ON \
             -DCURL_USE_OPENSSL=ON \
             -DCURL_USE_LIBSSH2=OFF \
+            -DCURL_USE_LIBPSL=OFF \
             -DTHREADS_PREFER_PTHREAD_FLAG=OFF \
             -DCMAKE_THREAD_PREFER_PTHREAD=OFF \
             -DCMAKE_THREADS_PREFER_PTHREAD_FLAG=OFF \
