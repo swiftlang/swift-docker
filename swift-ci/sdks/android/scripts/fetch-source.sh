@@ -85,8 +85,8 @@ if [[ -z "${LIBXML2_VERSION}" ]]; then
     #LIBXML2_VERSION=2.14.2
 fi
 if [[ -z "${CURL_VERSION}" ]]; then
-    CURL_VERSION=8.7.1
-    #CURL_VERSION=8.13.0
+    #CURL_VERSION=8.7.1
+    CURL_VERSION=8.13.0
 fi
 if [[ -z "${BORINGSSL_VERSION}" ]]; then
     BORINGSSL_VERSION=fips-20220613
