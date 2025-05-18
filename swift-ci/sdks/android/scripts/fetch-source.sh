@@ -81,11 +81,9 @@ if [[ -z "${SWIFT_VERSION}" ]]; then
     SWIFT_VERSION=scheme:release/6.1
 fi
 if [[ -z "${LIBXML2_VERSION}" ]]; then
-    LIBXML2_VERSION=2.12.7
-    #LIBXML2_VERSION=2.14.2
+    LIBXML2_VERSION=2.14.2
 fi
 if [[ -z "${CURL_VERSION}" ]]; then
-    #CURL_VERSION=8.7.1
     CURL_VERSION=8.13.0
 fi
 if [[ -z "${BORINGSSL_VERSION}" ]]; then
