@@ -78,8 +78,6 @@ ENV SWIFT_BUILD_DOCKER="1"
 COPY scripts /scripts
 RUN chmod ugo+x /scripts/*
 
-COPY resources /resources
-
 # Create a user
 RUN groupadd -g 998 build-user && \
     useradd -m -r -u 998 -g build-user build-user
