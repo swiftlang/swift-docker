@@ -283,6 +283,7 @@ for arch in $archs; do
             -DCMAKE_EXTRA_LINK_FLAGS="-rtlib=compiler-rt -unwindlib=libunwind -stdlib=libc++ -fuse-ld=lld -lc++ -lc++abi" \
             -DCMAKE_BUILD_TYPE=$build_type \
             -DCMAKE_INSTALL_PREFIX=$sdk_root/usr \
+            -DCMAKE_SHARED_LINKER_FLAGS="-Wl,-z,max-page-size=16384" \
             -DLIBXML2_WITH_PYTHON=NO \
             -DLIBXML2_WITH_ICU=NO \
             -DLIBXML2_WITH_ICONV=NO \
@@ -311,6 +312,7 @@ for arch in $archs; do
             -DCMAKE_TOOLCHAIN_FILE=$ndk_home/build/cmake/android.toolchain.cmake \
             -DCMAKE_BUILD_TYPE=$build_type \
             -DCMAKE_INSTALL_PREFIX=$sdk_root/usr \
+            -DCMAKE_SHARED_LINKER_FLAGS="-Wl,-z,max-page-size=16384" \
             -DBUILD_SHARED_LIBS=OFF \
             -DBUILD_STATIC_LIBS=ON \
             -DBUILD_TESTING=OFF
@@ -337,6 +339,7 @@ for arch in $archs; do
             -DCMAKE_TOOLCHAIN_FILE=$ndk_home/build/cmake/android.toolchain.cmake \
             -DCMAKE_BUILD_TYPE=$build_type \
             -DCMAKE_INSTALL_PREFIX=$sdk_root/usr \
+            -DCMAKE_SHARED_LINKER_FLAGS="-Wl,-z,max-page-size=16384" \
             -DOPENSSL_ROOT_DIR=$sdk_root/usr \
             -DOPENSSL_INCLUDE_DIR=$sdk_root/usr/include \
             -DOPENSSL_SSL_LIBRARY=$sdk_root/usr/lib/libssl.a \

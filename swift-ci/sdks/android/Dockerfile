@@ -24,7 +24,6 @@ RUN apt-get -q update \
     golang \
     git \
     gnupg2 \
-    libsqlite3-dev \
     libcurl4-openssl-dev  \
     libedit-dev           \
     libicu-dev            \
