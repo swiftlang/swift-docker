@@ -280,10 +280,9 @@ for arch in $archs; do
             -DANDROID_PLATFORM=android-$android_api \
             -DCMAKE_TOOLCHAIN_FILE=$ndk_home/build/cmake/android.toolchain.cmake \
             -DCMAKE_BUILD_TYPE=$build_type \
-            -DCMAKE_EXTRA_LINK_FLAGS="-rtlib=compiler-rt -unwindlib=libunwind -stdlib=libc++ -fuse-ld=lld -lc++ -lc++abi" \
+            -DCMAKE_EXTRA_LINK_FLAGS="-rtlib=compiler-rt -unwindlib=libunwind -stdlib=libc++ -fuse-ld=lld -lc++ -lc++abi -Wl,-z,max-page-size=16384" \
             -DCMAKE_BUILD_TYPE=$build_type \
             -DCMAKE_INSTALL_PREFIX=$sdk_root/usr \
-            -DCMAKE_SHARED_LINKER_FLAGS="-Wl,-z,max-page-size=16384" \
             -DLIBXML2_WITH_PYTHON=NO \
             -DLIBXML2_WITH_ICU=NO \
             -DLIBXML2_WITH_ICONV=NO \
@@ -312,7 +311,7 @@ for arch in $archs; do
             -DCMAKE_TOOLCHAIN_FILE=$ndk_home/build/cmake/android.toolchain.cmake \
             -DCMAKE_BUILD_TYPE=$build_type \
             -DCMAKE_INSTALL_PREFIX=$sdk_root/usr \
-            -DCMAKE_SHARED_LINKER_FLAGS="-Wl,-z,max-page-size=16384" \
+            -DCMAKE_EXTRA_LINK_FLAGS="-Wl,-z,max-page-size=16384" \
             -DBUILD_SHARED_LIBS=OFF \
             -DBUILD_STATIC_LIBS=ON \
             -DBUILD_TESTING=OFF
@@ -339,7 +338,7 @@ for arch in $archs; do
             -DCMAKE_TOOLCHAIN_FILE=$ndk_home/build/cmake/android.toolchain.cmake \
             -DCMAKE_BUILD_TYPE=$build_type \
             -DCMAKE_INSTALL_PREFIX=$sdk_root/usr \
-            -DCMAKE_SHARED_LINKER_FLAGS="-Wl,-z,max-page-size=16384" \
+            -DCMAKE_EXTRA_LINK_FLAGS="-Wl,-z,max-page-size=16384" \
             -DOPENSSL_ROOT_DIR=$sdk_root/usr \
             -DOPENSSL_INCLUDE_DIR=$sdk_root/usr/include \
             -DOPENSSL_SSL_LIBRARY=$sdk_root/usr/lib/libssl.a \
@@ -403,7 +402,8 @@ for arch in $archs; do
             --install-foundation \
             --xctest --install-xctest \
             --swift-testing --install-swift-testing \
-            --cross-compile-append-host-target-to-destdir=False
+            --cross-compile-append-host-target-to-destdir=False \
+            --extra-cmake-options='-DCMAKE_EXTRA_LINK_FLAGS="-Wl,-z,max-page-size=16384"'
 
         # need to remove symlink that gets created in the NDK to the previous arch's build
         # or else we get errors like:
