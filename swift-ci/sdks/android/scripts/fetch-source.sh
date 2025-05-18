@@ -91,6 +91,9 @@ fi
 if [[ -z "${BORINGSSL_VERSION}" ]]; then
     BORINGSSL_VERSION=fips-20220613
 fi
+if [[ -z "${SWIFT_ANDROID_PATCHES_VERSION}" ]]; then
+    SWIFT_ANDROID_PATCHES_VERSION=main
+fi
 
 clone_with_ssh=false
 while [ "$#" -gt 0 ]; do
@@ -139,7 +142,7 @@ mkdir -p swift-project
 groupstart "Fetching Swift"
 pushd swift-project >/dev/null
 
-[[ -d swift ]] || git clone ${github}apple/swift.git
+[[ -d swift ]] || git clone ${github}swiftlang/swift.git
 cd swift
 
 # Get its dependencies
@@ -181,3 +184,10 @@ git checkout ${BORINGSSL_VERSION}
 popd >/dev/null 2>&1
 groupend
 
+# Fetch BoringSSL
+groupstart "Fetching Patches"
+[[ -d swift-android-patches ]] || git clone https://github.com/swift-android-sdk/swift-android-sdk swift-android-patches
+pushd swift-android-patches >/dev/null 2>&1
+git checkout ${SWIFT_ANDROID_PATCHES_VERSION}
+popd >/dev/null 2>&1
+groupend

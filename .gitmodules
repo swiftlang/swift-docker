@@ -1,3 +1,0 @@
-[submodule "swift-ci/sdks/android/resources/patches"]
-	path = swift-ci/sdks/android/resources/patches
-	url = https://github.com/swift-android-sdk/swift-android-sdk

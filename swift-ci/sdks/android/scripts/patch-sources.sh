@@ -3,16 +3,12 @@
 set -e
 
 source_dir=$1
-
 if [[ ! -d "${source_dir}" ]]; then
     echo "$0: source_dir ${source_dir} does not exist"
     exit 1
 fi
 
-script_dir=$(dirname -- "${BASH_SOURCE[0]}")
-resource_dir=$(realpath "${script_dir}/../resources")
-patches_dir="${resource_dir}/patches"
-
+patches_dir="${source_dir}/swift-android-patches"
 if [[ ! -d "${patches_dir}" ]]; then
     echo "$0: patches_dir ${patches_dir} does not exist"
     exit 1
@@ -20,10 +16,6 @@ fi
 
 cd ${source_dir}/swift-project
 swift_android_patch="${patches_dir}/swift-android.patch"
-
-ls -la swift/utils/build-script-impl
-ls -la ${swift_android_patch}
-ls -la swiftpm/Sources/PackageRegistryCommand/PackageRegistryCommand+Auth.swift
 
 # patch the patch, which seems to only be needed for an API less than 28
 # https://github.com/finagolfin/swift-android-sdk/blob/main/swift-android.patch#L110

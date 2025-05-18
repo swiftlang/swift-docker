@@ -67,8 +67,6 @@ jobs:
           echo "WORKDIR=${{ runner.temp }}/swift-android-sdk" >> $GITHUB_ENV
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          submodules: 'true'
       - name: Build Android SDK (Local)
         if: ${{ matrix.build-type == 'local' }}
         working-directory: swift-ci/sdks/android
