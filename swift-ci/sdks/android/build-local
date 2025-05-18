@@ -1,0 +1,64 @@
+#!/bin/bash -e
+#
+# ===----------------------------------------------------------------------===
+#
+#  Swift Android SDK: Local (non-Docker-containerized) Build Script
+#
+# ===----------------------------------------------------------------------===
+
+# default architectures to build for
+TARGET_ARCHS=${TARGET_ARCHS:-aarch64,x86_64,armv7}
+
+ANDROID_NDK_VERSION=android-ndk-r27c
+ANDROID_API=28
+
+export BUILD_VERSION=${1}
+# note that WORKDIR must not be under the current checkout or the patches will fail to apply
+WORKDIR=${2}
+if [[ "${WORKDIR}" == '' ]]; then
+    echo "Usage: $(basename $0) <release/devel/trunk> <work directory>"
+    exit 1
+fi
+mkdir -p ${WORKDIR}
+WORKDIR=$(realpath ${WORKDIR})
+
+HOST_OS=ubuntu$(lsb_release -sr)
+source ./scripts/toolchain-vars.sh
+
+SWIFT_ROOT=${WORKDIR}/host-toolchain
+HOST_TOOLCHAIN=$SWIFT_ROOT/$SWIFT_BASE/usr
+if [[ ! -d "$HOST_TOOLCHAIN" ]]; then
+    ./scripts/install-swift.sh ${HOST_TOOLCHAIN}
+fi
+
+$HOST_TOOLCHAIN/bin/swift --version
+
+# ensure the correct Swift is first in the PATH
+export PATH=$HOST_TOOLCHAIN/bin:$PATH
+
+export ANDROID_NDK_HOME=${WORKDIR}/ndk/${ANDROID_NDK_VERSION}
+
+if [[ ! -d ${ANDROID_NDK_HOME} ]]; then
+    mkdir -p $(dirname ${ANDROID_NDK_HOME})
+    pushd $(dirname ${ANDROID_NDK_HOME})
+    NDKFILE=$(basename $ANDROID_NDK_HOME)-linux.zip
+    wget -q https://dl.google.com/android/repository/${NDKFILE}
+    unzip -q ${NDKFILE}
+    popd
+fi
+
+
+# Check-out and patch the sources
+./scripts/fetch-source.sh --source-dir ${WORKDIR}/source --swift-tag ${SWIFT_TAG}
+./scripts/patch-sources.sh ${WORKDIR}/source
+
+mkdir -p ${WORKDIR}/products
+
+./scripts/build.sh \
+    --source-dir ${WORKDIR}/source \
+    --products-dir ${WORKDIR}/products \
+    --build-dir ${WORKDIR}/build \
+    --host-toolchain ${HOST_TOOLCHAIN} \
+    --android-api ${ANDROID_API} \
+    --ndk-home ${ANDROID_NDK_HOME} \
+    --archs ${TARGET_ARCHS}

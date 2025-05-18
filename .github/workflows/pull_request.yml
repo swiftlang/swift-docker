@@ -8,8 +8,6 @@ env:
 jobs:
    build:
      name: Build Docker images
-     # disabled for CI testing
-     if: false
      runs-on: ubuntu-latest
      steps:
       - name: Checkout repository
@@ -26,8 +24,6 @@ jobs:
 
    static-linux-build:
      name: Build Static Linux image
-     # disabled for CI testing
-     if: false
      runs-on: ubuntu-latest
      steps:
       - name: Checkout repository
@@ -37,16 +33,18 @@ jobs:
         run: ./build
 
    android-build:
-     name: Build Android ${{ matrix.swift-version }} ${{ matrix.arch }} SDK
+     name: Build Android ${{ matrix.build-type }} ${{ matrix.swift-version }} ${{ matrix.arch }} SDK
      strategy:
        fail-fast: false
        matrix:
+         build-type: ['docker']
+         #build-type: ['docker', 'local']
          # blank arch builds all (aarch64,x86_64,armv7)
-         #arch: ['']
+         arch: ['']
          # builds only x86_64 to speed up the validation
          #arch: ['x86_64']
          # build both the quick (x86_64) and complete (aarch64,x86_64,armv7) SDKs
-         arch: ['x86_64', '']
+         #arch: ['x86_64', '']
          swift-version: ['release', 'devel', 'trunk']
      runs-on: ubuntu-24.04
      steps:
@@ -59,31 +57,60 @@ jobs:
           sudo docker image prune --all --force
           sudo docker builder prune -a
           df -h
+      - name: Setup
+        id: config
+        run: |
+          # these variabes are used by build-docker and build-local
+          # to determine which Swift version to build for
+          echo "BUILD_VERSION=${{ matrix.swift-version }}" >> $GITHUB_ENV
+          echo "TARGET_ARCHS=${{ matrix.arch }}" >> $GITHUB_ENV
+          echo "WORKDIR=${{ runner.temp }}/swift-android-sdk" >> $GITHUB_ENV
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Install Dependencies
-        run: |
-          sudo apt install -q ninja-build patchelf
-      - name: Build Android SDK
+        with:
+          submodules: 'true'
+      - name: Build Android SDK (Local)
+        if: ${{ matrix.build-type == 'local' }}
         working-directory: swift-ci/sdks/android
         run: |
-          BUILD_VERSION=${{ matrix.swift-version }} TARGET_ARCHS=${{ matrix.arch }} ./build
+          sudo apt install -q ninja-build patchelf
+          ./build-local ${BUILD_VERSION} ${WORKDIR}
+      - name: Build Android SDK (Docker)
+        if: ${{ matrix.build-type == 'docker' }}
+        working-directory: swift-ci/sdks/android
+        run: |
+          ./build-docker ${BUILD_VERSION} ${WORKDIR}
+      - name: Install Host Toolchain
+        if: ${{ matrix.build-type == 'docker' }}
+        working-directory: swift-ci/sdks/android
+        run: |
+          # when building in a Docker container, we don't have a local host toolchain,
+          # but we need one in order to run the SDK validation tests, so we install it now
+          HOST_OS=ubuntu$(lsb_release -sr)
+          source ./scripts/toolchain-vars.sh
+          mkdir -p ${WORKDIR}/host-toolchain
+          ./scripts/install-swift.sh ${WORKDIR}/host-toolchain/$SWIFT_BASE/usr
+          ls ${WORKDIR}/host-toolchain
+          ${WORKDIR}/host-toolchain/*/usr/bin/swift --version
       - name: Get artifact info
         id: info
         shell: bash
         run: |
           set -ex
-          SWIFT_ROOT=$(dirname ${{ runner.temp }}/swift-android-sdk/host-toolchain/*/usr)
+          SWIFT_ROOT=$(dirname ${WORKDIR}/host-toolchain/*/usr)
           echo "swift-root=${SWIFT_ROOT}" >> $GITHUB_OUTPUT
           echo "swift-path=${SWIFT_ROOT}/usr/bin/swift" >> $GITHUB_OUTPUT
 
-          ARTIFACT_BUILD=$(realpath ${{ runner.temp }}/swift-android-sdk/build/*.artifactbundle)
-          ARTIFACT_PATH=$(realpath ${{ runner.temp }}/swift-android-sdk/products/*.artifactbundle.tar.gz)
+          ARTIFACT_PATH=$(realpath ${WORKDIR}/products/*.artifactbundle.tar.gz)
           echo "artifact-path=${ARTIFACT_PATH}" >> $GITHUB_OUTPUT
           echo "sdk-id=x86_64-unknown-linux-android28" >> $GITHUB_OUTPUT
 
           ARTIFACT_EXT=".artifactbundle.tar.gz"
           ARTIFACT_NAME="$(basename ${ARTIFACT_PATH} ${ARTIFACT_EXT})"
+          # depending on whether we are building locally or in a container, add a maker to the name
+          if [[ "${{ matrix.build-type }}" == 'local' ]]; then
+            ARTIFACT_NAME="${ARTIFACT_NAME}-local"
+          fi
           # artifacts need a unique name so we suffix with the matrix arch(s)
           if [[ ! -z "${{ matrix.arch }}" ]]; then
             ARTIFACT_NAME="${ARTIFACT_NAME}-$(echo ${{ matrix.arch }} | tr ',' '-')"
@@ -95,9 +122,6 @@ jobs:
           # so the actual artifact download will look like:
           # swift-6.1-RELEASE_android-0.1-x86_64.artifactbundle.tar.gz.zip
           echo "artifact-name=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
-
-          # show an abridged tree
-          tree ${ARTIFACT_BUILD} --filesfirst --prune -P 'Android.swiftmodule' -P 'libswiftAndroid.*' -P 'libFoundation.*' -P 'swiftrt.o' -P 'swift*.json' -P 'info.json' -P 'api-level.h' -P 'android.modulemap' -P 'SwiftAndroidNDK.h' -P 'bridging.modulemap' -P 'linux' -P 'libclang*.a' -P 'libunwind.a' -P 'libclang_rt.builtins-*-android.a'
       - name: Upload SDK artifactbundle
         uses: actions/upload-artifact@v4
         with:
@@ -108,7 +132,9 @@ jobs:
         run: |
           # need to free up some space or else when installing we get: No space left on device
           df -h
-          rm -rf ${{ runner.temp }}/swift-android-sdk/{build,src}
+          rm -rf ${WORKDIR}/{build,source}
+          sudo docker image prune --all --force
+          sudo docker builder prune -a
           df -h
       - name: Install artifactbundle
         shell: bash
@@ -117,7 +143,7 @@ jobs:
           ${{ steps.info.outputs.swift-path }} sdk install ${{ steps.info.outputs.artifact-path }}
           ${{ steps.info.outputs.swift-path }} sdk configure --show-configuration $(${{ steps.info.outputs.swift-path }} sdk list | head -n 1) ${{ steps.info.outputs.sdk-id }}
           # recent releases require that ANDROID_NDK_ROOT *not* be set
-          # see https://github.com/finagolfin/swift-android-sdk/issues/207
+          # see https://github.com/swiftlang/swift-driver/pull/1879
           echo "ANDROID_NDK_ROOT=" >> $GITHUB_ENV
 
       - name: Create Demo Project

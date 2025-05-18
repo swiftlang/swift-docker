@@ -109,7 +109,6 @@ declare_package libxml2 "libxml2" "MIT" \
 declare_package curl "curl" "MIT" "https://curl.se"
 declare_package boringssl "boringssl" "OpenSSL AND ISC AND MIT" \
                 "https://boringssl.googlesource.com/boringssl/"
-declare_package zlib "zlib" "Zlib" "https://zlib.net"
 
 # Parse command line arguments
 android_sdk_version=0.1
@@ -166,12 +165,14 @@ if ! swiftc=$(which swiftc); then
     exit 1
 fi
 
-script_dir=$(dirname -- "${BASH_SOURCE[0]}")
-resource_dir="${script_dir}/../resources"
-
 # Find the version numbers of the various dependencies
 function describe {
     pushd $1 >/dev/null 2>&1
+    # this is needed for docker containers or else we get the error:
+    # fatal: detected dubious ownership in repository at '/source/curl'
+    if [[ "${SWIFT_BUILD_DOCKER}" == "1" ]]; then
+        git config --global --add safe.directory $(pwd)
+    fi
     git describe --tags
     popd >/dev/null 2>&1
 }
@@ -200,8 +201,6 @@ curl_version=${curl_desc#curl-}
 
 boringssl_version=$(describe ${source_dir}/boringssl)
 
-zlib_version=$(versionFromTag ${source_dir}/zlib)
-
 function quiet_pushd {
     pushd "$1" >/dev/null 2>&1
 }
@@ -214,7 +213,23 @@ header "Swift Android SDK build script"
 swift_dir=$(realpath $(dirname "$swiftc")/..)
 HOST=linux-x86_64
 #HOST=$(uname -s -m | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+
+# in a Docker container, the pre-installed NDK is read-only,
+# but the build script needs to write to it to work around
+# https://github.com/swiftlang/swift-driver/pull/1822
+# so we copy it to a read-write location for the purposes of the build
+# this can all be removed once that PR lands
+mkdir -p ${build_dir}/ndk/
+ndk_home_tmp=${build_dir}/ndk/$(basename $ndk_home)
+cp -a $ndk_home $ndk_home_tmp
+ndk_home=$ndk_home_tmp
+
 ndk_installation=$ndk_home/toolchains/llvm/prebuilt/$HOST
+
+# ANDROID_NDK env needed by the swift-android.patch for:
+# call ln -sf "${SWIFT_BUILD_PATH}/lib/swift" "${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib"
+export ANDROID_NDK_HOME=$ndk_home
+export ANDROID_NDK=$ndk_home
 
 echo "Swift found at ${swift_dir}"
 echo "Host toolchain found at ${host_toolchain}"
@@ -231,7 +246,12 @@ echo "  - Swift ${swift_version}"
 echo "  - libxml2 ${libxml2_version}"
 echo "  - curl ${curl_version}"
 echo "  - BoringSSL ${boringssl_version}"
-echo "  - zlib ${zlib_version}"
+
+# make sure the products_dir is writeable
+ls -lad $products_dir
+touch $products_dir/products_dir_write_test.tmp
+rm $products_dir/products_dir_write_test.tmp
+#chown -R $(id -u):$(id -g) $products_dir
 
 function run() {
     echo "$@"
@@ -239,11 +259,6 @@ function run() {
 }
 
 for arch in $archs; do
-    # enable short-circuiting the individual builds
-    if [[ ! -z "$SWIFT_ANDROID_ARCHIVEONLY" ]]; then
-        continue
-    fi
-
     case $arch in
         armv7) target_host="arm-linux-androideabi"; compiler_target_host="armv7a-linux-androideabi$android_api"; android_abi="armeabi-v7a" ;;
         aarch64) target_host="aarch64-linux-android"; compiler_target_host="$target_host$android_api"; android_abi="arm64-v8a" ;;
@@ -326,8 +341,9 @@ for arch in $archs; do
             -DOPENSSL_INCLUDE_DIR=$sdk_root/usr/include \
             -DOPENSSL_SSL_LIBRARY=$sdk_root/usr/lib/libssl.a \
             -DOPENSSL_CRYPTO_LIBRARY=$sdk_root/usr/lib/libcrypto.a \
-            -DCURL_USE_OPENSSL=ON \
             -DCURLSSLOPT_NATIVE_CA=ON \
+            -DCURL_USE_OPENSSL=ON \
+            -DCURL_USE_LIBSSH2=OFF \
             -DTHREADS_PREFER_PTHREAD_FLAG=OFF \
             -DCMAKE_THREAD_PREFER_PTHREAD=OFF \
             -DCMAKE_THREADS_PREFER_PTHREAD_FLAG=OFF \
@@ -477,16 +493,17 @@ for arch in $archs; do
     rsync -a ${sdk_staging}/${arch}/usr ${swift_res_root}
 done
 
+rm -r ${swift_res_root}/usr/share/{doc,man}
+rm -r ${sdk_staging}
+
+# create an install script to set up the NDK links
+#ANDROID_NDK_HOME="/opt/homebrew/share/android-ndk"
+mkdir scripts/
+
 ndk_sysroot="ndk-sysroot"
 
-# whether to include the ndk-sysroot in the SDK bundle
-INCLUDE_NDK_SYSROOT=${INCLUDE_NDK_SYSROOT:-0}
-if [[ ${INCLUDE_NDK_SYSROOT} != 1 ]]; then
-    # if we do not include the NDK, then create an install script
-    #ANDROID_NDK_HOME="/opt/homebrew/share/android-ndk"
-    mkdir scripts/
-    cat > scripts/setup-android-sdk.sh <<'EOF'
-#/bin/sh
+cat > scripts/setup-android-sdk.sh <<'EOF'
+#/bin/bash
 # this script will setup the ndk-sysroot with links to the
 # local installation indicated by ANDROID_NDK_HOME
 set -e
@@ -494,72 +511,64 @@ if [ -z "${ANDROID_NDK_HOME}" ]; then
     echo "$(basename $0): error: missing environment variable ANDROID_NDK_HOME"
     exit 1
 fi
-PREBUILT="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt"
-if [ ! -d "${PREBUILT}" ]; then
-    echo "$(basename $0): error: ANDROID_NDK_HOME not found: ${PREBUILT}"
+
+ndk_prebuilt="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt"
+if [ ! -d "${ndk_prebuilt}" ]; then
+    echo "$(basename $0): error: ANDROID_NDK_HOME not found: ${ndk_prebuilt}"
     exit 1
 fi
-DESTINATION=$(dirname $(dirname $(realpath $0)))/ndk-sysroot
-# clear out any previous NDK setup
-rm -rf ${DESTINATION}
 
-# copy vs. link the NDK files
+#Pkg.Revision = 27.0.12077973
+#Pkg.Revision = 28.1.13356709
+ndk_version=$(grep '^Pkg.Revision = ' "${ANDROID_NDK_HOME}/source.properties" | cut -f3- -d' ' | cut -f 1 -d '.')
+if [[ "${ndk_version}" -lt 27 ]]; then
+    echo "$(basename $0): error: minimum NDK version 27 required; found ${ndk_version} in ${ANDROID_NDK_HOME}/source.properties"
+    exit 1
+fi
+
+cd $(dirname $(dirname $(realpath -- "${BASH_SOURCE[0]}")))
+swift_resources=swift-resources
+ndk_sysroot=ndk-sysroot
+
+if [[ -d "${ndk_sysroot}" ]]; then
+    # clear out any previous NDK setup
+    rm -rf ${ndk_sysroot}
+    ndk_re="re-"
+fi
+
+# link vs. copy the NDK files
 SWIFT_ANDROID_NDK_LINK=${SWIFT_ANDROID_NDK_LINK:-1}
-if [[ "${SWIFT_ANDROID_NDK_LINK}" != 1 ]]; then
-    ANDROID_NDK_DESC="copied"
-    cp -a ${PREBUILT}/*/sysroot ${DESTINATION}
-else
-    ANDROID_NDK_DESC="linked"
-    mkdir -p ${DESTINATION}/usr/lib
-    ln -s $(realpath ${PREBUILT}/*/sysroot/usr/include) ${DESTINATION}/usr/include
-    for triplePath in ${PREBUILT}/*/sysroot/usr/lib/*; do
+if [[ "${SWIFT_ANDROID_NDK_LINK}" == 1 ]]; then
+    ndk_action="${ndk_re}linked"
+    mkdir -p ${ndk_sysroot}/usr/lib
+    ln -s ${ndk_prebuilt}/*/sysroot/usr/include ${ndk_sysroot}/usr/include
+    for triplePath in ${ndk_prebuilt}/*/sysroot/usr/lib/*; do
         triple=$(basename ${triplePath})
-        ln -s $(realpath ${triplePath}) ${DESTINATION}/usr/lib/${triple}
+        ln -s ${triplePath} ${ndk_sysroot}/usr/lib/${triple}
     done
+else
+    ndk_action="${ndk_re}copied"
+    cp -a ${ndk_prebuilt}/*/sysroot ${ndk_sysroot}
 fi
 
 # copy each architecture's swiftrt.o into the sysroot,
 # working around https://github.com/swiftlang/swift/pull/79621
-for swiftrt in ${DESTINATION}/../swift-resources/usr/lib/swift-*/android/*/swiftrt.o; do
-    arch=$(basename $(dirname ${swiftrt}))
-    mkdir -p ${DESTINATION}/usr/lib/swift/android/${arch}
-    cp -a ${swiftrt} ${DESTINATION}/usr/lib/swift/android/${arch}
+for folder in swift swift_static; do
+    for swiftrt in ${swift_resources}/usr/lib/${folder}-*/android/*/swiftrt.o; do
+        arch=$(basename $(dirname ${swiftrt}))
+        mkdir -p ${ndk_sysroot}/usr/lib/${folder}/android/${arch}
+        if [[ "${SWIFT_ANDROID_NDK_LINK}" == 1 ]]; then
+            ln -s ../../../../../../${swiftrt} ${ndk_sysroot}/usr/lib/${folder}/android/${arch}/
+        else
+            cp -a ${swiftrt} ${ndk_sysroot}/usr/lib/${folder}/android/${arch}/
+        fi
+    done
 done
 
-echo "$(basename $0): success: ndk-sysroot ${ANDROID_NDK_DESC} to Android SDK"
+echo "$(basename $0): success: ndk-sysroot ${ndk_action} to Android NDK at ${ndk_prebuilt}"
 EOF
-    chmod +x scripts/setup-android-sdk.sh
-else
-    COPY_NDK_SYSROOT=${COPY_NDK_SYSROOT:-1}
-    if [[ ${COPY_NDK_SYSROOT} == 1 ]]; then
-        cp -a ${ndk_installation}/sysroot ${ndk_sysroot}
-    else
-        # rather than copying the sysroot, we can instead make links to
-        # the various sub-folders this won't work for the distribution,
-        # since the NDK is going to be located in different places
-        # for different machines
-        mkdir -p ${ndk_sysroot}/usr/lib
-        ln -sv $(realpath ${ndk_installation}/sysroot/usr/include) ${ndk_sysroot}/usr/include
-        for triplePath in ${ndk_installation}/sysroot/usr/lib/*; do
-            triple=$(basename ${triplePath})
-            ln -sv $(realpath ${triplePath}) ${ndk_sysroot}/usr/lib/${triple}
-            ls ${ndk_sysroot}/usr/lib/${triple}/
-        done
-    fi
 
-    # need to manually copy over swiftrt.o or else:
-    # error: link command failed with exit code 1 (use -v to see invocation)
-    # clang: error: no such file or directory: '${HOME}/.swiftpm/swift-sdks/swift-6.2-DEVELOPMENT-SNAPSHOT-2025-04-24-a-android-0.1.artifactbundle/swift-android/ndk-sysroot/usr/lib/swift/android/x86_64/swiftrt.o'
-    # see: https://github.com/swiftlang/swift-driver/pull/1822#issuecomment-2762811807
-    # should be fixed by: https://github.com/swiftlang/swift/pull/79621
-    for arch in $archs; do
-        mkdir -p ${ndk_sysroot}/usr/lib/swift/android/${arch}
-        ln -srv ${swift_res_root}/usr/lib/swift-${arch}/android/${arch}/swiftrt.o ${ndk_sysroot}/usr/lib/swift/android/${arch}/swiftrt.o
-    done
-fi
-
-rm -r ${swift_res_root}/usr/share/{doc,man}
-rm -r ${sdk_staging}
+chmod +x scripts/setup-android-sdk.sh
 
 cat > swift-sdk.json <<EOF
 {
@@ -613,14 +622,12 @@ EOF
 
 quiet_popd
 
-if [[ -z "$SWIFT_ANDROID_ARCHIVEONLY" ]]; then
-    header "Outputting compressed bundle"
+header "Outputting compressed bundle"
 
-    quiet_pushd "${build_dir}"
-        mkdir -p "${products_dir}"
-        tar czf "${products_dir}/${bundle}.tar.gz" "${bundle}"
-    quiet_popd
-fi
+quiet_pushd "${build_dir}"
+    mkdir -p "${products_dir}"
+    tar czf "${bundle}.tar.gz" "${bundle}"
+    mv "${bundle}.tar.gz" "${products_dir}"
+quiet_popd
 
 groupend
-
