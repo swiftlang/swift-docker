@@ -23,7 +23,7 @@ case "${BUILD_VERSION}" in
         ;;
     devel)
         # e.g., swift-6.2-DEVELOPMENT-SNAPSHOT-2025-05-15-a
-        SWIFT_TAG=$(curl -fsSL https://download.swift.org/swift-6.2-branch/$OS/latest-build.yml | grep '^dir: ' | cut -f 2 -d ' '
+        SWIFT_TAG=$(curl -fsSL https://download.swift.org/swift-6.2-branch/$OS/latest-build.yml | grep '^dir: ' | cut -f 2 -d ' ')
         SWIFT_BRANCH="swift-$(echo $SWIFT_TAG | cut -d- -f2)-branch"
         ;;
     trunk)
