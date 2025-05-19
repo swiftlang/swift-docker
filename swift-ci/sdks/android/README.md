@@ -39,18 +39,20 @@ fetch tagged sources for libxml2, curl, boringssl, and swift.
 
 It then applies some patches and invokes `scripts/build.sh`,
 which will build the sources for each of the specified
-architectures. Finally, it combines the NDK and the newly built
-SDKs into a single artifactbundle.  
+architectures and then combines the SDKs into a single
+artifactbundle with targetTriples for each of the supported
+architectures (`aarch64`, `x86_64`, `aarmv7`)
+and Android API levels (28-35).
 
 ## Specifying Architectures
 
 By default all the supported Android architectures
-(`aarch64`, `x86_64`, `aarmv7`)
 will be built, but this can be reduced in order to speed
 up the build. This can be useful, e.g., as part of a CI that
 validates a pull request, as building a single architecture
 takes around 30 minutes on a standard ubuntu-24.04 GitHub runner,
 whereas building for all the architectures takes over an hour.
+Building within a docker container increases this by about 50%.
 
 To build an artifactbundle for just the `x86_64` architecture, run:
 
