@@ -28,19 +28,19 @@ perl -pi -e 's;dispatch android-execinfo;dispatch;g' $swift_android_patch
 perl -pi -e 's;call ln -sf;call ln -svf;g' $swift_android_patch
 perl -pi -e 's%linux-x86_64/sysroot/usr/lib"%linux-x86_64/sysroot/usr/lib"; echo "VALIDATING SYMBOLIC LINK"; ls -la "\${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib"; ls -la "\${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/swift"; %g' $swift_android_patch
 
-case "${BUILD_VERSION}" in
+case "${BUILD_SCHEME}" in
     release)
         testing_patch="${patches_dir}/swift-android-testing-release.patch"
         ;;
-    devel)
+    swift-*-branch)
         testing_patch="${patches_dir}/swift-android-testing-except-release.patch"
         ;;
-    trunk)
+    development)
         testing_patch="${patches_dir}/swift-android-testing-except-release.patch"
         dispatch_patch="${patches_dir}/swift-android-trunk-libdispatch.patch"
         ;;
     *)
-        echo "$0: invalid BUILD_VERSION=${BUILD_VERSION}"
+        echo "$0: invalid BUILD_SCHEME=${BUILD_SCHEME}"
         exit 1
         ;;
 esac

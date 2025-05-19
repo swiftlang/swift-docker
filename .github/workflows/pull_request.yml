@@ -35,7 +35,7 @@ jobs:
          #arch: ['x86_64']
          # build both the quick (x86_64) and complete (aarch64,x86_64,armv7) SDKs
          #arch: ['x86_64', '']
-         swift-version: ['release', 'devel', 'trunk']
+         swift-version: ['release', 'swift-6.2-branch', 'development']
      runs-on: ubuntu-24.04
      steps:
       - name: Free Disk Space
@@ -52,7 +52,7 @@ jobs:
         run: |
           # these variabes are used by build-docker and build-local
           # to determine which Swift version to build for
-          echo "BUILD_VERSION=${{ matrix.swift-version }}" >> $GITHUB_ENV
+          echo "BUILD_SCHEME=${{ matrix.swift-version }}" >> $GITHUB_ENV
           echo "TARGET_ARCHS=${{ matrix.arch }}" >> $GITHUB_ENV
           echo "WORKDIR=${{ runner.temp }}/swift-android-sdk" >> $GITHUB_ENV
       - name: Checkout repository
@@ -62,12 +62,12 @@ jobs:
         working-directory: swift-ci/sdks/android
         run: |
           sudo apt install -q ninja-build patchelf
-          ./build-local ${BUILD_VERSION} ${WORKDIR}
+          ./build-local ${BUILD_SCHEME} ${WORKDIR}
       - name: Build Android SDK (Docker)
         if: ${{ matrix.build-type == 'docker' }}
         working-directory: swift-ci/sdks/android
         run: |
-          ./build-docker ${BUILD_VERSION} ${WORKDIR}
+          ./build-docker ${BUILD_SCHEME} ${WORKDIR}
       - name: Install Host Toolchain
         if: ${{ matrix.build-type == 'docker' }}
         working-directory: swift-ci/sdks/android

@@ -7,32 +7,32 @@
 # ===----------------------------------------------------------------------===
 
 # This script is meant to be sourced from another script that sets the
-# BUILD_VERSION environment variable to one of "release", "devel", or "trunk"
+# BUILD_SCHEME environment variable to one of "release", "swift-VERSION-branch", or "development"
 # and will set check the latest builds for each build type in order
 # to provide information about the Swift tag name in use and where to
 # obtain the latest toolchain for building.
 
 OS=$(echo $HOST_OS | tr -d '.')
 
-case "${BUILD_VERSION}" in
+case "${BUILD_SCHEME}" in
     release)
         # e.g., "swift-6.1-RELEASE"
         SWIFT_TAG=$(curl -fsSL https://www.swift.org/api/v1/install/releases.json | jq -r '.[-1].tag')
         # e.g., "swift-6.1-release"
         SWIFT_BRANCH=$(echo "${SWIFT_TAG}" | tr '[A-Z]' '[a-z]')
         ;;
-    devel)
+    swift-*-branch)
         # e.g., swift-6.2-DEVELOPMENT-SNAPSHOT-2025-05-15-a
-        SWIFT_TAG=$(curl -fsSL https://download.swift.org/swift-6.2-branch/$OS/latest-build.yml | grep '^dir: ' | cut -f 2 -d ' ')
-        SWIFT_BRANCH="swift-$(echo $SWIFT_TAG | cut -d- -f2)-branch"
+        SWIFT_TAG=$(curl -fsSL https://download.swift.org/$BUILD_SCHEME/$OS/latest-build.yml | grep '^dir: ' | cut -f 2 -d ' ')
+        SWIFT_BRANCH=$BUILD_SCHEME
         ;;
-    trunk)
+    development)
         # e.g., swift-DEVELOPMENT-SNAPSHOT-2025-05-14-a
         SWIFT_TAG=$(curl -fsSL https://download.swift.org/development/$OS/latest-build.yml | grep '^dir: ' | cut -f 2 -d ' ')
         SWIFT_BRANCH="development"
         ;;
     *)
-        echo "$0: invalid BUILD_VERSION=${BUILD_VERSION}"
+        echo "$0: invalid BUILD_SCHEME=${BUILD_SCHEME}"
         exit 1
         ;;
 esac
