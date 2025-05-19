@@ -9,7 +9,7 @@
 # default architectures to build for
 TARGET_ARCHS=${TARGET_ARCHS:-aarch64,x86_64,armv7}
 
-ANDROID_NDK_VERSION=android-ndk-r27c
+ANDROID_NDK_VERSION=android-ndk-r28b
 ANDROID_API=28
 
 export BUILD_VERSION=${1}
