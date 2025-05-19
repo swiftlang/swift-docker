@@ -12,25 +12,23 @@
 # to provide information about the Swift tag name in use and where to
 # obtain the latest toolchain for building.
 
-# TODO: we could instead use the latest-build.yml files for this, like:
-# https://download.swift.org/swift-6.2-branch/ubuntu2404/latest-build.yml
-# https://download.swift.org/development/ubuntu2404/latest-build.yml
-# but there doesn't seem to be one for the current release build.
+OS=$(echo $HOST_OS | tr -d '.')
 
 case "${BUILD_VERSION}" in
     release)
-        LATEST_TOOLCHAIN_VERSION=$(curl -sL https://github.com/swiftlang/swift/releases | grep -m1 swift-6.1 | cut -d- -f2)
-        SWIFT_TAG="swift-${LATEST_TOOLCHAIN_VERSION}-RELEASE"
-        SWIFT_BRANCH="swift-$(echo $SWIFT_TAG | cut -d- -f2)-release"
+        # e.g., "swift-6.1-RELEASE"
+        SWIFT_TAG=$(curl -fsSL https://www.swift.org/api/v1/install/releases.json | jq -r '.[-1].tag')
+        # e.g., "swift-6.1-release"
+        SWIFT_BRANCH=$(echo "${SWIFT_TAG}" | tr '[A-Z]' '[a-z]')
         ;;
     devel)
-        LATEST_TOOLCHAIN_VERSION=$(curl -sL https://github.com/swiftlang/swift/tags | grep -m1 swift-6.2-DEV | cut -d- -f8-10)
-        SWIFT_TAG="swift-6.2-DEVELOPMENT-SNAPSHOT-${LATEST_TOOLCHAIN_VERSION}-a"
+        # e.g., swift-6.2-DEVELOPMENT-SNAPSHOT-2025-05-15-a
+        SWIFT_TAG=$(curl -fsSL https://download.swift.org/swift-6.2-branch/$OS/latest-build.yml | grep '^dir: ' | cut -f 2 -d ' '
         SWIFT_BRANCH="swift-$(echo $SWIFT_TAG | cut -d- -f2)-branch"
         ;;
     trunk)
-        LATEST_TOOLCHAIN_VERSION=$(curl -sL https://github.com/swiftlang/swift/tags | grep -m1 swift-DEV | cut -d- -f7-9)
-        SWIFT_TAG="swift-DEVELOPMENT-SNAPSHOT-${LATEST_TOOLCHAIN_VERSION}-a"
+        # e.g., swift-DEVELOPMENT-SNAPSHOT-2025-05-14-a
+        SWIFT_TAG=$(curl -fsSL https://download.swift.org/development/$OS/latest-build.yml | grep '^dir: ' | cut -f 2 -d ' ')
         SWIFT_BRANCH="development"
         ;;
     *)
@@ -40,5 +38,5 @@ case "${BUILD_VERSION}" in
 esac
 
 SWIFT_BASE=$SWIFT_TAG-$HOST_OS
-export SWIFT_TOOLCHAIN_URL="https://download.swift.org/$SWIFT_BRANCH/$(echo $HOST_OS | tr -d '.')/$SWIFT_TAG/$SWIFT_BASE.tar.gz"
+export SWIFT_TOOLCHAIN_URL="https://download.swift.org/$SWIFT_BRANCH/$OS/$SWIFT_TAG/$SWIFT_BASE.tar.gz"
 
