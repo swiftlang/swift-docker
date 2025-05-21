@@ -27,7 +27,7 @@ source ./scripts/toolchain-vars.sh
 
 # Check-out and patch the sources
 ./scripts/fetch-source.sh --source-dir ${WORKDIR}/source --swift-tag ${SWIFT_TAG}
-./scripts/patch-sources.sh ${WORKDIR}/source
+${WORKDIR}/source/swift-android-patches/apply-patches.sh ${WORKDIR}/source
 
 mkdir -p ${WORKDIR}/products
 chmod ugo+rwx ${WORKDIR}/products
