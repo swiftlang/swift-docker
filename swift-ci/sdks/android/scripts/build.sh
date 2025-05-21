@@ -186,6 +186,8 @@ function versionFromTag {
 }
 
 swift_version=$(describe ${source_dir}/swift-project/swift)
+swift_tag_date=$(git -C ${source_dir}/swift-project/swift log -1 --format=%ct 2>/dev/null)
+
 if [[ $swift_version == swift-* ]]; then
     swift_version=${swift_version#swift-}
 fi
@@ -631,8 +633,13 @@ header "Outputting compressed bundle"
 
 quiet_pushd "${build_dir}"
     mkdir -p "${products_dir}"
-    tar czf "${bundle}.tar.gz" "${bundle}"
-    mv "${bundle}.tar.gz" "${products_dir}"
+    # set the timestamps of every file in the artifact to the tag date for the swift repo for build reproducibility
+    touch_date=$(date -d "@$swift_tag_date" "+%Y%m%d%H%M.%S")
+    find "${bundle}" -exec touch -t "$touch_date" {} +
+
+    bundle_archive="${products_dir}/${bundle}.tar.gz"
+    tar czf "${bundle_archive}" "${bundle}"
+    shasum -a 256 "${bundle_archive}"
 quiet_popd
 
 groupend
