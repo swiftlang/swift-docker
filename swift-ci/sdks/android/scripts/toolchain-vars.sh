@@ -17,19 +17,16 @@ OS=$(echo $HOST_OS | tr -d '.')
 case "${BUILD_SCHEME}" in
     release)
         # e.g., "swift-6.1-RELEASE"
-        SWIFT_TAG=$(curl -fsSL https://www.swift.org/api/v1/install/releases.json | jq -r '.[-1].tag')
+        # there is no latest-build.yml for releases, so we need to get it from the API
+        export SWIFT_TAG=$(curl -fsSL https://www.swift.org/api/v1/install/releases.json | jq -r '.[-1].tag')
         # e.g., "swift-6.1-release"
-        SWIFT_BRANCH=$(echo "${SWIFT_TAG}" | tr '[A-Z]' '[a-z]')
+        export SWIFT_BRANCH=$(echo "${SWIFT_TAG}" | tr '[A-Z]' '[a-z]')
         ;;
-    swift-*-branch)
+    development|swift-*-branch)
         # e.g., swift-6.2-DEVELOPMENT-SNAPSHOT-2025-05-15-a
-        SWIFT_TAG=$(curl -fsSL https://download.swift.org/$BUILD_SCHEME/$OS/latest-build.yml | grep '^dir: ' | cut -f 2 -d ' ')
-        SWIFT_BRANCH=$BUILD_SCHEME
-        ;;
-    development)
         # e.g., swift-DEVELOPMENT-SNAPSHOT-2025-05-14-a
-        SWIFT_TAG=$(curl -fsSL https://download.swift.org/development/$OS/latest-build.yml | grep '^dir: ' | cut -f 2 -d ' ')
-        SWIFT_BRANCH="development"
+        export SWIFT_TAG=$(curl -fsSL https://download.swift.org/$BUILD_SCHEME/$OS/latest-build.yml | grep '^dir: ' | cut -f 2 -d ' ')
+        export SWIFT_BRANCH=$BUILD_SCHEME
         ;;
     *)
         echo "$0: invalid BUILD_SCHEME=${BUILD_SCHEME}"
