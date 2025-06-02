@@ -610,7 +610,8 @@ EOF
     # for the static SDK (which means we need a .cfg file)
     build_arch=$(uname -m)
     llvm_bin=${build_dir}/swift/Ninja-RelWithDebInfoAssert/llvm-linux-${build_arch}/bin
-    mkdir -p $llvm_bin
+    swift_bin=${build_dir}/swift/Ninja-RelWithDebInfoAssert/swift-linux-${build_arch}/bin
+    mkdir -p $llvm_bin $swift_bin
     cat >> $llvm_bin/${arch}-swift-linux-musl-clang.cfg <<EOF
 --sysroot ${sdk_root}
 -resource-dir ${sdk_resource_dir}
@@ -624,6 +625,11 @@ EOF
 EOF
     ln -sf ${arch}-swift-linux-musl-clang.cfg \
        $llvm_bin/${arch}-swift-linux-musl-clang++.cfg
+
+    ln -sf $llvm_bin/${arch}-swift-linux-musl-clang.cfg \
+       $swift_bin/${arch}-swift-linux-musl-clang.cfg
+    ln -sf $llvm_bin/${arch}-swift-linux-musl-clang++.cfg \
+       $swift_bin/${arch}-swift-linux-musl-clang++.cfg
 
     SWIFT_SOURCE_ROOT="${source_dir}/swift-project" \
     SWIFT_BUILD_ROOT="${build_dir}/swift" \
