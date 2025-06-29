@@ -1,0 +1,61 @@
+diff --git a/swift/utils/swift_build_support/swift_build_support/products/swift_testing.py b/swift/utils/swift_build_support/swift_build_support/products/swift_testing.py
+index b6bfa5760ef..324d1a77eea 100644
+--- a/swift/utils/swift_build_support/swift_build_support/products/swift_testing.py
++++ b/swift/utils/swift_build_support/swift_build_support/products/swift_testing.py
+@@ -51,7 +51,7 @@ class SwiftTesting(product.Product):
+         return False
+ 
+     def should_install(self, host_target):
+-        return self.args.install_swift_testing_macros
++        return self.args.install_swift_testing
+ 
+     def _cmake_product(self, host_target):
+         build_root = os.path.dirname(self.build_dir)
+diff --git a/swift-corelibs-foundation/Sources/CoreFoundation/CFPlatform.c b/swift-corelibs-foundation/Sources/CoreFoundation/CFPlatform.c
+index 90f4aa78..0429425b 100644
+--- a/swift-corelibs-foundation/Sources/CoreFoundation/CFPlatform.c
++++ b/swift-corelibs-foundation/Sources/CoreFoundation/CFPlatform.c
+@@ -1948,7 +1948,7 @@ CF_CROSS_PLATFORM_EXPORT void *_CFReallocf(void *ptr, size_t size) {
+ #endif
+ }
+ 
+-#if TARGET_OS_ANDROID
++#if TARGET_OS_ANDROID && __ANDROID_API__ < 28
+ 
+ #include <dlfcn.h>
+ #include <spawn.h>
+@@ -2277,6 +2277,10 @@ CF_EXPORT int _CFPosixSpawnFileActionsAddClose(_CFPosixSpawnFileActionsRef file_
+     return _CFPosixSpawnFileActionsAddCloseImpl(file_actions, filedes);
+ }
+ 
++CF_EXPORT int _CFPosixSpawnFileActionsChdir(_CFPosixSpawnFileActionsRef file_actions, const char *path) {
++  return ENOSYS;
++}
++
+ CF_EXPORT int _CFPosixSpawn(pid_t *_CF_RESTRICT pid, const char *_CF_RESTRICT path, _CFPosixSpawnFileActionsRef file_actions, _CFPosixSpawnAttrRef _Nullable _CF_RESTRICT attrp, char *_Nullable const argv[_Nullable _CF_RESTRICT], char *_Nullable const envp[_Nullable _CF_RESTRICT]) {
+     _CFPosixSpawnInitialize();
+     return _CFPosixSpawnImpl(pid, path, file_actions, attrp, argv, envp);
+@@ -2279,7 +2279,7 @@ CF_EXPORT int _CFPosixSpawnFileActionsAddClose(_CFPosixSpawnFileActionsRef file_
+ }
+ 
+ CF_EXPORT int _CFPosixSpawnFileActionsChdir(_CFPosixSpawnFileActionsRef file_actions, const char *path) {
+-  #if defined(__GLIBC__) && !__GLIBC_PREREQ(2, 29)
++  #if defined(__GLIBC__) && !__GLIBC_PREREQ(2, 29) || (defined(__ANDROID__) && __ANDROID_API__ < 34)
+   // Glibc versions prior to 2.29 don't support posix_spawn_file_actions_addchdir_np, impacting:
+   //  - Amazon Linux 2 (EoL mid-2025)
+   return ENOSYS;
+diff --git a/swift-testing/cmake/modules/SwiftModuleInstallation.cmake b/swift-testing/cmake/modules/SwiftModuleInstallation.cmake
+index 1553725..d9f9e5b 100644
+--- a/swift-testing/cmake/modules/SwiftModuleInstallation.cmake
++++ b/swift-testing/cmake/modules/SwiftModuleInstallation.cmake
+@@ -75,6 +75,10 @@ function(_swift_testing_install_target module)
+     set(module_triple_command "${CMAKE_Swift_COMPILER}" -print-target-info)
+     if(CMAKE_Swift_COMPILER_TARGET)
+       list(APPEND module_triple_command -target ${CMAKE_Swift_COMPILER_TARGET})
++    else()
++      set(arg_list ${CMAKE_Swift_FLAGS})
++      separate_arguments(arg_list)
++      list(APPEND module_triple_command ${arg_list})
+     endif()
+     execute_process(COMMAND ${module_triple_command} OUTPUT_VARIABLE target_info_json)
+     string(JSON module_triple GET "${target_info_json}" "target" "moduleTriple")

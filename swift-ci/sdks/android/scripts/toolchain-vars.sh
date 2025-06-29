@@ -13,14 +13,16 @@
 # obtain the latest toolchain for building.
 
 OS=$(echo $HOST_OS | tr -d '.')
+# e.g., "swift-6.1-RELEASE"
+# there is no latest-build.yml for releases, so we need to get it from the API
+RELEASE_TAG=$(curl -fsSL https://www.swift.org/api/v1/install/releases.json | jq -r '.[-1].tag')
+# e.g., "swift-6.1-release"
+RELEASE_BRANCH=$(echo "${RELEASE_TAG}" | tr '[A-Z]' '[a-z]')
 
 case "${BUILD_SCHEME}" in
     release)
-        # e.g., "swift-6.1-RELEASE"
-        # there is no latest-build.yml for releases, so we need to get it from the API
-        export SWIFT_TAG=$(curl -fsSL https://www.swift.org/api/v1/install/releases.json | jq -r '.[-1].tag')
-        # e.g., "swift-6.1-release"
-        export SWIFT_BRANCH=$(echo "${SWIFT_TAG}" | tr '[A-Z]' '[a-z]')
+        export SWIFT_TAG=$RELEASE_TAG
+        export SWIFT_BRANCH=$RELEASE_BRANCH
         ;;
     development|swift-*-branch)
         # e.g., swift-6.2-DEVELOPMENT-SNAPSHOT-2025-05-15-a
@@ -35,5 +37,11 @@ case "${BUILD_SCHEME}" in
 esac
 
 SWIFT_BASE=$SWIFT_TAG-$HOST_OS
-export SWIFT_TOOLCHAIN_URL="https://download.swift.org/$SWIFT_BRANCH/$OS/$SWIFT_TAG/$SWIFT_BASE.tar.gz"
-
+case $BUILD_COMPILER in
+    1|true|yes|YES)
+        export SWIFT_TOOLCHAIN_URL="https://download.swift.org/$RELEASE_BRANCH/$OS/$RELEASE_TAG/$RELEASE_TAG-$HOST_OS.tar.gz"
+        ;;
+    *)
+        export SWIFT_TOOLCHAIN_URL="https://download.swift.org/$SWIFT_BRANCH/$OS/$SWIFT_TAG/$SWIFT_BASE.tar.gz"
+        ;;
+esac

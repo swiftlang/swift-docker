@@ -18,6 +18,7 @@ ARG SWIFT_TOOLCHAIN_URL=
 RUN apt-get -q update \
     && DEBIAN_FRONTEND=noninteractive apt-get -q install -y \
     build-essential \
+    clang-19 \
     cmake \
     ninja-build \
     python3 \
@@ -54,7 +55,7 @@ ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
 COPY scripts/install-swift.sh /scripts/install-swift.sh
 RUN chmod ugo+x /scripts/install-swift.sh
 RUN /scripts/install-swift.sh /usr/local/swift
-ENV PATH="/usr/local/swift/bin:${PATH}"
+ENV PATH="/usr/lib/llvm-19/bin:/usr/local/swift/bin:${PATH}"
 
 ARG ANDROID_NDK_VERSION=
 

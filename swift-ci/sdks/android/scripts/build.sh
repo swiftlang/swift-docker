@@ -50,7 +50,7 @@ function groupend {
 
 function usage {
     cat <<EOF
-usage: build.sh --source-dir <path> --products-dir <path> --ndk-home <path> --host-toolchain <path>
+usage: build.sh --source-dir <path> --products-dir <path> --ndk-home <path>
                 [--name <sdk-name>] [--version <version>] [--build-dir <path>]
                 [--archs <arch>[,<arch> ...]]
 
@@ -63,6 +63,7 @@ Options:
   --source-dir <path>   Specify the path in which the sources can be found.
   --ndk-home <path>     Specify the path to the Android NDK
   --host-toolchain <tc> Specify the path to the host Swift toolchain
+  --build-compiler <bc> Whether to build and validate the host compiler
   --products-dir <path> Specify the path in which the products should be written.
   --build-dir <path>    Specify the path in which intermediates should be stored.
   --android-api <api>   Specify the Android API level
@@ -130,6 +131,8 @@ while [ "$#" -gt 0 ]; do
             ndk_home="$2"; shift ;;
         --host-toolchain)
             host_toolchain="$2"; shift ;;
+        --build-compiler)
+            build_compiler="$2"; shift ;;
         --build-dir)
             build_dir="$2"; shift ;;
         --android-api)
@@ -155,7 +158,7 @@ done
 # Change the commas for spaces
 archs="${archs//,/ }"
 
-if [[ -z "$source_dir" || -z "$products_dir" || -z "$ndk_home" || -z "$host_toolchain" ]]; then
+if [[ -z "$source_dir" || -z "$products_dir" || -z "$ndk_home" ]]; then
     usage
     exit 1
 fi
@@ -234,8 +237,10 @@ export ANDROID_NDK_HOME=$ndk_home
 export ANDROID_NDK=$ndk_home
 
 echo "Swift found at ${swift_dir}"
-echo "Host toolchain found at ${host_toolchain}"
-${host_toolchain}/bin/swift --version
+if [[ ! -z "${host_toolchain}" ]]; then
+    echo "Host toolchain found at ${host_toolchain}"
+    ${host_toolchain}/bin/swift --version
+fi
 echo "Android NDK found at ${ndk_home}"
 ${ndk_installation}/bin/clang --version
 echo "Building for ${archs}"
@@ -262,11 +267,31 @@ function run() {
 
 for arch in $archs; do
     case $arch in
-        armv7) target_host="arm-linux-androideabi"; compiler_target_host="armv7a-linux-androideabi$android_api"; android_abi="armeabi-v7a" ;;
-        aarch64) target_host="aarch64-linux-android"; compiler_target_host="$target_host$android_api"; android_abi="arm64-v8a" ;;
-        x86_64) target_host="x86_64-linux-android"; compiler_target_host="$target_host$android_api"; android_abi="x86_64" ;;
-        x86) target_host="x86-linux-android"; compiler_target_host="$target_host$android_api"; android_abi="x86" ;;
-        *) echo "Unknown architecture '$1'"; usage; exit 0 ;;
+        armv7)
+            target_host="arm-linux-androideabi"
+            compiler_target_host="armv7a-linux-androideabi$android_api"
+            android_abi="armeabi-v7a"
+            ;;
+        aarch64)
+            target_host="aarch64-linux-android"
+            compiler_target_host="$target_host$android_api"
+            android_abi="arm64-v8a"
+            ;;
+        x86_64)
+            target_host="x86_64-linux-android"
+            compiler_target_host="$target_host$android_api"
+            android_abi="x86_64"
+            ;;
+        x86)
+            target_host="x86-linux-android"
+            compiler_target_host="$target_host$android_api"
+            android_abi="x86"
+            ;;
+        *)
+            echo "Unknown architecture '$1'"
+            usage
+            exit 0
+            ;;
     esac
 
     sdk_root=${build_dir}/sdk_root/${arch}
@@ -378,35 +403,62 @@ for arch in $archs; do
             RelWithDebInfo) build_type_flag="--release-debuginfo" ;;
         esac
 
-        # use an out-of-tree build folder, otherwise subsequent arch builds have conflicts
-        export SWIFT_BUILD_ROOT=${build_dir}/$arch/swift-project
+        case $build_compiler in
+            1|true|yes|YES)
+                build_cmark=""
+                local_build=""
+                build_llvm="1"
+                build_swift_tools="1"
+                validation_test="1"
+                native_swift_tools_path=""
+                native_clang_tools_path=""
+                ;;
+            *)
+                build_cmark="--skip-build-cmark"
+                local_build="--skip-local-build"
+                build_llvm="0"
+                build_swift_tools="0"
+                validation_test="0"
+                native_swift_tools_path="--native-swift-tools-path=$host_toolchain/bin"
+                native_clang_tools_path="--native-clang-tools-path=$host_toolchain/bin"
+                ;;
+        esac
+
+        # use an out-of-tree build folder
+        export SWIFT_BUILD_ROOT=${build_dir}/swift-project
 
         ./swift/utils/build-script \
             $build_type_flag \
             --reconfigure \
             --no-assertions \
+            --validation-test=$validation_test \
             --android \
             --android-ndk=$ndk_home \
             --android-arch=$arch \
             --android-api-level=$android_api \
-            --native-swift-tools-path=$host_toolchain/bin \
-            --native-clang-tools-path=$host_toolchain/bin \
             --cross-compile-hosts=android-$arch \
             --cross-compile-deps-path=$sdk_root \
             --install-destdir=$sdk_root \
-            --build-llvm=0 \
-            --build-swift-tools=0 \
-            --skip-build-cmark \
-            --skip-local-build \
+            --build-llvm=$build_llvm \
+            --build-swift-tools=$build_swift_tools \
+            ${native_swift_tools_path} \
+            ${native_clang_tools_path} \
+            ${build_cmark} \
+            ${local_build} \
+            --host-test \
+            --skip-test-linux \
+            --skip-test-xctest --skip-test-foundation \
             --build-swift-static-stdlib \
+            --swift-install-components='compiler;clang-resource-dir-symlink;license;stdlib;sdk-overlay' \
             --install-swift \
             --install-libdispatch \
             --install-foundation \
             --xctest --install-xctest \
             --swift-testing --install-swift-testing \
-            --cross-compile-append-host-target-to-destdir=False \
-            --extra-cmake-options='-DCMAKE_EXTRA_LINK_FLAGS="-Wl,-z,max-page-size=16384"'
-
+            --cross-compile-build-swift-tools=0 \
+            --llvm-ninja-targets-for-cross-compile-hosts=help \
+            --cross-compile-append-host-target-to-destdir=False 
+            # --extra-cmake-options='-DCMAKE_EXTRA_LINK_FLAGS="-Wl,-z,max-page-size=16384"'
         # need to remove symlink that gets created in the NDK to the previous arch's build
         # or else we get errors like:
         # error: could not find module '_Builtin_float' for target 'x86_64-unknown-linux-android'; found: aarch64-unknown-linux-android, at: /home/runner/work/_temp/swift-android-sdk/ndk/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/swift/android/_Builtin_float.swiftmodule
@@ -477,7 +529,9 @@ for arch in $archs; do
             arch_triple="arm-linux-androideabi"
         fi
 
-        rm -r lib/swift{,_static}/clang
+        # need force rm in case linux is not present (when not running tests)
+        rm -rf lib/swift{,_static}/{FrameworkABIBaseline,_InternalSwiftScan,_InternalSwiftStaticMirror,clang,embedded,host,linux,migrator}
+        rm -rf lib/lib*.so
         mv lib/swift lib/swift-$arch
         ln -s ../swift/clang lib/swift-$arch/clang
 
@@ -622,7 +676,7 @@ cat > swift-toolset.json <<EOF
 {
   "cCompiler": { "extraCLIOptions": ["-fPIC"] },
   "swiftCompiler": { "extraCLIOptions": ["-Xclang-linker", "-fuse-ld=lld"] },
-  "linker": { "extraCLIOptions": ["-z,max-page-size=16384"] },
+  "linker": { "extraCLIOptions": ["-z", "max-page-size=16384"] },
   "schemaVersion": "1.0"
 }
 EOF

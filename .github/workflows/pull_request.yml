@@ -23,27 +23,38 @@ jobs:
             *.log
 
    android-build:
-     name: Build Android ${{ matrix.build-type }} ${{ matrix.swift-version }} ${{ matrix.arch }} SDK
+     name: Android ${{ matrix.build-type }} ${{ matrix.swift-version }} ${{ matrix.arch }} ${{ matrix.runner }} (compiler=${{ matrix.build-compiler }})
      strategy:
        fail-fast: false
        matrix:
-         #build-type: ['docker']
-         build-type: ['docker', 'local']
-         # blank arch builds all (aarch64,x86_64,armv7)
-         #arch: ['']
-         # builds only x86_64 to speed up the validation
-         #arch: ['x86_64']
-         # build both the quick (x86_64) and complete (aarch64,x86_64,armv7) SDKs
-         arch: ['x86_64', '']
-         swift-version: ['release', 'swift-6.2-branch', 'development']
-     runs-on: ubuntu-24.04
+         include:
+           - swift-version: 'swift-6.2-branch'
+             build-type: 'docker'
+             build-compiler: '1'
+             runner: 'self-hosted'
+           - swift-version: 'development'
+             build-type: 'docker'
+             build-compiler: '1'
+             runner: 'self-hosted'
+           - swift-version: 'swift-6.2-branch'
+             build-type: 'docker'
+             build-compiler: '0'
+             runner: 'ubuntu-24.04'
+           - swift-version: 'development'
+             build-type: 'docker'
+             build-compiler: '0'
+             runner: 'ubuntu-24.04'
+     runs-on: ${{ matrix.runner }}
+     # 15 hour timeout
+     timeout-minutes: 900
      steps:
       - name: Free Disk Space
+        if: ${{ matrix.runner != 'self-hosted' }}
         run: |
           df -h
           # brings available space from 25G to 32G
           # otherwise we sometimes run out of space during the build
-          sudo rm -rf /usr/share/miniconda /usr/share/az* /usr/share/glade* /usr/local/share/chromium /usr/local/share/powershell /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/share/miniconda /usr/share/az* /usr/share/glade* /usr/local/share/chromium /usr/local/share/powershell /usr/share/dotnet /opt/ghc /opt/hostedtoolcache /usr/local/graalvm/ /usr/local/.ghcup/ /usr/local/lib/node_modules /usr/local/share/boost
           sudo docker image prune --all --force
           sudo docker builder prune -a
           df -h
@@ -53,6 +64,8 @@ jobs:
           # these variabes are used by build-docker and build-local
           # to determine which Swift version to build for
           echo "BUILD_SCHEME=${{ matrix.swift-version }}" >> $GITHUB_ENV
+          # pass the build-compiler matrix through to the build script
+          echo "BUILD_COMPILER=${{ matrix.build-compiler }}" >> $GITHUB_ENV
           echo "TARGET_ARCHS=${{ matrix.arch }}" >> $GITHUB_ENV
           echo "WORKDIR=${{ runner.temp }}/swift-android-sdk" >> $GITHUB_ENV
       - name: Checkout repository
@@ -61,7 +74,7 @@ jobs:
         if: ${{ matrix.build-type == 'local' }}
         working-directory: swift-ci/sdks/android
         run: |
-          sudo apt install -q ninja-build patchelf
+          sudo apt install -q patchelf build-essential cmake ninja-build python3 golang git gnupg2 libcurl4-openssl-dev libedit-dev libicu-dev libncurses5-dev libpython3-dev libsqlite3-dev libxml2-dev rsync uuid-dev uuid-runtime tzdata curl unzip
           ./build-local ${BUILD_SCHEME} ${WORKDIR}
       - name: Build Android SDK (Docker)
         if: ${{ matrix.build-type == 'docker' }}
@@ -99,6 +112,9 @@ jobs:
           if [[ "${{ matrix.build-type }}" == 'local' ]]; then
             ARTIFACT_NAME="${ARTIFACT_NAME}-local"
           fi
+          if [[ "${{ matrix.build-compiler }}" == '1' ]]; then
+            ARTIFACT_NAME="${ARTIFACT_NAME}-hostbuild"
+          fi
           # artifacts need a unique name so we suffix with the matrix arch(s)
           if [[ ! -z "${{ matrix.arch }}" ]]; then
             ARTIFACT_NAME="${ARTIFACT_NAME}-$(echo ${{ matrix.arch }} | tr ',' '-')"
@@ -117,6 +133,7 @@ jobs:
           name: ${{ steps.info.outputs.artifact-name }}
           path: ${{ steps.info.outputs.artifact-path }}
       - name: Cleanup
+        if: ${{ matrix.runner != 'self-hosted' }}
         run: |
           # need to free up some space or else when installing we get: No space left on device
           df -h
@@ -125,6 +142,7 @@ jobs:
           sudo docker builder prune -a
           df -h
       - name: Install artifactbundle
+        if: ${{ matrix.runner != 'self-hosted' }}
         shell: bash
         run: |
           set -ex
@@ -135,6 +153,7 @@ jobs:
           echo "ANDROID_NDK_ROOT=" >> $GITHUB_ENV
 
       - name: Create Demo Project
+        if: ${{ matrix.runner != 'self-hosted' }}
         run: |
           cd ${{ runner.temp }}
           mkdir DemoProject
@@ -149,6 +168,7 @@ jobs:
           echo 'import Android' >> Sources/DemoProject/DemoProject.swift
       - name: Test Demo Project on Android
         uses: skiptools/swift-android-action@main
+        if: ${{ matrix.runner != 'self-hosted' }}
         with:
           # only test for the complete arch SDK build to speed up CI
           #run-tests: ${{ matrix.arch == '' }}
@@ -157,14 +177,15 @@ jobs:
           installed-swift: ${{ steps.info.outputs.swift-root }}
 
       - name: Checkout swift-algorithms
+        if: ${{ matrix.runner != 'self-hosted' }}
         uses: actions/checkout@v4
         with:
           repository: apple/swift-algorithms
           path: swift-algorithms
       - name: Test swift-algorithms
+        if: ${{ matrix.runner != 'self-hosted' }}
         uses: skiptools/swift-android-action@main
         with:
-          run-tests: ${{ matrix.arch == '' }}
           package-path: swift-algorithms
           installed-sdk: ${{ steps.info.outputs.sdk-id }}
           installed-swift: ${{ steps.info.outputs.swift-root }}

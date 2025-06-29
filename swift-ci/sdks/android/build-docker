@@ -27,7 +27,7 @@ source ./scripts/toolchain-vars.sh
 
 # Check-out and patch the sources
 ./scripts/fetch-source.sh --source-dir ${WORKDIR}/source --swift-tag ${SWIFT_TAG}
-${WORKDIR}/source/swift-android-patches/apply-patches.sh ${WORKDIR}/source/swift-project
+./patches/apply-patches.sh ${WORKDIR}/source/swift-project
 
 mkdir -p ${WORKDIR}/products
 chmod ugo+rwx ${WORKDIR}/products
@@ -59,9 +59,10 @@ $DOCKER run -i --rm \
           -v ${WORKDIR}/products:/products:rw \
           ${CONTAINER_NAME} \
           /scripts/build.sh \
-            --source-dir /source \
-            --products-dir /products \
-            --host-toolchain /usr/local/swift \
-            --android-api ${ANDROID_API} \
-            --ndk-home /usr/local/ndk/${ANDROID_NDK_VERSION} \
-            --archs ${TARGET_ARCHS}
+            --source-dir "/source" \
+            --products-dir "/products" \
+            --host-toolchain "/usr/local/swift" \
+            --build-compiler "${BUILD_COMPILER}" \
+            --android-api "${ANDROID_API}" \
+            --ndk-home "/usr/local/ndk/${ANDROID_NDK_VERSION}" \
+            --archs "${TARGET_ARCHS}"
