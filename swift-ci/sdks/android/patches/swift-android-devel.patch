@@ -1,16 +1,23 @@
+commit 2e87eb24f85f3e84bff78051fba4870a5c061ec0
+Author: finagolfin
+Date:   Mon Jun 30 10:39:26 2025
+
+    [test] Fix or disable tests for 32-bit platforms (#82501)
+    
+    Fix two IRGen tests that are failing on Android armv7 and disable eight ClangImporter, C++ Interop, and SILOptimizer tests, two of which that were already failing on other 32-bit platforms.
+
 diff --git a/swift/test/ClangImporter/pcm-emit-direct-cc1-mode.swift b/swift/test/ClangImporter/pcm-emit-direct-cc1-mode.swift
-index f5048b9e3d5..c227ef7b77d 100644
+index f5048b9e3d5..6bc26ca3177 100644
 --- a/swift/test/ClangImporter/pcm-emit-direct-cc1-mode.swift
 +++ b/swift/test/ClangImporter/pcm-emit-direct-cc1-mode.swift
-@@ -9,7 +9,7 @@
- // CHECK-DUMP:   Module map file: {{.*[/\\]}}Inputs{{/|\\}}custom-modules{{/|\\}}module.modulemap
- 
- // Verify that the clang command-line used is cc1
--// RUN: %FileCheck -check-prefix CHECK-CLANG -DTRIPLE=%target-triple %s < %t.diags.txt
-+// RUN: %FileCheck -check-prefix CHECK-CLANG -DTRIPLE=%module-target-triple %s < %t.diags.txt
- // CHECK-CLANG: clang importer cc1 args
- // CHECK-CLANG-SAME: '-o' '{{.*[/\\]}}script.pcm' '-fsyntax-only' '-x' 'objective-c' '{{.*[/\\]}}module.modulemap' '-triple' '[[TRIPLE]]'
+@@ -15,5 +15,7 @@
  // CHECK-CLANG-SAME: '-fmodules'
+ // CHECK-CLANG-NOT: clang importer driver args
+ 
++// XFAIL: OS=linux-androideabi
++
+ import script
+ var _ : ScriptTy
 diff --git a/swift/test/IRGen/abitypes_arm.swift b/swift/test/IRGen/abitypes_arm.swift
 index 9428294483d..52bd8b10145 100644
 --- a/swift/test/IRGen/abitypes_arm.swift
@@ -111,6 +118,23 @@ index f7f2664b2de..01d36e127c6 100644
  
  // CHECK-DISABLED-NOT: normal_count
  
+diff --git a/swift/utils/swift_build_support/swift_build_support/cmake.py b/swift/utils/swift_build_support/swift_build_support/cmake.py
+index bfb69965890..b5e9f5349c2 100644
+--- a/swift/utils/swift_build_support/swift_build_support/cmake.py
++++ b/swift/utils/swift_build_support/swift_build_support/cmake.py
+@@ -153,10 +153,8 @@ class CMake(object):
+             toolchain_path = product.native_toolchain_path(args.host_target)
+             cmake_swiftc_path = os.getenv('CMAKE_Swift_COMPILER',
+                                           os.path.join(toolchain_path, 'bin', 'swiftc'))
+-            define("CMAKE_C_COMPILER:PATH", os.path.join(toolchain_path,
+-                                                         'bin', 'clang'))
+-            define("CMAKE_CXX_COMPILER:PATH", os.path.join(toolchain_path,
+-                                                           'bin', 'clang++'))
++            define("CMAKE_C_COMPILER:PATH", toolchain.cc)
++            define("CMAKE_CXX_COMPILER:PATH", toolchain.cxx)
+             define("CMAKE_Swift_COMPILER:PATH", cmake_swiftc_path)
+         else:
+             cmake_swiftc_path = os.getenv('CMAKE_Swift_COMPILER', toolchain.swiftc)
 diff --git a/swift/utils/swift_build_support/swift_build_support/products/product.py b/swift/utils/swift_build_support/swift_build_support/products/product.py
 index 274b6037305..bf0f7fcf671 100644
 --- a/swift/utils/swift_build_support/swift_build_support/products/product.py
@@ -124,33 +148,3 @@ index 274b6037305..bf0f7fcf671 100644
                  install_destdir = os.path.join(install_destdir, self.args.host_target)
          return targets.toolchain_path(install_destdir,
                                        self.args.install_prefix)
-diff --git a/swift-corelibs-xctest/cmake/modules/PlatformInfo.cmake b/swift-corelibs-xctest/cmake/modules/PlatformInfo.cmake
-index 468dc61..a90ae3d 100644
---- a/swift-corelibs-xctest/cmake/modules/PlatformInfo.cmake
-+++ b/swift-corelibs-xctest/cmake/modules/PlatformInfo.cmake
-@@ -2,6 +2,10 @@
- set(print_target_info_invocation "${CMAKE_Swift_COMPILER}" -print-target-info)
- if(CMAKE_Swift_COMPILER_TARGET)
-   list(APPEND print_target_info_invocation -target ${CMAKE_Swift_COMPILER_TARGET})
-+else()
-+  set(arg_list ${CMAKE_Swift_FLAGS})
-+  separate_arguments(arg_list)
-+  list(APPEND print_target_info_invocation ${arg_list})
- endif()
- execute_process(COMMAND ${print_target_info_invocation} OUTPUT_VARIABLE target_info_json)
- message(CONFIGURE_LOG "Swift Target Info: ${print_target_info_invocation}\n"
-diff --git a/swift-testing/cmake/modules/PlatformInfo.cmake b/swift-testing/cmake/modules/PlatformInfo.cmake
-index 94c60ef..ab8a491 100644
---- a/swift-testing/cmake/modules/PlatformInfo.cmake
-+++ b/swift-testing/cmake/modules/PlatformInfo.cmake
-@@ -9,6 +9,10 @@
- set(print_target_info_invocation "${CMAKE_Swift_COMPILER}" -print-target-info)
- if(CMAKE_Swift_COMPILER_TARGET)
-   list(APPEND print_target_info_invocation -target ${CMAKE_Swift_COMPILER_TARGET})
-+else()
-+  set(arg_list ${CMAKE_Swift_FLAGS})
-+  separate_arguments(arg_list)
-+  list(APPEND print_target_info_invocation ${arg_list})
- endif()
- execute_process(COMMAND ${print_target_info_invocation} OUTPUT_VARIABLE target_info_json)
- message(CONFIGURE_LOG "Swift Target Info: ${print_target_info_invocation}\n"
