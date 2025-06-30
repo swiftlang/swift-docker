@@ -10,6 +10,36 @@ index 16e05052609..7ab8cebfab8 100755
  
                    cmake_options=(
                      -DENABLE_SWIFT=YES
+diff --git a/swift/utils/swift_build_support/swift_build_support/cmake.py b/swift/utils/swift_build_support/swift_build_support/cmake.py
+index bfb69965890..b5e9f5349c2 100644
+--- a/swift/utils/swift_build_support/swift_build_support/cmake.py
++++ b/swift/utils/swift_build_support/swift_build_support/cmake.py
+@@ -153,10 +153,8 @@ class CMake(object):
+             toolchain_path = product.native_toolchain_path(args.host_target)
+             cmake_swiftc_path = os.getenv('CMAKE_Swift_COMPILER',
+                                           os.path.join(toolchain_path, 'bin', 'swiftc'))
+-            define("CMAKE_C_COMPILER:PATH", os.path.join(toolchain_path,
+-                                                         'bin', 'clang'))
+-            define("CMAKE_CXX_COMPILER:PATH", os.path.join(toolchain_path,
+-                                                           'bin', 'clang++'))
++            define("CMAKE_C_COMPILER:PATH", toolchain.cc)
++            define("CMAKE_CXX_COMPILER:PATH", toolchain.cxx)
+             define("CMAKE_Swift_COMPILER:PATH", cmake_swiftc_path)
+         else:
+             cmake_swiftc_path = os.getenv('CMAKE_Swift_COMPILER', toolchain.swiftc)
+diff --git a/swift/utils/swift_build_support/swift_build_support/products/product.py b/swift/utils/swift_build_support/swift_build_support/products/product.py
+index 274b6037305..bf0f7fcf671 100644
+--- a/swift/utils/swift_build_support/swift_build_support/products/product.py
++++ b/swift/utils/swift_build_support/swift_build_support/products/product.py
+@@ -212,7 +212,7 @@ class Product(object):
+         if self.args.cross_compile_hosts:
+             if self.is_darwin_host(host_target):
+                 install_destdir = self.host_install_destdir(host_target)
+-            else:
++            elif self.args.cross_compile_append_host_target_to_destdir:
+                 install_destdir = os.path.join(install_destdir, self.args.host_target)
+         return targets.toolchain_path(install_destdir,
+                                       self.args.install_prefix)
 diff --git a/swift/utils/swift_build_support/swift_build_support/products/swift_testing.py b/swift/utils/swift_build_support/swift_build_support/products/swift_testing.py
 index 324d1a77eea..e88601a8701 100644
 --- a/swift/utils/swift_build_support/swift_build_support/products/swift_testing.py
@@ -59,6 +89,21 @@ index 7f290d16..95366592 100644
  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+diff --git a/swift-corelibs-xctest/cmake/modules/PlatformInfo.cmake b/swift-corelibs-xctest/cmake/modules/PlatformInfo.cmake
+index 468dc61..a90ae3d 100644
+--- a/swift-corelibs-xctest/cmake/modules/PlatformInfo.cmake
++++ b/swift-corelibs-xctest/cmake/modules/PlatformInfo.cmake
+@@ -2,6 +2,10 @@
+ set(print_target_info_invocation "${CMAKE_Swift_COMPILER}" -print-target-info)
+ if(CMAKE_Swift_COMPILER_TARGET)
+   list(APPEND print_target_info_invocation -target ${CMAKE_Swift_COMPILER_TARGET})
++else()
++  set(arg_list ${CMAKE_Swift_FLAGS})
++  separate_arguments(arg_list)
++  list(APPEND print_target_info_invocation ${arg_list})
+ endif()
+ execute_process(COMMAND ${print_target_info_invocation} OUTPUT_VARIABLE target_info_json)
+ message(CONFIGURE_LOG "Swift Target Info: ${print_target_info_invocation}\n"
 diff --git a/swift-foundation/cmake/modules/SwiftFoundationSwiftSupport.cmake b/swift-foundation/cmake/modules/SwiftFoundationSwiftSupport.cmake
 index cbdfc2a..bb4121d 100644
 --- a/swift-foundation/cmake/modules/SwiftFoundationSwiftSupport.cmake
@@ -86,6 +131,21 @@ index 1be9a4b..bd7b1bd 100644
  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+diff --git a/swift-testing/cmake/modules/PlatformInfo.cmake b/swift-testing/cmake/modules/PlatformInfo.cmake
+index 94c60ef..ab8a491 100644
+--- a/swift-testing/cmake/modules/PlatformInfo.cmake
++++ b/swift-testing/cmake/modules/PlatformInfo.cmake
+@@ -9,6 +9,10 @@
+ set(print_target_info_invocation "${CMAKE_Swift_COMPILER}" -print-target-info)
+ if(CMAKE_Swift_COMPILER_TARGET)
+   list(APPEND print_target_info_invocation -target ${CMAKE_Swift_COMPILER_TARGET})
++else()
++  set(arg_list ${CMAKE_Swift_FLAGS})
++  separate_arguments(arg_list)
++  list(APPEND print_target_info_invocation ${arg_list})
+ endif()
+ execute_process(COMMAND ${print_target_info_invocation} OUTPUT_VARIABLE target_info_json)
+ message(CONFIGURE_LOG "Swift Target Info: ${print_target_info_invocation}\n"
 diff --git a/swift-testing/cmake/modules/TargetTriple.cmake b/swift-testing/cmake/modules/TargetTriple.cmake
 index e087cc4..02f3a95 100644
 --- a/swift-testing/cmake/modules/TargetTriple.cmake
