@@ -1,0 +1,120 @@
+commit 2e87eb24f85f3e84bff78051fba4870a5c061ec0
+Author: finagolfin
+Date:   Mon Jun 30 10:39:26 2025
+
+    [test] Fix or disable tests for 32-bit platforms (#82501)
+    
+    Fix two IRGen tests that are failing on Android armv7 and disable eight ClangImporter, C++ Interop, and SILOptimizer tests, two of which that were already failing on other 32-bit platforms.
+
+diff --git a/swift/test/ClangImporter/pcm-emit-direct-cc1-mode.swift b/swift/test/ClangImporter/pcm-emit-direct-cc1-mode.swift
+index f5048b9e3d5..6bc26ca3177 100644
+--- a/swift/test/ClangImporter/pcm-emit-direct-cc1-mode.swift
++++ b/swift/test/ClangImporter/pcm-emit-direct-cc1-mode.swift
+@@ -15,5 +15,7 @@
+ // CHECK-CLANG-SAME: '-fmodules'
+ // CHECK-CLANG-NOT: clang importer driver args
+ 
++// XFAIL: OS=linux-androideabi
++
+ import script
+ var _ : ScriptTy
+diff --git a/swift/test/IRGen/abitypes_arm.swift b/swift/test/IRGen/abitypes_arm.swift
+index 9428294483d..52bd8b10145 100644
+--- a/swift/test/IRGen/abitypes_arm.swift
++++ b/swift/test/IRGen/abitypes_arm.swift
+@@ -11,6 +11,6 @@ class Foo {
+   }
+ }
+ 
+-// armv7: define internal void @makeOne(ptr noalias sret({{.*}}) align 4 %agg.result, float{{( noundef)?}} %f, float{{( noundef)?}} %s)
++// armv7: define internal void @makeOne(ptr{{( dead_on_unwind)?}} noalias{{( writable)?}} sret({{.*}}) align 4 %agg.result, float{{( noundef)?}} %f, float{{( noundef)?}} %s)
+ // armv7s: define internal void @makeOne(ptr noalias sret({{.*}}) align 4 %agg.result, float %f, float %s)
+ // armv7k: define internal %struct.One @makeOne(float {{.*}}%f, float {{.*}}%s)
+diff --git a/swift/test/Interop/Cxx/class/constructors-copy-module-interface.swift b/swift/test/Interop/Cxx/class/constructors-copy-module-interface.swift
+index 042c10e7d1d..254f6543b58 100644
+--- a/swift/test/Interop/Cxx/class/constructors-copy-module-interface.swift
++++ b/swift/test/Interop/Cxx/class/constructors-copy-module-interface.swift
+@@ -1,4 +1,5 @@
+ // RUN: %target-swift-ide-test -print-module -module-to-print=Constructors -I %S/Inputs -source-filename=x -enable-experimental-cxx-interop | %FileCheck %s
++// XFAIL: OS=linux-androideabi
+ 
+ // CHECK: struct TemplatedCopyConstructor
+ // CHECK: struct TemplatedCopyConstructorWithExtraArg
+diff --git a/swift/test/Interop/Cxx/class/constructors-diagnostics.swift b/swift/test/Interop/Cxx/class/constructors-diagnostics.swift
+index aac01480660..8fa99fae7fb 100644
+--- a/swift/test/Interop/Cxx/class/constructors-diagnostics.swift
++++ b/swift/test/Interop/Cxx/class/constructors-diagnostics.swift
+@@ -2,6 +2,7 @@
+ 
+ // This test uses -verify-additional-file, which do not work well on Windows.
+ // UNSUPPORTED: OS=windows-msvc
++// XFAIL: OS=linux-androideabi
+ 
+ import Constructors
+ 
+diff --git a/swift/test/Interop/Cxx/class/constructors-module-interface.swift b/swift/test/Interop/Cxx/class/constructors-module-interface.swift
+index bf189b6e302..d2c3d65f03e 100644
+--- a/swift/test/Interop/Cxx/class/constructors-module-interface.swift
++++ b/swift/test/Interop/Cxx/class/constructors-module-interface.swift
+@@ -1,4 +1,5 @@
+ // RUN: %target-swift-ide-test -print-module -module-to-print=Constructors -I %S/Inputs/ -source-filename=x -enable-experimental-cxx-interop | %FileCheck %s
++// XFAIL: OS=linux-androideabi
+ 
+ // CHECK:      struct ExplicitDefaultConstructor {
+ // CHECK-NEXT:   init()
+diff --git a/swift/test/Interop/Cxx/class/constructors-silgen.swift b/swift/test/Interop/Cxx/class/constructors-silgen.swift
+index b1624ccccfe..79cbdf170de 100644
+--- a/swift/test/Interop/Cxx/class/constructors-silgen.swift
++++ b/swift/test/Interop/Cxx/class/constructors-silgen.swift
+@@ -1,4 +1,5 @@
+ // RUN: %target-swiftxx-frontend -I %S/Inputs -Xllvm -sil-print-types -emit-silgen %s | %FileCheck %s
++// XFAIL: OS=linux-androideabi
+ 
+ import Constructors
+ 
+diff --git a/swift/test/Interop/Cxx/class/constructors-typechecker.swift b/swift/test/Interop/Cxx/class/constructors-typechecker.swift
+index 8ce10b1ca75..52ff4104b83 100644
+--- a/swift/test/Interop/Cxx/class/constructors-typechecker.swift
++++ b/swift/test/Interop/Cxx/class/constructors-typechecker.swift
+@@ -1,4 +1,5 @@
+ // RUN: %target-typecheck-verify-swift -verify-ignore-unknown -I %S/Inputs -enable-experimental-cxx-interop
++// XFAIL: OS=linux-androideabi
+ 
+ import Constructors
+ 
+diff --git a/swift/test/Interop/Cxx/class/custom-new-operator-irgen.swift b/swift/test/Interop/Cxx/class/custom-new-operator-irgen.swift
+index 74e692c9db2..0423493afac 100644
+--- a/swift/test/Interop/Cxx/class/custom-new-operator-irgen.swift
++++ b/swift/test/Interop/Cxx/class/custom-new-operator-irgen.swift
+@@ -5,4 +5,4 @@ import CustomNewOperator
+ var x = callsCustomNew()
+ 
+ // Make sure the definition of `operator new` is emitted.
+-// CHECK: define {{.*}} @{{_ZnwmPv15container_new_t|"\?\?2@YAPEAX_KPEAXUcontainer_new_t@@@Z"}}
++// CHECK: define {{.*}} @{{_Znw(j|m)Pv15container_new_t|"\?\?2@YAPEAX_KPEAXUcontainer_new_t@@@Z"}}
+diff --git a/swift/test/SILOptimizer/package-cmo-serialize-tables.swift b/swift/test/SILOptimizer/package-cmo-serialize-tables.swift
+index 382ff2e8080..f061374b2a1 100644
+--- a/swift/test/SILOptimizer/package-cmo-serialize-tables.swift
++++ b/swift/test/SILOptimizer/package-cmo-serialize-tables.swift
+@@ -19,7 +19,7 @@
+ 
+ // Temporarily disabling on watchOS (both arm64_32 & armv7k):
+ // rdar://140330692 (🟠 OSS Swift CI: oss-swift_tools-RA_stdlib-DA_test-device-non_executable failed...
+-// UNSUPPORTED: OS=watchos
++// UNSUPPORTED: OS=watchos, OS=linux-androideabi
+ 
+ //--- main.swift
+ 
+diff --git a/swift/test/SILOptimizer/throws_prediction.swift b/swift/test/SILOptimizer/throws_prediction.swift
+index f7f2664b2de..01d36e127c6 100644
+--- a/swift/test/SILOptimizer/throws_prediction.swift
++++ b/swift/test/SILOptimizer/throws_prediction.swift
+@@ -16,7 +16,7 @@
+ // RUN:   -sil-verify-all -module-name=test -emit-sil \
+ // RUN:       | %FileCheck --check-prefix CHECK-DISABLED %s
+ 
+-// UNSUPPORTED: CPU=armv7k || CPU=arm64_32
++// UNSUPPORTED: CPU=armv7k, CPU=arm64_32, CPU=armv7
+ 
+ // CHECK-DISABLED-NOT: normal_count
+ 
