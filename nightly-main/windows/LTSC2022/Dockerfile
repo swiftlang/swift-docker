@@ -128,10 +128,8 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
 
 # Install Swift toolchain.
 ARG SWIFT_RELEASE_METADATA=https://download.swift.org/development/windows10/latest-build.json
-# Pinned to 6/9 snapshot due to https://github.com/swiftlang/swift/issues/82281
-# $SWIFT_URL = "\"https://download.swift.org/development/windows10/$($Release.dir)/$($Release.download)\""; \
 RUN $Release = curl.exe -sL ${env:SWIFT_RELEASE_METADATA} | ConvertFrom-JSON;   \
-    $SWIFT_URL = "\"https://download.swift.org/development/windows10/swift-DEVELOPMENT-SNAPSHOT-2025-06-09-a/swift-DEVELOPMENT-SNAPSHOT-2025-06-09-a-windows10.exe\""; \
+    $SWIFT_URL = "\"https://download.swift.org/development/windows10/$($Release.dir)/$($Release.download)\""; \
     Write-Host -NoNewLine ('Downloading {0} ... ' -f ${SWIFT_URL});             \
     Invoke-WebRequest -Uri ${SWIFT_URL} -OutFile installer.exe;                 \
     Write-Host '✓';                                                             \
