@@ -50,7 +50,7 @@ RUN pip3 install -r /dependencies/requirements.txt
 RUN easy_install-3.7 six
 
 ARG SWIFT_PLATFORM=amazonlinux2
-ARG SWIFT_VERSION=5.9.2
+ARG SWIFT_VERSION=5.10.1
 ARG SWIFT_BRANCH=swift-${SWIFT_VERSION}-release
 ARG SWIFT_TAG=swift-${SWIFT_VERSION}-RELEASE
 ARG SWIFT_WEBROOT=https://download.swift.org
