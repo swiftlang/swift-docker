@@ -6,12 +6,11 @@ cd ${1}
 case "${BUILD_SCHEME}" in
     swift-*-branch)
         git apply -v -C1 ${patches_dir}/swift-android.patch
-        git apply -v -C1 ${patches_dir}/swift-android-testing-except-release.patch
+        git apply -v -C1 ${patches_dir}/swift-android-devel.patch
         ;;
     development)
         git apply -v -C1 ${patches_dir}/swift-android.patch
         git apply -v -C1 ${patches_dir}/swift-android-trunk-libdispatch.patch
-        git apply -v -C1 ${patches_dir}/swift-android-testing-except-release.patch
         ;;
     *)
         echo "$0: invalid BUILD_SCHEME=${BUILD_SCHEME}"
