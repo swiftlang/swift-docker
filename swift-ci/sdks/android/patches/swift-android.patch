@@ -10,18 +10,6 @@ index 01390761c8c..d84c142397c 100644
  
  // NOTE: 25185.byteSwapped = 0x62 'a', 0x61 'b'
  // CHECK-LABEL: test_ascii_scalar_scalar2
-diff --git a/swift/test/SILOptimizer/semantic-arc-opts-redundantcopyopts.sil b/swift/test/SILOptimizer/semantic-arc-opts-redundantcopyopts.sil
-index 98765e0e4a3..4dc68bf522b 100644
---- a/swift/test/SILOptimizer/semantic-arc-opts-redundantcopyopts.sil
-+++ b/swift/test/SILOptimizer/semantic-arc-opts-redundantcopyopts.sil
-@@ -1,5 +1,7 @@
- // RUN: %target-sil-opt -module-name Swift -enable-sil-verify-all -semantic-arc-opts -sil-semantic-arc-peepholes-redundant-copyvalue-elim %s | %FileCheck %s
- 
-+// XFAIL: OS=linux-android, OS=linux-androideabi
-+
- // NOTE: Some of our tests here depend on borrow elimination /not/ running!
- // Please do not add it to clean up the IR like we did in
- // semanticarcopts-loadcopy-to-loadborrow!
 diff --git a/swift/utils/build-script-impl b/swift/utils/build-script-impl
 index 16e05052609..7ab8cebfab8 100755
 --- a/swift/utils/build-script-impl
