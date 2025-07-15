@@ -121,8 +121,8 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
 # Install Swift toolchain.
-ARG SWIFT=https://download.swift.org/swift-6.1-release/windows10/swift-6.1-RELEASE/swift-6.1-RELEASE-windows10.exe
-ARG SWIFT_SHA256=8C8AEF8B4A449EBEEFD74482AC767E269F8CBE7E520871C1D103C7079C5F4C6A
+ARG SWIFT=https://download.swift.org/swift-6.1.2-release/windows10/swift-6.1.2-RELEASE/swift-6.1.2-RELEASE-windows10.exe
+ARG SWIFT_SHA256=92A0323ED7DD333C3B05E6E0E428F3A91C77D159F6CCFC8626A996F2ACE09A0B
 RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:SWIFT});             \
     Invoke-WebRequest -Uri ${env:SWIFT} -OutFile installer.exe;                 \
     Write-Host '✓';                                                             \

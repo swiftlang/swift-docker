@@ -22,7 +22,7 @@ case $(arch) in
     arm64|aarch64)
         OS_ARCH_SUFFIX=-aarch64
         ;;
-    amd64|x86_64)
+    i386|amd64|x86_64)
         OS_ARCH_SUFFIX=
         ;;
     *)
@@ -31,18 +31,161 @@ case $(arch) in
         ;;
 esac
 
+SWIFT_VER=6.0
+
+# Get the number of CPUs on this system
+NPROC=$(which nproc)
+if [ -x "$NPROC" ]; then
+    cpus=$(NPROC)
+elif output=$(sysctl machdep.cpu.core_count 2>/dev/null); then
+    cpus=$(echo "$output" | cut -d ':' -f 2 | tr -d ' ')
+else
+    cpus=4
+fi
+
+clean=false
+fetch=true
+build_docker=true
+build_volume=
+mem=10G
+
+default_mem=$mem
+default_cpus=$cpus
+default_version=$SWIFT_VER
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            cat <<EOF
+usage: build [-s <version>]
+
+Build the Static SDK for Linux at-desk.
+
+Options:
+
+-a
+--archs          A list of architectures to build.
+
+-c
+--cpus           Number of CPUs to build with. (default ${default_cpus})
+
+--clean          Clean the build directories first.
+
+-m
+--memory         Amount of memory to build with. (default ${default_mem})
+
+-s
+--swift-version  Specify the Swift version to build (default is ${default_version})
+
+-n
+--no-fetch       Don't fetch sources.
+
+--skip-build-docker
+                 Don't rebuild the Docker image.
+
+--build-volume   Specify the name of a Docker volume to hold the build data.
+EOF
+            exit 0
+            ;;
+        -a|--archs)
+            archs=$2
+            shift
+            shift
+            ;;
+        -c|--cpus)
+            cpus=$2
+            shift
+            shift
+            ;;
+        -m|--memory)
+            mem=$2
+            shift
+            shift
+            ;;
+        -n|--no-fetch)
+            fetch=false
+            shift
+            ;;
+        --skip-build-docker)
+            build_docker=false
+            shift
+            ;;
+        --clean)
+            clean=true
+            shift
+            ;;
+        --build-volume)
+            build_volume="$2"
+            shift
+            shift
+            ;;
+        -s|--swift-version)
+            SWIFT_VER="$2"
+            shift
+            shift
+            ;;
+        -*|--*)
+            echo "Unknown argument $1"
+            exit 1
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+if $clean; then
+    rm -rf source products
+    mkdir source products
+fi
+
+archs_arg=
+if [ ! -z "$archs" ]; then
+    archs_arg=--archs
+fi
+
+if [ "${SWIFT_VER}" = "main" ]; then
+    export SWIFT_VERSION="scheme:main"
+    SWIFT_WEBROOT="https://download.swift.org/development"
+    SWIFT_WEBROOT="https://download.swift.org/swift-6.1-branch"
+else
+    export SWIFT_VERSION="scheme:release/${SWIFT_VER}"
+    SWIFT_WEBROOT="https://download.swift.org/swift-${SWIFT_VER}-branch"
+fi
+
 # Build the Docker image
-$DOCKER build --build-arg OS_ARCH_SUFFIX=$OS_ARCH_SUFFIX -t static-swift-linux .
+if $build_docker; then
+    $DOCKER build $DOCKER_EXTRA_ARGS \
+            --build-arg "OS_ARCH_SUFFIX=$OS_ARCH_SUFFIX" \
+            --build-arg "SWIFT_VERSION=$SWIFT_VERSION" \
+            --build-arg "SWIFT_WEBROOT=$SWIFT_WEBROOT" \
+            -t static-swift-linux . || exit 1
+fi
 
 # Check-out the sources
-scripts/fetch-source.sh --clone-with-ssh --source-dir source
+if $fetch; then
+    scripts/fetch-source.sh --clone-with-ssh --source-dir source
+fi
 
 mkdir -p products
 chmod ugo+w products
 
+build_args=
+build_mount=
+if [ ! -z "$build_volume" ]; then
+    build_args="--build-dir /build"
+    build_mount="-v ${build_volume}:/build"
+fi
+
 # Run the build
 $DOCKER run -it --rm \
+          -c $cpus \
+          -m $mem \
           -v ./source:/source \
           -v ./products:/products \
+          --ulimit nofile=204800:256000 \
+          $build_mount \
           static-swift-linux \
-          /scripts/build.sh --source-dir /source --products-dir /products
+          /scripts/build.sh --source-dir /source --products-dir /products \
+          $build_args \
+          $archs_arg $archs

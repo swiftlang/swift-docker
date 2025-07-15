@@ -65,7 +65,7 @@ RUN set -e; \
     # - Download the GPG keys, Swift toolchain, and toolchain signature, and verify.
     && export GNUPGHOME="$(mktemp -d)" \
     && curl -fsSL "$SWIFT_BIN_URL" -o swift.tar.gz "$SWIFT_SIG_URL" -o swift.tar.gz.sig \
-    && curl -fSsL https://swift.org/keys/all-keys.asc | gpg --import -  \
+    && curl -fSsL --compressed https://swift.org/keys/all-keys.asc | gpg --import -  \
     && gpg --batch --verify swift.tar.gz.sig swift.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
     && mkdir -p $SWIFT_PREFIX \

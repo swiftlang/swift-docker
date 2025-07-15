@@ -19,7 +19,7 @@ set -e
 echo "Installing Swift"
 
 # Get latest toolchain info
-latest_build=$(curl -s ${SWIFT_WEBROOT}/latest-build.yml)
+latest_build=$(/usr/bin/curl -s ${SWIFT_WEBROOT}/latest-build.yml)
 download=$(echo "$latest_build" | grep '^download: ' | sed 's/^download: //g')
 download_signature=$(echo "$latest_build " | grep '^download_signature: ' | sed 's/^download_signature: //g')
 download_dir=$(echo "$latest_build" | grep '^dir: ' | sed 's/^dir: //g')
@@ -47,7 +47,7 @@ curl -fsSL "${SWIFT_WEBROOT}/${download_dir}/${download_signature}" -o toolchain
 
 echo "Fetching keys"
 
-curl -fsSL https://swift.org/keys/all-keys.asc | gpg --import -
+curl -fsSL --compressed https://swift.org/keys/all-keys.asc | gpg --import -
 
 echo "Verifying signature"
 
