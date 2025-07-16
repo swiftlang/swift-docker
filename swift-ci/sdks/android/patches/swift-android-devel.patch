@@ -118,6 +118,20 @@ index f7f2664b2de..01d36e127c6 100644
  
  // CHECK-DISABLED-NOT: normal_count
  
+diff --git a/swift/utils/build-script-impl b/swift/utils/build-script-impl
+index 16e05052609..7ab8cebfab8 100755
+--- a/swift/utils/build-script-impl
++++ b/swift/utils/build-script-impl
+@@ -828,6 +828,9 @@ function set_build_options_for_host() {
+     # and it must be the same for both LLVM and Swift
+ 
+     if [[ "${SWIFT_HOST_TRIPLE}" ]] ; then
++        SWIFT_TARGET_CMAKE_OPTIONS+=(
++            -DCMAKE_Swift_COMPILER_TARGET:STRING="${SWIFT_HOST_TRIPLE}"
++        )
+         llvm_cmake_options+=(
+             -DLLVM_HOST_TRIPLE:STRING="${SWIFT_HOST_TRIPLE}"
+         )
 diff --git a/swift/utils/swift_build_support/swift_build_support/cmake.py b/swift/utils/swift_build_support/swift_build_support/cmake.py
 index bfb69965890..b5e9f5349c2 100644
 --- a/swift/utils/swift_build_support/swift_build_support/cmake.py
