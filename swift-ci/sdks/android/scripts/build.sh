@@ -217,6 +217,7 @@ header "Swift Android SDK build script"
 
 swift_dir=$(realpath $(dirname "$swiftc")/..)
 HOST=linux-x86_64
+# The Linux NDK only supports x86
 #HOST=$(uname -s -m | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
 
 # in a Docker container, the pre-installed NDK is read-only,

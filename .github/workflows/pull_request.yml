@@ -39,6 +39,16 @@ jobs:
            - swift-version: 'swift-6.2-branch'
              build-type: 'docker'
              build-compiler: '0'
+             # Intel macOS
+             runner: 'macos-13'
+           - swift-version: 'swift-6.2-branch'
+             build-type: 'docker'
+             build-compiler: '0'
+             # ARM macOS
+             runner: 'macos-15'
+           - swift-version: 'swift-6.2-branch'
+             build-type: 'docker'
+             build-compiler: '0'
              runner: 'ubuntu-24.04'
            - swift-version: 'development'
              build-type: 'docker'

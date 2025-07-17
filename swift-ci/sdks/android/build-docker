@@ -12,6 +12,9 @@ TARGET_ARCHS=${TARGET_ARCHS:-aarch64,x86_64,armv7}
 ANDROID_NDK_VERSION=android-ndk-r27c
 ANDROID_API=28
 
+BASEPATH=$(dirname $(realpath $0))
+cd ${BASEPATH}
+
 export BUILD_SCHEME=${1}
 # note that WORKDIR must not be under the current checkout or the patches will fail to apply
 WORKDIR=${2}
@@ -27,13 +30,13 @@ source ./scripts/toolchain-vars.sh
 
 # Check-out and patch the sources
 if [[ "${BUILD_COMPILER}" != "1" ]]; then
-./scripts/fetch-source.sh --source-dir ${WORKDIR}/source --swift-tag ${SWIFT_TAG}
+    ./scripts/fetch-source.sh --source-dir ${WORKDIR}/source --swift-tag ${SWIFT_TAG}
 else
-if [[ "${BUILD_SCHEME}" == "development" ]]; then
-./scripts/fetch-source.sh --source-dir ${WORKDIR}/source --swift-scheme main
-else
-./scripts/fetch-source.sh --source-dir ${WORKDIR}/source --swift-scheme release/6.2
-fi
+    if [[ "${BUILD_SCHEME}" == "development" ]]; then
+        ./scripts/fetch-source.sh --source-dir ${WORKDIR}/source --swift-scheme main
+    else
+        ./scripts/fetch-source.sh --source-dir ${WORKDIR}/source --swift-scheme release/6.2
+    fi
 fi
 ./patches/apply-patches.sh ${WORKDIR}/source/swift-project
 
@@ -43,19 +46,6 @@ chmod ugo+rwx ${WORKDIR}/products
 if [[ "$DOCKER" == "" ]]; then
     DOCKER=docker
 fi
-
-case $(arch) in
-    arm64|aarch64)
-        OS_ARCH_SUFFIX=-aarch64
-        ;;
-    amd64|x86_64)
-        OS_ARCH_SUFFIX=
-        ;;
-    *)
-        echo "Unknown architecture $(arch)"
-        exit 1
-        ;;
-esac
 
 CONTAINER_NAME="swift-android"
 

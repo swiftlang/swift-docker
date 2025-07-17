@@ -37,11 +37,26 @@ case "${BUILD_SCHEME}" in
 esac
 
 SWIFT_BASE=$SWIFT_TAG-$HOST_OS
-case $BUILD_COMPILER in
-    1|true|yes|YES)
-        export SWIFT_TOOLCHAIN_URL="https://download.swift.org/$RELEASE_BRANCH/$OS/$RELEASE_TAG/$RELEASE_TAG-$HOST_OS.tar.gz"
+
+case $(arch) in
+    arm64|aarch64)
+        export OS_ARCH_SUFFIX=-aarch64
+        ;;
+    amd64|x86_64)
+        export OS_ARCH_SUFFIX=
         ;;
     *)
-        export SWIFT_TOOLCHAIN_URL="https://download.swift.org/$SWIFT_BRANCH/$OS/$SWIFT_TAG/$SWIFT_BASE.tar.gz"
+        echo "Unknown architecture $(arch)"
+        exit 1
+        ;;
+esac
+
+
+case $BUILD_COMPILER in
+    1|true|yes|YES)
+        export SWIFT_TOOLCHAIN_URL="https://download.swift.org/$RELEASE_BRANCH/$OS$OS_ARCH_SUFFIX/$RELEASE_TAG/$RELEASE_TAG-$HOST_OS$OS_ARCH_SUFFIX.tar.gz"
+        ;;
+    *)
+        export SWIFT_TOOLCHAIN_URL="https://download.swift.org/$SWIFT_BRANCH/$OS$OS_ARCH_SUFFIX/$SWIFT_TAG/$SWIFT_BASE$OS_ARCH_SUFFIX.tar.gz"
         ;;
 esac
