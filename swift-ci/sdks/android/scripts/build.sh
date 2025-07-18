@@ -188,8 +188,10 @@ function versionFromTag {
     fi
 }
 
-swift_version=$(describe ${source_dir}/swift-project/swift)
-swift_tag_date=$(git -C ${source_dir}/swift-project/swift log -1 --format=%ct 2>/dev/null)
+swift_source_dir=${source_dir}/swift-project
+
+swift_version=$(describe ${swift_source_dir}/swift)
+swift_tag_date=$(git -C ${swift_source_dir}/swift log -1 --format=%ct 2>/dev/null)
 
 if [[ $swift_version == swift-* ]]; then
     swift_version=${swift_version#swift-}
@@ -199,9 +201,9 @@ if [[ -z "$sdk_name" ]]; then
     sdk_name=swift-${swift_version}-android-${android_sdk_version}
 fi
 
-libxml2_version=$(versionFromTag ${source_dir}/libxml2)
+libxml2_version=$(versionFromTag ${swift_source_dir}/libxml2)
 
-curl_desc=$(describe ${source_dir}/curl | tr '_' '.')
+curl_desc=$(describe ${swift_source_dir}/curl | tr '_' '.')
 curl_version=${curl_desc#curl-}
 
 boringssl_version=$(describe ${source_dir}/boringssl)
@@ -299,10 +301,10 @@ for arch in $archs; do
     mkdir -p "$sdk_root"
 
     groupstart "Building libxml2 for $arch"
-    quiet_pushd ${source_dir}/libxml2
+    quiet_pushd ${swift_source_dir}/libxml2
         run cmake \
             -G Ninja \
-            -S ${source_dir}/libxml2 \
+            -S ${swift_source_dir}/libxml2 \
             -B ${build_dir}/$arch/libxml2 \
             -DANDROID_ABI=$android_abi \
             -DANDROID_PLATFORM=android-$android_api \
@@ -356,10 +358,10 @@ for arch in $archs; do
     groupend
 
     groupstart "Building libcurl for ${compiler_target_host}"
-    quiet_pushd ${source_dir}/curl
+    quiet_pushd ${swift_source_dir}/curl
         run cmake \
             -G Ninja \
-            -S ${source_dir}/curl \
+            -S ${swift_source_dir}/curl \
             -B ${build_dir}/$arch/curl \
             -DANDROID_ABI=$android_abi \
             -DANDROID_PLATFORM=android-$android_api \
@@ -396,7 +398,7 @@ for arch in $archs; do
     groupend
 
     groupstart "Building Android SDK for ${compiler_target_host}"
-    quiet_pushd ${source_dir}/swift-project
+    quiet_pushd ${swift_source_dir}
         build_type_flag="--debug"
         case $build_type in
             Debug) build_type_flag="--debug" ;;
@@ -523,7 +525,7 @@ for arch in $archs; do
     quiet_pushd ${sdk_staging}/${arch}/usr
         rm -r bin
         rm -r include/*
-        cp -r ${source_dir}/swift-project/swift/lib/ClangImporter/SwiftBridging/{module.modulemap,swift} include/
+        cp -r ${swift_source_dir}/swift/lib/ClangImporter/SwiftBridging/{module.modulemap,swift} include/
 
         arch_triple="$arch-linux-android"
         if [[ $arch == 'armv7' ]]; then

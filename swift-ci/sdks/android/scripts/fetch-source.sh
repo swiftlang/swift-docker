@@ -52,7 +52,6 @@ function usage {
     cat <<EOF
 usage: fetch-source.sh [--swift-scheme <scheme>|--swift-tag <tag>
                                                |--swift-version <version>]
-                       [--curl-version <version>]
                        [--boringssl-version <version>]
                        [--clone-with-ssh]
                        [--source-dir <path>]
@@ -70,8 +69,6 @@ SDK for Swift.  Options are:
                       If <version> starts with "scheme:" or "tag:", it will
                       select a scheme or tag; otherwise it will be treated as
                       a version number.
-  --libxml2-version <version>
-  --curl-version <version>
   --boringssl-version <version>
 EOF
 }
@@ -80,17 +77,8 @@ EOF
 if [[ -z "${SWIFT_VERSION}" ]]; then
     SWIFT_VERSION=scheme:release/6.1
 fi
-if [[ -z "${LIBXML2_VERSION}" ]]; then
-    LIBXML2_VERSION=2.14.2
-fi
-if [[ -z "${CURL_VERSION}" ]]; then
-    CURL_VERSION=8.13.0
-fi
 if [[ -z "${BORINGSSL_VERSION}" ]]; then
     BORINGSSL_VERSION=fips-20220613
-fi
-if [[ -z "${YAMS_VERSION}" ]]; then
-    YAMS_VERSION=5.0.6
 fi
 
 clone_with_ssh=false
@@ -102,10 +90,6 @@ while [ "$#" -gt 0 ]; do
             SWIFT_VERSION="tag:$2"; shift ;;
         --swift-version)
             SWIFT_VERSION="$2"; shift ;;
-        --libxml2-version)
-            LIBXML2_VERSION="$2"; shift ;;
-        --curl-version)
-            CURL_VERSION="$2"; shift ;;
         --boringssl-version)
             BORINGSSL_VERSION="$2"; shift ;;
         --clone-with-ssh)
@@ -156,32 +140,6 @@ else
 fi
 
 popd >/dev/null
-groupend
-
-# Fetch yams (needed for Swift 6.1.x)
-groupstart "Fetching yams"
-pushd swift-project >/dev/null
-[[ -d yams ]] || git clone ${github}jpsim/Yams.git yams
-pushd yams >/dev/null 2>&1
-git checkout ${YAMS_VERSION}
-popd >/dev/null 2>&1
-popd >/dev/null
-groupend
-
-# Fetch libxml2
-groupstart "Fetching libxml2"
-[[ -d libxml2 ]] || git clone ${github}GNOME/libxml2.git
-pushd libxml2 >/dev/null 2>&1
-git checkout v${LIBXML2_VERSION}
-popd >/dev/null 2>&1
-groupend
-
-# Fetch curl
-groupstart "Fetching curl"
-[[ -d curl ]] || git clone ${github}curl/curl.git
-pushd curl >/dev/null 2>&1
-git checkout curl-$(echo ${CURL_VERSION} | tr '.' '_')
-popd >/dev/null 2>&1
 groupend
 
 # Fetch BoringSSL
