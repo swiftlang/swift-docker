@@ -12,6 +12,9 @@ TARGET_ARCHS=${TARGET_ARCHS:-aarch64,x86_64,armv7}
 ANDROID_NDK_VERSION=android-ndk-r27c
 ANDROID_API=28
 
+BASEPATH=$(dirname $(realpath $0))
+cd ${BASEPATH}
+
 export BUILD_SCHEME=${1}
 # note that WORKDIR must not be under the current checkout or the patches will fail to apply
 WORKDIR=${2}
