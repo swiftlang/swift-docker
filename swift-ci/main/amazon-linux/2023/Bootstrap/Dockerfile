@@ -24,6 +24,7 @@ RUN yum -y install \
   python3-devel \
   python3-distro \
   python3-setuptools \
+  python3-pip \
   rsync \
   sqlite-devel \
   swig \
@@ -37,8 +38,8 @@ RUN yum -y install \
 RUN curl -fsSL "https://github.com/Kitware/CMake/releases/download/v4.0.2/cmake-4.0.2-linux-`uname -m`.tar.gz" \
   | tar --strip-components=1 -xz -C /usr/local
 
-
-# TODO: Still need to install bits for lldb
+COPY swift-ci/dependencies/requirements.txt /dependencies/
+RUN pip3 install -r /dependencies/requirements.txt
 
 USER build-user
 WORKDIR /home/build-user
