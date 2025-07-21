@@ -36,7 +36,7 @@ index 324d1a77eea..e88601a8701 100644
  
  from . import cmake_product
  from . import product
-@@ -115,6 +117,24 @@ class SwiftTestingCMakeShim(cmake_product.CMakeProduct):
+@@ -115,6 +117,25 @@ class SwiftTestingCMakeShim(cmake_product.CMakeProduct):
          # FIXME: If we build macros for the builder, specify the path.
          self.cmake_options.define('SwiftTesting_MACRO', 'NO')
  
@@ -56,32 +56,9 @@ index 324d1a77eea..e88601a8701 100644
 +            self.cmake_options.define('CMAKE_Swift_FLAGS', flags)
 +            self.cmake_options.define('CMAKE_Swift_COMPILER_TARGET', triple)
 +            self.cmake_options.define('CMAKE_CXX_COMPILER_WORKS', 'True')
++            self.cmake_options.define('CMAKE_SHARED_LINKER_FLAGS', '')
 +            self.cmake_options.define('CMAKE_FIND_ROOT_PATH', self.args.cross_compile_deps_path)
 +
          self.generate_toolchain_file_for_darwin_or_linux(
              host_target, override_macos_deployment_version=override_deployment_version)
          self.build_with_cmake([], self.args.build_variant, [],
-diff --git a/swift-corelibs-foundation/CMakeLists.txt b/swift-corelibs-foundation/CMakeLists.txt
-index 7f290d16..95366592 100644
---- a/swift-corelibs-foundation/CMakeLists.txt
-+++ b/swift-corelibs-foundation/CMakeLists.txt
-@@ -51,6 +51,7 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows)
-     endif()
- endif()
- 
-+set(CMAKE_SHARED_LINKER_FLAGS "")
- set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
- set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
- set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-diff --git a/swift-testing/CMakeLists.txt b/swift-testing/CMakeLists.txt
-index 1be9a4b..bd7b1bd 100644
---- a/swift-testing/CMakeLists.txt
-+++ b/swift-testing/CMakeLists.txt
-@@ -28,6 +28,7 @@ list(APPEND CMAKE_MODULE_PATH
-   ${PROJECT_SOURCE_DIR}/cmake/modules
-   ${PROJECT_SOURCE_DIR}/cmake/modules/shared)
- 
-+set(CMAKE_SHARED_LINKER_FLAGS "")
- set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
- set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
- set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

@@ -10,7 +10,7 @@ case "${BUILD_SCHEME}" in
         ;;
     development)
         git apply -v -C1 ${patches_dir}/swift-android.patch
-        git apply -v -C1 ${patches_dir}/swift-android-trunk-libdispatch.patch
+        git apply -v -C1 ${patches_dir}/swift-android-trunk.patch
         ;;
     *)
         echo "$0: invalid BUILD_SCHEME=${BUILD_SCHEME}"

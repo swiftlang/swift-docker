@@ -44,14 +44,6 @@ jobs:
              build-type: 'docker'
              build-compiler: '0'
              runner: 'ubuntu-24.04'
-           - swift-version: 'swift-6.2-branch'
-             build-type: 'docker'
-             build-compiler: '0'
-             runner: 'ubuntu-24.04'
-           - swift-version: 'development'
-             build-type: 'docker'
-             build-compiler: '0'
-             runner: 'ubuntu-24.04'
      runs-on: ${{ matrix.runner }}
      # 15 hour timeout
      timeout-minutes: 900
