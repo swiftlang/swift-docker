@@ -168,6 +168,8 @@ if $fetch; then
 fi
 
 mkdir -p products
+chmod ugo+w products
+
 build_args=
 build_mount=
 if [ ! -z "$build_volume" ]; then
