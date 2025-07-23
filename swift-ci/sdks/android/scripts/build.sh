@@ -411,6 +411,7 @@ for arch in $archs; do
                 build_cmark=""
                 local_build=""
                 build_llvm="1"
+                install_llvm="--install-llvm"
                 build_swift_tools="1"
                 validation_test="1"
                 native_swift_tools_path=""
@@ -420,6 +421,7 @@ for arch in $archs; do
                 build_cmark="--skip-build-cmark"
                 local_build="--skip-local-build"
                 build_llvm="0"
+                install_llvm=""
                 build_swift_tools="0"
                 validation_test="0"
                 native_swift_tools_path="--native-swift-tools-path=$host_toolchain/bin"
@@ -442,7 +444,7 @@ for arch in $archs; do
             --cross-compile-hosts=android-$arch \
             --cross-compile-deps-path=$sdk_root \
             --install-destdir=$sdk_root \
-            --build-llvm=$build_llvm \
+            --build-llvm=$build_llvm ${install_llvm} \
             --build-swift-tools=$build_swift_tools \
             ${native_swift_tools_path} \
             ${native_clang_tools_path} \
@@ -525,7 +527,7 @@ cp -r $host_toolchain/lib/clang/*/include $swift_res_root/usr/lib/swift/clang
 
 for arch in $archs; do
     quiet_pushd ${sdk_staging}/${arch}/usr
-        rm -r bin
+        rm -rf bin lib/clang local
         rm -r include/*
         cp -r ${swift_source_dir}/swift/lib/ClangImporter/SwiftBridging/{module.modulemap,swift} include/
 
@@ -536,7 +538,7 @@ for arch in $archs; do
 
         # need force rm in case linux is not present (when not running tests)
         rm -rf lib/swift{,_static}/{FrameworkABIBaseline,_InternalSwiftScan,_InternalSwiftStaticMirror,clang,embedded,host,linux,migrator}
-        rm -rf lib/lib*.so
+        rm -rf lib/lib*.so*
         mv lib/swift lib/swift-$arch
         ln -s ../swift/clang lib/swift-$arch/clang
 
@@ -558,7 +560,7 @@ for arch in $archs; do
     rsync -a ${sdk_staging}/${arch}/usr ${swift_res_root}
 done
 
-rm -r ${swift_res_root}/usr/share/{doc,man}
+rm -rf ${swift_res_root}/usr/share/{aclocal,doc,man}
 rm -r ${sdk_staging}
 
 # create an install script to set up the NDK links

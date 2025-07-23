@@ -10,21 +10,3 @@ index 3f36fc979cb..8713ae8fea8 100755
              "grep",
              "--extended-regexp",
              "--recursive",
-diff --git a/swift/utils/swift_build_support/swift_build_support/cmake.py b/swift/utils/swift_build_support/swift_build_support/cmake.py
-index 9a0f5b43e2d..5c7d1320a2d 100644
---- a/swift/utils/swift_build_support/swift_build_support/cmake.py
-+++ b/swift/utils/swift_build_support/swift_build_support/cmake.py
-@@ -150,11 +150,8 @@ class CMake(object):
-             define("CMAKE_CXX_COMPILER_LAUNCHER:PATH", args.cmake_cxx_launcher)
- 
-         if self.prefer_native_toolchain and product:
--            clang_tools_path = product.native_clang_tools_path(args.host_target)
--            define("CMAKE_C_COMPILER:PATH", os.path.join(clang_tools_path,
--                                                         'bin', 'clang'))
--            define("CMAKE_CXX_COMPILER:PATH", os.path.join(clang_tools_path,
--                                                           'bin', 'clang++'))
-+            define("CMAKE_C_COMPILER:PATH", toolchain.cc)
-+            define("CMAKE_CXX_COMPILER:PATH", toolchain.cxx)
- 
-             toolchain_path = product.native_toolchain_path(args.host_target)
-             cmake_swiftc_path = os.getenv('CMAKE_Swift_COMPILER',
