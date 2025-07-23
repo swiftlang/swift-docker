@@ -5,8 +5,8 @@ cd ${1}
 
 case "${BUILD_SCHEME}" in
     swift-*-branch)
-        git apply -v -C1 ${patches_dir}/swift-android.patch
         git apply -v -C1 ${patches_dir}/swift-android-devel.patch
+        git apply -v -C1 ${patches_dir}/swift-android.patch
         ;;
     development)
         git apply -v -C1 ${patches_dir}/swift-android.patch
