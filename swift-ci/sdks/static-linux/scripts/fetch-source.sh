@@ -52,9 +52,14 @@ function usage {
     cat <<EOF
 usage: fetch-source.sh [--swift-scheme <scheme>|--swift-tag <tag>
                                                |--swift-version <version>]
-                       [--musl-version <version>] [--libxml2-version <version>]
-                       [--curl-version <version>]
                        [--boringssl-version <version>]
+                       [--bzip2-version <version>]
+                       [--curl-version <version>]
+                       [--libarchive-version <version>]
+                       [--libxml2-version <version>]
+                       [--mimalloc-version <version>]
+                       [--musl-version <version>]
+                       [--xz-version <version>]
                        [--zlib-version <version>]
                        [--clone-with-ssh]
                        [--source-dir <path>]
@@ -72,10 +77,14 @@ SDK for Swift.  Options are:
                       If <version> starts with "scheme:" or "tag:", it will
                       select a scheme or tag; otherwise it will be treated as
                       a version number.
-  --musl-version <version>
-  --libxml2-version <version>
-  --curl-version <version>
   --boringssl-version <version>
+  --bzip2-version <version>
+  --curl-version <version>
+  --libarchive-version <version>
+  --libxml2-version <version>
+  --mimalloc-version <version>
+  --musl-version <version>
+  --xz-version <version>
   --zlib-version <version>
                       Select the versions of other dependencies.
 EOF
@@ -89,16 +98,28 @@ if [[ -z "${MUSL_VERSION}" ]]; then
     MUSL_VERSION=1.2.5
 fi
 if [[ -z "${LIBXML2_VERSION}" ]]; then
-    LIBXML2_VERSION=2.12.7
+    LIBXML2_VERSION=2.14.5
 fi
 if [[ -z "${CURL_VERSION}" ]]; then
-    CURL_VERSION=8.7.1
+    CURL_VERSION=8.15.0
 fi
 if [[ -z "${BORINGSSL_VERSION}" ]]; then
-    BORINGSSL_VERSION=fips-20220613
+    BORINGSSL_VERSION=817ab07ebb53da35afea409ab9328f578492832d
 fi
 if [[ -z "${ZLIB_VERSION}" ]]; then
     ZLIB_VERSION=1.3.1
+fi
+if [[ -z "${BZIP2_VERSION}" ]]; then
+    BZIP2_VERSION=1.0.8
+fi
+if [[ -z "${LIBARCHIVE_VERSION}" ]]; then
+    LIBARCHIVE_VERSION=3.8.1
+fi
+if [[ -z "${MIMALLOC_VERSION}" ]]; then
+    MIMALLOC_VERSION=2.2.4
+fi
+if [[ -z "${XZ_VERSION}" ]]; then
+    XZ_VERSION=5.8.1
 fi
 
 clone_with_ssh=false
@@ -120,6 +141,14 @@ while [ "$#" -gt 0 ]; do
             BORINGSSL_VERSION="$2"; shift ;;
         --zlib-version)
             ZLIB_VERSION="$2"; shift ;;
+        --bzip2-version)
+            BZIP2_VERSION="$2"; shift ;;
+        --libarchive-version)
+            LIBARCHIVE_VERSION="$2"; shift ;;
+        --mimalloc-version)
+            MIMALLOC_VERSION="$2"; shift ;;
+        --xz-version)
+            XZ_VERSION="$2"; shift ;;
         --clone-with-ssh)
             clone_with_ssh=true ;;
         --source-dir)
@@ -208,3 +237,35 @@ header "Fetching zlib"
 pushd zlib >/dev/null 2>&1
 git checkout v${ZLIB_VERSION}
 popd >/dev/null 2>&1
+
+# Fetch bzip2
+header "Fetching bzip2"
+
+[[ -d bzip2 ]] | git clone git://sourceware.org/git/bzip2.git
+pushd bzip2 >/dev/null 2>&1
+git checkout bzip2-${BZIP2_VERSION}
+popd >/dev/null 2>&1
+
+# Fetch libarchive
+header "Fetching libarchive"
+
+[[ -d libarchive ]] | git clone ${github}libarchive/libarchive.git
+pushd libarchive >/dev/null 2>&1
+git checkout v${LIBARCHIVE_VERSION}
+popd >/dev/null 2>&1
+
+# Fetch mimalloc
+header "Fetching mimalloc"
+
+[[ -d mimalloc ]]  | git clone ${github}microsoft/mimalloc.git
+pushd mimalloc >/dev/null 2>&1
+git checkout v${MIMALLOC_VERSION}
+popd
+
+# Fetch xz-utils
+header "Fetching xz"
+
+[[ -d xz ]] | git clone ${github}tukaani-project/xz.git
+pushd xz >/dev/null 2>&1
+git checkout v${XZ_VERSION}
+popd
