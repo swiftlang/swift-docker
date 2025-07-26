@@ -10,3 +10,16 @@ index 3f36fc979cb..8713ae8fea8 100755
              "grep",
              "--extended-regexp",
              "--recursive",
+diff --git a/swift/utils/swift_build_support/swift_build_support/products/cmake_product.py b/swift/utils/swift_build_support/swift_build_support/products/cmake_product.py
+index 6d0aae32835..3713086fec3 100644
+--- a/swift/utils/swift_build_support/swift_build_support/products/cmake_product.py
++++ b/swift/utils/swift_build_support/swift_build_support/products/cmake_product.py
+@@ -25,7 +25,7 @@ class CMakeProduct(product.Product):
+ 
+     def build_with_cmake(self, build_targets, build_type, build_args,
+                          prefer_native_toolchain=False, 
+-                         ignore_extra_cmake_options=False):
++                         ignore_extra_cmake_options=False, build_llvm=True):
+         assert self.toolchain.cmake is not None
+         cmake_build = []
+         _cmake = cmake.CMake(self.args, self.toolchain,

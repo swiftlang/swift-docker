@@ -10,3 +10,151 @@ index 16e05052609..7ab8cebfab8 100755
  
                    cmake_options=(
                      -DENABLE_SWIFT=YES
+diff --git a/swift/utils/build_swift/build_swift/driver_arguments.py b/swift/utils/build_swift/build_swift/driver_arguments.py
+index 2b7d6d07799..e0d04d22825 100644
+--- a/swift/utils/build_swift/build_swift/driver_arguments.py
++++ b/swift/utils/build_swift/build_swift/driver_arguments.py
+@@ -677,6 +677,12 @@ def create_argument_parser():
+                 "for each cross-compiled toolchain's destdir, useful when building "
+                 "multiple toolchains and can be disabled if only cross-compiling one.")
+ 
++    option('--cross-compile-build-swift-tools', toggle_true,
++           default=True,
++           help="Cross-compile the Swift compiler, other host tools from the "
++                "compiler repository, and various macros for each listed "
++                "--cross-compile-hosts platform.")
++
+     option('--stdlib-deployment-targets', store,
+            type=argparse.ShellSplitType(),
+            default=None,
+diff --git a/swift/utils/build_swift/tests/expected_options.py b/swift/utils/build_swift/tests/expected_options.py
+index f8d1a3526ed..b655d610923 100644
+--- a/swift/utils/build_swift/tests/expected_options.py
++++ b/swift/utils/build_swift/tests/expected_options.py
+@@ -155,6 +155,7 @@ EXPECTED_DEFAULTS = {
+     'compiler_vendor': defaults.COMPILER_VENDOR,
+     'coverage_db': None,
+     'cross_compile_append_host_target_to_destdir': True,
++    'cross_compile_build_swift_tools': True,
+     'cross_compile_deps_path': None,
+     'cross_compile_hosts': [],
+     'infer_cross_compile_hosts_on_darwin': False,
+@@ -622,6 +623,7 @@ EXPECTED_OPTIONS = [
+     EnableOption('--build-swift-clang-overlays'),
+     EnableOption('--build-swift-remote-mirror'),
+     EnableOption('--cross-compile-append-host-target-to-destdir'),
++    EnableOption('--cross-compile-build-swift-tools'),
+     EnableOption('--color-in-tests'),
+     EnableOption('--distcc'),
+     EnableOption('--sccache'),
+diff --git a/swift/utils/swift_build_support/swift_build_support/build_script_invocation.py b/swift/utils/swift_build_support/swift_build_support/build_script_invocation.py
+index a0289515fd0..355d72fe21f 100644
+--- a/swift/utils/swift_build_support/swift_build_support/build_script_invocation.py
++++ b/swift/utils/swift_build_support/swift_build_support/build_script_invocation.py
+@@ -119,6 +119,8 @@ class BuildScriptInvocation(object):
+             "--cmake-generator", args.cmake_generator,
+             "--cross-compile-append-host-target-to-destdir", str(
+                 args.cross_compile_append_host_target_to_destdir).lower(),
++            "--cross-compile-build-swift-tools", str(
++                args.cross_compile_build_swift_tools).lower(),
+             "--build-jobs", str(args.build_jobs),
+             "--lit-jobs", str(args.lit_jobs),
+             "--common-cmake-options=%s" % ' '.join(
+diff --git a/swift/utils/swift_build_support/swift_build_support/products/cmake_product.py b/swift/utils/swift_build_support/swift_build_support/products/cmake_product.py
+index dc338334f28..f1a9f4d28bf 100644
+--- a/swift/utils/swift_build_support/swift_build_support/products/cmake_product.py
++++ b/swift/utils/swift_build_support/swift_build_support/products/cmake_product.py
+@@ -71,9 +71,7 @@ class CMakeProduct(product.Product):
+                            env=env)
+ 
+         is_llvm = self.product_name() == "llvm"
+-        if (not is_llvm and not self.args.skip_build) or (
+-            is_llvm and self.args._build_llvm
+-        ):
++        if (not is_llvm and not self.args.skip_build) or (is_llvm and build_llvm):
+             cmake_opts = [self.build_dir, "--config", build_type]
+ 
+             shell.call(
+diff --git a/swift/utils/swift_build_support/swift_build_support/products/llvm.py b/swift/utils/swift_build_support/swift_build_support/products/llvm.py
+index ffae1d66702..72e400c55be 100644
+--- a/swift/utils/swift_build_support/swift_build_support/products/llvm.py
++++ b/swift/utils/swift_build_support/swift_build_support/products/llvm.py
+@@ -249,10 +249,13 @@ class LLVM(cmake_product.CMakeProduct):
+                 # space/time efficient than -g on that platform.
+                 llvm_cmake_options.define('LLVM_USE_SPLIT_DWARF:BOOL', 'YES')
+ 
+-        if not self.args._build_llvm:
++        build = True
++        if not self.args._build_llvm or (not self.args.cross_compile_build_swift_tools
++                                         and self.is_cross_compile_target(host_target)):
+             # Indicating we don't want to build LLVM at all should
+             # override everything.
+             build_targets = []
++            build = False
+         elif self.args.skip_build or not self.args.build_llvm:
+             # We can't skip the build completely because the standalone
+             # build of Swift depends on these.
+@@ -399,7 +402,8 @@ class LLVM(cmake_product.CMakeProduct):
+ 
+         self._handle_cxx_headers(host_target, platform)
+ 
+-        self.build_with_cmake(build_targets, self.args.llvm_build_variant, [])
++        self.build_with_cmake(build_targets, self.args.llvm_build_variant, [],
++                              build_llvm=build)
+ 
+         # copy over the compiler-rt builtins for iOS/tvOS/watchOS to ensure
+         # that Swift's stdlib can use compiler-rt builtins when targeting
+@@ -484,7 +488,9 @@ class LLVM(cmake_product.CMakeProduct):
+         Whether or not this product should be installed with the given
+         arguments.
+         """
+-        return self.args.install_llvm
++        return self.args.install_llvm and (
++            self.args.cross_compile_build_swift_tools or
++            not self.is_cross_compile_target(host_target))
+ 
+     def install(self, host_target):
+         """
+diff --git a/swift/utils/swift_build_support/swift_build_support/products/swift_testing_macros.py b/swift/utils/swift_build_support/swift_build_support/products/swift_testing_macros.py
+index ddb3b553de7..d127424709c 100644
+--- a/swift/utils/swift_build_support/swift_build_support/products/swift_testing_macros.py
++++ b/swift/utils/swift_build_support/swift_build_support/products/swift_testing_macros.py
+@@ -42,13 +42,24 @@ class SwiftTestingMacros(product.Product):
+         return True
+ 
+     def should_build(self, host_target):
+-        return True
++        build_macros = not self.is_cross_compile_target(host_target) or \
++            self.args.cross_compile_build_swift_tools
++        if not build_macros:
++            print("Skipping building Testing Macros for %s, because the host tools "
++                  "are not being built" % host_target)
++        return build_macros
+ 
+     def should_test(self, host_target):
+         return False
+ 
+     def should_install(self, host_target):
+-        return self.args.install_swift_testing_macros
++        install_macros = self.args.install_swift_testing_macros and \
++            (not self.is_cross_compile_target(host_target) or
++             self.args.cross_compile_build_swift_tools)
++        if self.args.install_swift_testing_macros and not install_macros:
++            print("Skipping installing Testing Macros for %s, because the host tools "
++                  "are not being built" % host_target)
++        return install_macros
+ 
+     def _cmake_product(self, host_target):
+         build_root = os.path.dirname(self.build_dir)
+@@ -121,3 +132,11 @@ class SwiftTestingMacrosCMakeShim(cmake_product.CMakeProduct):
+         install_prefix = install_destdir + self.args.install_prefix
+ 
+         self.install_with_cmake(['install'], install_prefix)
++
++    @classmethod
++    def is_build_script_impl_product(cls):
++        return False
++
++    @classmethod
++    def is_before_build_script_impl_product(cls):
++        return False

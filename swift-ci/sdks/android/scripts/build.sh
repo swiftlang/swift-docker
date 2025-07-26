@@ -460,8 +460,8 @@ for arch in $archs; do
             --install-foundation \
             --xctest --install-xctest \
             --swift-testing --install-swift-testing \
-            --cross-compile-build-swift-tools=0 \
-            --llvm-ninja-targets-for-cross-compile-hosts=help \
+            --swift-testing-macros --install-swift-testing-macros \
+            --cross-compile-build-swift-tools=False \
             --libdispatch-cmake-options=-DCMAKE_SHARED_LINKER_FLAGS= \
             --foundation-cmake-options=-DCMAKE_SHARED_LINKER_FLAGS= \
             --cross-compile-append-host-target-to-destdir=False 
