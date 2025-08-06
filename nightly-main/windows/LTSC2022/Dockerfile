@@ -96,7 +96,7 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PY39});              
 
 # Install Visual Studio Build Tools
 ARG VSB=https://aka.ms/vs/17/release/vs_buildtools.exe
-ARG VSB_SHA256=15A2A6591B1E91B63E9909864FCBC68459EB26124B814618947215F754CD9CEE
+ARG VSB_SHA256=95B8BCAC49757DBA2BD80827484E65B2F0EF57C11C143B87514B913839F78657
 RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               \
     Invoke-WebRequest -Uri ${env:VSB} -OutFile vs_buildtools.exe;               \
     Write-Host '✓';                                                             \
