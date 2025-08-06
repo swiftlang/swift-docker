@@ -106,6 +106,7 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
       Write-Host '✓';                                                           \
     } else {                                                                    \
       Write-Host ('✘ ({0})' -f $Hash.Hash);                                     \
+      exit 1;                                                                   \
     }                                                                           \
     Write-Host -NoNewLine 'Installing Visual Studio Build Tools ... ';          \
     $Process =                                                                  \
