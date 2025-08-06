@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/windows/servercore:ltsc2022 AS windows
+FROM mcr.microsoft.com/windows/servercore:ltsc2025 AS windows
 
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
@@ -15,8 +15,8 @@ RUN reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem" /t 
 
 # Install Git.
 # See: git-[version]-[bit].exe /SAVEINF=git.inf and /?
-ARG GIT=https://github.com/git-for-windows/git/releases/download/v2.49.0.windows.1/Git-2.49.0-64-bit.exe
-ARG GIT_SHA256=726056328967F242FE6E9AFBFE7823903A928AFF577DCF6F517F2FB6DA6CE83C
+ARG GIT=https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/Git-2.48.1-64-bit.exe
+ARG GIT_SHA256=CE45E23275049F4B36EDD90D5FD986A1E230EFB6C511E9260A90176CE8E825DF
 RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:GIT});               \
     Invoke-WebRequest -Uri ${env:GIT} -OutFile git.exe;                         \
     Write-Host '✓';                                                             \
@@ -95,8 +95,8 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PY39});              
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
 # Install Visual Studio Build Tools
-ARG VSB=https://download.visualstudio.microsoft.com/download/pr/ae7ac791-9759-4076-bba7-47ff510c57af/a783199025439d65f310bff041e278b966a6dbed8dbcd7fc96b55389f574ef41/vs_BuildTools.exe
-ARG VSB_SHA256=A783199025439D65F310BFF041E278B966A6DBED8DBCD7FC96B55389F574EF41
+ARG VSB=https://aka.ms/vs/17/release/vs_buildtools.exe
+ARG VSB_SHA256=15A2A6591B1E91B63E9909864FCBC68459EB26124B814618947215F754CD9CEE
 RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               \
     Invoke-WebRequest -Uri ${env:VSB} -OutFile vs_buildtools.exe;               \
     Write-Host '✓';                                                             \
@@ -106,7 +106,6 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
       Write-Host '✓';                                                           \
     } else {                                                                    \
       Write-Host ('✘ ({0})' -f $Hash.Hash);                                     \
-      exit 1;                                                                   \
     }                                                                           \
     Write-Host -NoNewLine 'Installing Visual Studio Build Tools ... ';          \
     $Process =                                                                  \
@@ -115,8 +114,9 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
           '--wait',                                                             \
           '--norestart',                                                        \
           '--nocache',                                                          \
-          '--add', 'Microsoft.VisualStudio.Component.Windows11SDK.22000',       \
-          '--add', 'Microsoft.VisualStudio.Component.VC.Tools.x86.x64'          \
+          '--add', 'Microsoft.VisualStudio.Component.Windows11SDK.26100',       \
+          '--add', 'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',         \
+          '--add', 'Microsoft.VisualStudio.Component.VC.Tools.ARM64'            \
         );                                                                      \
     if ($Process.ExitCode -eq 0 -or $Process.ExitCode -eq 3010) {               \
       Write-Host '✓';                                                           \
