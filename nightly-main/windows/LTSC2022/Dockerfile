@@ -95,8 +95,8 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PY39});              
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
 # Install Visual Studio Build Tools
-ARG VSB=https://aka.ms/vs/17/release/vs_buildtools.exe
-ARG VSB_SHA256=15A2A6591B1E91B63E9909864FCBC68459EB26124B814618947215F754CD9CEE
+ARG VSB=https://download.visualstudio.microsoft.com/download/pr/ae7ac791-9759-4076-bba7-47ff510c57af/a783199025439d65f310bff041e278b966a6dbed8dbcd7fc96b55389f574ef41/vs_BuildTools.exe
+ARG VSB_SHA256=95B8BCAC49757DBA2BD80827484E65B2F0EF57C11C143B87514B913839F78657
 RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               \
     Invoke-WebRequest -Uri ${env:VSB} -OutFile vs_buildtools.exe;               \
     Write-Host '✓';                                                             \
@@ -106,6 +106,7 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
       Write-Host '✓';                                                           \
     } else {                                                                    \
       Write-Host ('✘ ({0})' -f $Hash.Hash);                                     \
+      exit 1;                                                                   \
     }                                                                           \
     Write-Host -NoNewLine 'Installing Visual Studio Build Tools ... ';          \
     $Process =                                                                  \
