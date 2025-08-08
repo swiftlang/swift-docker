@@ -233,6 +233,7 @@ cp -a $ndk_home $ndk_home_tmp
 ndk_home=$ndk_home_tmp
 
 ndk_installation=$ndk_home/toolchains/llvm/prebuilt/$HOST
+ndk_clang_version=18
 
 # ANDROID_NDK env needed by the swift-android.patch for:
 # call ln -sf "${SWIFT_BUILD_PATH}/lib/swift" "${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib"
@@ -521,10 +522,6 @@ cat > $swift_res_root/SDKSettings.json <<EOF
 }
 EOF
 
-# Copy necessary headers and libraries from the toolchain and NDK clang resource directories
-mkdir -p $swift_res_root/usr/lib/swift/clang/lib
-cp -r $host_toolchain/lib/clang/*/include $swift_res_root/usr/lib/swift/clang
-
 for arch in $archs; do
     quiet_pushd ${sdk_staging}/${arch}/usr
         rm -rf bin lib/clang local
@@ -546,14 +543,6 @@ for arch in $archs; do
         mv lib/lib*.a lib/swift_static-$arch/android
 
         ln -sv ../swift/clang lib/swift_static-$arch/clang
-
-        # copy the clang libraries that we need to build for each architecture
-        aarch=${arch/armv7/arm}
-        mkdir -p lib/swift/clang/lib/linux/${aarch}
-
-        # match clang version 21, 22, etc.
-        cp -av ${ndk_installation}/lib/clang/[0-9]*/lib/linux/libclang_rt.builtins-${aarch}-android.a lib/swift/clang/lib/linux/
-        cp -av ${ndk_installation}/lib/clang/[0-9]*/lib/linux/${aarch}/libunwind.a lib/swift/clang/lib/linux/${aarch}/
     quiet_popd
 
     # now sync the massaged sdk_root into the swift_res_root
@@ -562,6 +551,9 @@ done
 
 rm -rf ${swift_res_root}/usr/share/{aclocal,doc,man}
 rm -r ${sdk_staging}
+# Link the local NDK's clang resource directory as a place-holder
+mkdir -p $swift_res_root/usr/lib/swift
+ln -s $ndk_installation/lib/clang/$ndk_clang_version $swift_res_root/usr/lib/swift/clang
 
 # create an install script to set up the NDK links
 #ANDROID_NDK_HOME="/opt/homebrew/share/android-ndk"
@@ -617,6 +609,9 @@ else
     ndk_action="${ndk_re}copied"
     cp -a ${ndk_prebuilt}/*/sysroot ${ndk_sysroot}
 fi
+
+# link the NDK's clang resource directory
+ln -sf ${ndk_prebuilt}/*/lib/clang/18 ${swift_resources}/usr/lib/swift/clang
 
 # copy each architecture's swiftrt.o into the sysroot,
 # working around https://github.com/swiftlang/swift/pull/79621
