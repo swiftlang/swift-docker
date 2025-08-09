@@ -235,11 +235,6 @@ ndk_home=$ndk_home_tmp
 ndk_installation=$ndk_home/toolchains/llvm/prebuilt/$HOST
 ndk_clang_version=18
 
-# ANDROID_NDK env needed by the swift-android.patch for:
-# call ln -sf "${SWIFT_BUILD_PATH}/lib/swift" "${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib"
-export ANDROID_NDK_HOME=$ndk_home
-export ANDROID_NDK=$ndk_home
-
 echo "Swift found at ${swift_dir}"
 if [[ ! -z "${host_toolchain}" ]]; then
     echo "Host toolchain found at ${host_toolchain}"
