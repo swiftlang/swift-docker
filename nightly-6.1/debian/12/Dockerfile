@@ -1,8 +1,5 @@
 FROM debian:12
 
-RUN groupadd -g 998 build-user && \
-    useradd -m -r -u 998 -g build-user build-user
-
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
     apt-get -q install -y \
     binutils-gold \
@@ -64,10 +61,6 @@ RUN set -e; \
     && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz
 
 ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
-
-USER build-user
-
-WORKDIR /home/build-user
 
 # Print Installed Swift Version
 RUN swift --version

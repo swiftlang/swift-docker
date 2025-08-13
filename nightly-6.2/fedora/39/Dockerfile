@@ -2,9 +2,6 @@ FROM fedora:39
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
-RUN groupadd -g 998 build-user && \
-    useradd -m -r -u 998 -g build-user build-user
-
 RUN yum -y install \
   binutils \
   gcc \
@@ -66,10 +63,6 @@ RUN set -e; \
     && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz
 
 ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
-
-USER build-user
-
-WORKDIR /home/build-user
 
 # Print Installed Swift Version
 RUN swift --version
