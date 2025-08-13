@@ -42,7 +42,7 @@ RUN set -e; \
     && export GNUPGHOME="$(mktemp -d)" \
     && curl -fsSL ${SWIFT_WEBROOT}/${DOWNLOAD_DIR}/${download} -o latest_toolchain.tar.gz \
     ${SWIFT_WEBROOT}/${DOWNLOAD_DIR}/${download_signature} -o latest_toolchain.tar.gz.sig \
-    && curl -fSsL https://swift.org/keys/all-keys.asc | gpg --import -  \
+    && curl -fSsL --compressed https://swift.org/keys/all-keys.asc | gpg --import -  \
     && gpg --batch --verify latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
     && tar -xzf latest_toolchain.tar.gz --directory / --strip-components=1 \

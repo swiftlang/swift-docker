@@ -66,7 +66,7 @@ RUN set -e; \
     && export GNUPGHOME="$(mktemp -d)" \
     && curl -fsSL ${SWIFT_WEBROOT}${OS_ARCH_SUFFIX}/${DOWNLOAD_DIR}/${download} -o latest_toolchain.tar.gz \
     ${SWIFT_WEBROOT}${OS_ARCH_SUFFIX}/${DOWNLOAD_DIR}/${download} -o latest_toolchain.tar.gz.sig \
-    && curl -fSsL https://swift.org/keys/all-keys.asc | gpg --import -  \
+    && curl -fSsL --compressed https://swift.org/keys/all-keys.asc | gpg --import -  \
     # - Unpack the toolchain, set libs permissions, and clean up.
     && mkdir -p $SWIFT_PREFIX \
     && tar -xzf latest_toolchain.tar.gz --directory $SWIFT_PREFIX --strip-components=1 \
