@@ -96,6 +96,9 @@ def main():
                 '-t', image_name,
                 docker_dir
             ]
+            clean_command = f"docker buildx prune -af"
+        else:
+            clean_command = f"docker image rm {image_name}"
 
         status = run_command(cmd, log_file=log_file)
         results[dockerfile] = status
@@ -111,7 +114,7 @@ def main():
         run_command(cmd)
         print("[{}] - {}".format(results[dockerfile], dockerfile))
         sys.stdout.flush()
-        run_command(f"docker image rm {image_name}")
+        run_command(clean_command)
     run_command("docker image prune -f")
 
     for dockerfile in dockerfiles:
