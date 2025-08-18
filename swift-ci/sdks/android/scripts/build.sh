@@ -611,7 +611,8 @@ else
 fi
 
 # link the NDK's clang resource directory
-ln -sf ${ndk_prebuilt}/*/lib/clang/18 ${swift_resources}/usr/lib/swift/clang
+# e.g., ~/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/lib/clang/18 or /opt/homebrew/share/android-ndk/toolchains/llvm/prebuilt/darwin-x86_64/lib/clang/19
+ln -sf ${ndk_prebuilt}/*/lib/clang/* ${swift_resources}/usr/lib/swift/clang
 
 # copy each architecture's swiftrt.o into the sysroot,
 # working around https://github.com/swiftlang/swift/pull/79621
