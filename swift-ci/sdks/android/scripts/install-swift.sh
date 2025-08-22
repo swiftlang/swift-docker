@@ -51,4 +51,3 @@ tar -xzf toolchain.tar.gz --directory ${destination} --strip-components=2
 chmod -R o+r ${destination}/lib/swift
 
 popd >/dev/null
-

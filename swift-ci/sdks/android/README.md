@@ -81,5 +81,9 @@ perform the build locally on an Ubuntu 24.04 machine with all the
 build prerequisites already installed. This will generate
 the same artifacts in approximately half the time, and
 may be suitable to an already containerized envrionment (such as
-a GitHub runner).
+a GitHub runner). A local build can be run with the
+`build-local` script, such as:
 
+```
+./build-local swift-6.2-branch /tmp/android-sdk-devel
+```
