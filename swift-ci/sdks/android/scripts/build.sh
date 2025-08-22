@@ -562,7 +562,7 @@ mkdir scripts/
 ndk_sysroot="ndk-sysroot"
 
 cat > scripts/setup-android-sdk.sh <<'EOF'
-#/bin/bash
+#!/usr/bin/env bash
 # this script will setup the ndk-sysroot with links to the
 # local installation indicated by ANDROID_NDK_HOME
 set -e
