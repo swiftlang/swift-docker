@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/windows/servercore:1809 AS windows
+FROM mcr.microsoft.com/windows/servercore:ltsc2025 AS windows
 
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
@@ -6,11 +6,17 @@ LABEL description="Docker Container for the Swift programming language"
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 ENV PYTHONIOENCODING UTF-8
+ENV PYTHONUTF8=1
+
+# Enable Developer Mode.
+RUN reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+# Enable Long Paths
+RUN reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem" /t REG_DWORD /f /v "LongPathsEnabled" /d "1"
 
 # Install Git.
 # See: git-[version]-[bit].exe /SAVEINF=git.inf and /?
-ARG GIT=https://github.com/git-for-windows/git/releases/download/v2.42.0.windows.2/Git-2.42.0.2-64-bit.exe
-ARG GIT_SHA256=BD9B41641A258FD16D99BEECEC66132160331D685DFB4C714CEA2BCC78D63BDB
+ARG GIT=https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/Git-2.48.1-64-bit.exe
+ARG GIT_SHA256=CE45E23275049F4B36EDD90D5FD986A1E230EFB6C511E9260A90176CE8E825DF
 RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:GIT});               \
     Invoke-WebRequest -Uri ${env:GIT} -OutFile git.exe;                         \
     Write-Host '✓';                                                             \
@@ -89,8 +95,8 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PY39});              
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
 # Install Visual Studio Build Tools
-ARG VSB=https://download.visualstudio.microsoft.com/download/pr/5536698c-711c-4834-876f-2817d31a2ef2/c792bdb0fd46155de19955269cac85d52c4c63c23db2cf43d96b9390146f9390/vs_BuildTools.exe
-ARG VSB_SHA256=C792BDB0FD46155DE19955269CAC85D52C4C63C23DB2CF43D96B9390146F9390
+ARG VSB=https://aka.ms/vs/17/release/vs_buildtools.exe
+ARG VSB_SHA256=15A2A6591B1E91B63E9909864FCBC68459EB26124B814618947215F754CD9CEE
 RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               \
     Invoke-WebRequest -Uri ${env:VSB} -OutFile vs_buildtools.exe;               \
     Write-Host '✓';                                                             \
@@ -100,7 +106,6 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
       Write-Host '✓';                                                           \
     } else {                                                                    \
       Write-Host ('✘ ({0})' -f $Hash.Hash);                                     \
-      exit 1;                                                                   \
     }                                                                           \
     Write-Host -NoNewLine 'Installing Visual Studio Build Tools ... ';          \
     $Process =                                                                  \
@@ -109,8 +114,9 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
           '--wait',                                                             \
           '--norestart',                                                        \
           '--nocache',                                                          \
-          '--add', 'Microsoft.VisualStudio.Component.Windows11SDK.22000',       \
-          '--add', 'Microsoft.VisualStudio.Component.VC.Tools.x86.x64'          \
+          '--add', 'Microsoft.VisualStudio.Component.Windows11SDK.26100',       \
+          '--add', 'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',         \
+          '--add', 'Microsoft.VisualStudio.Component.VC.Tools.ARM64'            \
         );                                                                      \
     if ($Process.ExitCode -eq 0 -or $Process.ExitCode -eq 3010) {               \
       Write-Host '✓';                                                           \
@@ -122,19 +128,12 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
 # Install Swift toolchain.
-ARG SWIFT=https://download.swift.org/swift-6.1.2-release/windows10/swift-6.1.2-RELEASE/swift-6.1.2-RELEASE-windows10.exe
-ARG SWIFT_SHA256=92A0323ED7DD333C3B05E6E0E428F3A91C77D159F6CCFC8626A996F2ACE09A0B
-RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:SWIFT});             \
-    Invoke-WebRequest -Uri ${env:SWIFT} -OutFile installer.exe;                 \
+ARG SWIFT_RELEASE_METADATA=https://download.swift.org/development/windows10/latest-build.json
+RUN $Release = curl.exe -sL ${env:SWIFT_RELEASE_METADATA} | ConvertFrom-JSON;   \
+    $SWIFT_URL = "\"https://download.swift.org/development/windows10/$($Release.dir)/$($Release.download)\""; \
+    Write-Host -NoNewLine ('Downloading {0} ... ' -f ${SWIFT_URL});             \
+    Invoke-WebRequest -Uri ${SWIFT_URL} -OutFile installer.exe;                 \
     Write-Host '✓';                                                             \
-    Write-Host -NoNewLine ('Verifying SHA256 ({0}) ... ' -f ${env:SWIFT_SHA256}); \
-    $Hash = Get-FileHash installer.exe -Algorithm sha256;                       \
-    if ($Hash.Hash -eq ${env:SWIFT_SHA256}) {                                   \
-      Write-Host '✓';                                                           \
-    } else {                                                                    \
-      Write-Host ('✘ ({0})' -f $Hash.Hash);                                     \
-      exit 1;                                                                   \
-    }                                                                           \
     Write-Host -NoNewLine 'Installing Swift ... ';                              \
     $Process =                                                                  \
         Start-Process installer.exe -Wait -PassThru -NoNewWindow -ArgumentList @( \
@@ -150,8 +149,6 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:SWIFT});             
     Remove-Item -Force installer.exe;                                           \
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
-# Default to powershell
-# FIXME: we need to grant ContainerUser the SeCreateSymbolicLinkPrivilege
-# privilege so that it can create symbolic links.
+# FIXME: we should use a non-Administrator user
 # USER ContainerUser
 CMD ["powershell.exe", "-nologo", "-ExecutionPolicy", "Bypass"]

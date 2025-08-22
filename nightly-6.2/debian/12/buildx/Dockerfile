@@ -1,8 +1,5 @@
 FROM debian:12 as Base
 
-RUN groupadd -g 998 build-user && \
-    useradd -m -r -u 998 -g build-user build-user
-
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
     apt-get -q install -y \
     binutils-gold \
@@ -66,7 +63,7 @@ RUN set -e; \
     && export GNUPGHOME="$(mktemp -d)" \
     && curl -fsSL ${SWIFT_WEBROOT}${OS_ARCH_SUFFIX}/${DOWNLOAD_DIR}/${download} -o latest_toolchain.tar.gz \
     ${SWIFT_WEBROOT}${OS_ARCH_SUFFIX}/${DOWNLOAD_DIR}/${download} -o latest_toolchain.tar.gz.sig \
-    && curl -fSsL https://swift.org/keys/all-keys.asc | gpg --import -  \
+    && curl -fSsL --compressed https://swift.org/keys/all-keys.asc | gpg --import -  \
     # - Unpack the toolchain, set libs permissions, and clean up.
     && mkdir -p $SWIFT_PREFIX \
     && tar -xzf latest_toolchain.tar.gz --directory $SWIFT_PREFIX --strip-components=1 \
@@ -74,10 +71,6 @@ RUN set -e; \
     && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz
 
 ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
-
-USER build-user
-
-WORKDIR /home/build-user
 
 # Print Installed Swift Version
 RUN swift --version

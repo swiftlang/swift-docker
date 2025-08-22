@@ -243,15 +243,15 @@ header "Building CMake from source"
 
 quiet_pushd ${source_dir}/swift-project/cmake
 run cmake -G 'Ninja' ./ \
-    -B ${source_dir}/swift-project/cmake/build \
-    -DCMAKE_INSTALL_PREFIX=${source_dir}/swift-project/cmake/install \
+    -B ${build_dir}/cmake/build \
+    -DCMAKE_INSTALL_PREFIX=${build_dir}/cmake/install \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_USE_OPENSSL=OFF \
     -DBUILD_CursesDialog=OFF \
     -DBUILD_TESTING=OFF
-run ninja -C ${source_dir}/swift-project/cmake/build
-run ninja -C ${source_dir}/swift-project/cmake/build install
-run export PATH="${source_dir}/swift-project/cmake/install/bin:$PATH"
+run ninja -C ${build_dir}/cmake/build
+run ninja -C ${build_dir}/cmake/build install
+run export PATH="${build_dir}/cmake/install/bin:$PATH"
 quiet_popd
 run cmake --version
 
