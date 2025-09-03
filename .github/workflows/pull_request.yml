@@ -28,14 +28,6 @@ jobs:
        fail-fast: false
        matrix:
          include:
-           #- swift-version: 'swift-6.2-branch'
-           #  build-type: 'docker'
-           #  build-compiler: '1'
-           #  runner: 'self-hosted'
-           #- swift-version: 'development'
-           #  build-type: 'docker'
-           #  build-compiler: '1'
-           #  runner: 'self-hosted'
            - swift-version: 'swift-6.2-branch'
              build-type: 'docker'
              build-compiler: '0'
@@ -45,11 +37,8 @@ jobs:
              build-compiler: '0'
              runner: 'ubuntu-24.04'
      runs-on: ${{ matrix.runner }}
-     # 15 hour timeout
-     timeout-minutes: 900
      steps:
       - name: Free Disk Space
-        if: ${{ matrix.runner != 'self-hosted' }}
         run: |
           df -h
           # brings available space from 25G to 32G
@@ -133,7 +122,6 @@ jobs:
           name: ${{ steps.info.outputs.artifact-name }}
           path: ${{ steps.info.outputs.artifact-path }}
       - name: Cleanup
-        if: ${{ matrix.runner != 'self-hosted' }}
         run: |
           # need to free up some space or else when installing we get: No space left on device
           df -h
@@ -142,7 +130,6 @@ jobs:
           sudo docker builder prune -a
           df -h
       - name: Install artifactbundle
-        if: ${{ matrix.runner != 'self-hosted' }}
         shell: bash
         run: |
           set -ex
@@ -153,7 +140,6 @@ jobs:
           echo "ANDROID_NDK_ROOT=" >> $GITHUB_ENV
 
       - name: Create Demo Project
-        if: ${{ matrix.runner != 'self-hosted' }}
         run: |
           cd ${{ runner.temp }}
           mkdir DemoProject
@@ -168,7 +154,6 @@ jobs:
           echo 'import Android' >> Sources/DemoProject/DemoProject.swift
       - name: Test Demo Project on Android
         uses: skiptools/swift-android-action@main
-        if: ${{ matrix.runner != 'self-hosted' }}
         with:
           # only test for the complete arch SDK build to speed up CI
           #run-tests: ${{ matrix.arch == '' }}
@@ -177,13 +162,11 @@ jobs:
           installed-swift: ${{ steps.info.outputs.swift-root }}
 
       - name: Checkout swift-algorithms
-        if: ${{ matrix.runner != 'self-hosted' }}
         uses: actions/checkout@v4
         with:
           repository: apple/swift-algorithms
           path: swift-algorithms
       - name: Test swift-algorithms
-        if: ${{ matrix.runner != 'self-hosted' }}
         uses: skiptools/swift-android-action@main
         with:
           package-path: swift-algorithms
