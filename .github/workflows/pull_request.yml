@@ -21,4 +21,3 @@ jobs:
           name: docker-logs
           path: |
             *.log
-
