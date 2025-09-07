@@ -86,8 +86,8 @@ EOF
 }
 
 # Defaults
-if [[ -z "${SWIFT_VERSION}" ]]; then
-    SWIFT_VERSION=scheme:release/6.1
+if [[ -z "${SWIFT_VERSION}" || ($SWIFT_VERSION != scheme:* && $SWIFT_VERSION != tag:*) ]]; then
+    SWIFT_VERSION=scheme:release/6.2
 fi
 if [[ -z "${BORINGSSL_VERSION}" ]]; then
     BORINGSSL_VERSION=fips-20220613

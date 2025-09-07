@@ -23,7 +23,7 @@ ANDROID_API=28
 BASEPATH=$(dirname $(realpath $0))
 cd ${BASEPATH}
 
-export BUILD_SCHEME=${1}
+export SWIFT_VERSION=${1}
 # note that WORKDIR must not be under the current checkout or the patches will fail to apply
 WORKDIR=${2}
 if [[ "${WORKDIR}" == '' ]]; then
@@ -36,18 +36,16 @@ WORKDIR=$(realpath ${WORKDIR})
 HOST_OS=ubuntu$(lsb_release -sr)
 source ./scripts/toolchain-vars.sh
 
-if [[ "${BUILD_COMPILER}" != "1" ]]; then
-    SWIFT_ROOT=${WORKDIR}/host-toolchain
-    HOST_TOOLCHAIN=$SWIFT_ROOT/$SWIFT_BASE/usr
-    if [[ ! -d "$HOST_TOOLCHAIN" ]]; then
-        ./scripts/install-swift.sh ${HOST_TOOLCHAIN}
-    fi
-
-    $HOST_TOOLCHAIN/bin/swift --version
-
-    # ensure the correct Swift is first in the PATH
-    export PATH=$HOST_TOOLCHAIN/bin:$PATH
+SWIFT_ROOT=${WORKDIR}/host-toolchain
+HOST_TOOLCHAIN=$SWIFT_ROOT/$SWIFT_BASE/usr
+if [[ ! -d "$HOST_TOOLCHAIN" ]]; then
+    ./scripts/install-swift.sh ${HOST_TOOLCHAIN}
 fi
+
+$HOST_TOOLCHAIN/bin/swift --version
+
+# ensure the correct Swift is first in the PATH
+export PATH=$HOST_TOOLCHAIN/bin:$PATH
 
 export ANDROID_NDK_HOME=${WORKDIR}/ndk/${ANDROID_NDK_VERSION}
 
@@ -62,7 +60,7 @@ fi
 
 
 # Check-out and patch the sources
-./scripts/fetch-source.sh --source-dir ${WORKDIR}/source --swift-tag ${SWIFT_TAG}
+./scripts/fetch-source.sh --source-dir ${WORKDIR}/source
 # This `git grep` invocation in a trunk test fails in our Docker for some
 # reason, so just turn it into a plain `grep` again.
 perl -pi -e 's:"git",:#:' ${WORKDIR}/source/swift-project/swift/test/Misc/verify-swift-feature-testing.test-sh

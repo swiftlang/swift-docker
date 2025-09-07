@@ -16,20 +16,15 @@ $ ./build-docker <version> <workdir>
 for example:
 
 ```
-$ ./build-docker release /tmp/android-sdk
+$ ./build-docker tag:swift-6.2-RELEASE /tmp/android-sdk
 ```
 
 This will create an Ubuntu 24.04 container with the necessary dependencies
 to build the Android SDK, including a Swift host toolchain and the
 Android NDK that will be used for cross-compilation.
 
-The `version` argument can be one of the following values:
-
-| version | Swift version example |
-| --- | --- |
-| `release` | swift-6.1-RELEASE |
-| `swift-6.2-branch` | swift-6.2-DEVELOPMENT-SNAPSHOT-yyyy-mm-dd |
-| `development` | swift-DEVELOPMENT-SNAPSHOT-yyyy-mm-dd |
+The `version` argument can be a branch scheme, like "scheme:release/6.2", or a
+tag, like "tag:swift-6.2-DEVELOPMENT-SNAPSHOT-2025-09-04-a".
 
 > [!WARNING]
 > The workdir argument must not be located in a git repository (e.g., it cannot be the
@@ -41,7 +36,7 @@ The top-level `./build-docker` script installs a host toolchain and the
 Android NDK, and then invokes `scripts/fetch-source.sh` which will
 fetch tagged sources for libxml2, curl, boringssl, and swift.
 
-It then applies some patches and invokes `scripts/build.sh`,
+It then applies some perl substitutions and invokes `scripts/build.sh`,
 which will build the sources for each of the specified
 architectures and then combines the SDKs into a single
 artifactbundle with targetTriples for each of the supported
@@ -50,7 +45,7 @@ and Android API levels (28-35).
 
 ## Specifying Architectures
 
-By default all the supported Android architectures
+By default, all the supported Android architectures
 will be built, but this can be reduced in order to speed
 up the build. This can be useful, e.g., as part of a CI that
 validates a pull request, as building a single architecture
@@ -60,19 +55,20 @@ whereas building for all the architectures takes over an hour.
 To build an artifactbundle for just the `x86_64` architecture, run:
 
 ```
-TARGET_ARCHS=x86_64 ./build-docker release /tmp/android-sdk
+TARGET_ARCHS=x86_64 ./build-docker scheme:main /tmp/android-sdk
 ```
 
-## Installing and validating the SDK
+## Building the Swift compiler from source and running the validation suite
 
-The `.github/workflows/pull_request.yml` workflow
-will create and upload an installable SDK named something like:
-`swift-6.1-RELEASE_android-0.1.artifactbundle.tar.gz`
+All tags that are specified will download the official release or snapshot
+toolchain and build only the bundle by default, while building from a branch
+scheme always builds the full Swift compiler from the latest commit in that
+branch. If you want to build the Swift compiler from source for a tag also and
+run the compiler validation suite, specify the `BUILD_COMPILER` variable:
 
-The GitHub workflow will also install the SDK locally and use
-[swift-android-action](https://github.com/marketplace/actions/swift-android-action)
-to build and test various Swift packages in an Android emulator using the
-freshly-created SDK bundle.
+```
+BUILD_COMPILER=yes ./build-docker tag:swift-DEVELOPMENT-SNAPSHOT-2025-09-04-a /tmp/android-sdk
+```
 
 ## Building locally
 
@@ -85,5 +81,5 @@ a GitHub runner). A local build can be run with the
 `build-local` script, such as:
 
 ```
-./build-local swift-6.2-branch /tmp/android-sdk-devel
+./build-local scheme:release/6.2 /tmp/android-sdk
 ```
