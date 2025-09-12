@@ -1,0 +1,75 @@
+#!/bin/bash -e
+#
+# ===----------------------------------------------------------------------===
+#
+#  Swift Android SDK: Docker Container Build Script
+#
+#  This source file is part of the Swift.org open source project
+#
+#  Copyright (c) 2025 Apple Inc. and the Swift project authors
+#  Licensed under Apache License v2.0 with Runtime Library Exception
+#
+#  See https://swift.org/LICENSE.txt for license information
+#  See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+#
+# ===----------------------------------------------------------------------===
+
+# default architectures to build for
+TARGET_ARCHS=${TARGET_ARCHS:-aarch64,x86_64,armv7}
+
+ANDROID_NDK_VERSION=android-ndk-r27d
+ANDROID_API=28
+
+BASEPATH=$(dirname $(realpath $0))
+cd ${BASEPATH}
+
+export SWIFT_VERSION=${1}
+# note that WORKDIR must not be under the current checkout or the patches will fail to apply
+WORKDIR=${2}
+if [[ "${WORKDIR}" == '' ]]; then
+    echo "Usage: $(basename $0) <release/devel/trunk> <work directory>"
+    exit 1
+fi
+mkdir -p ${WORKDIR}
+WORKDIR=$(realpath ${WORKDIR})
+
+HOST_OS=ubuntu24.04
+source ./scripts/toolchain-vars.sh
+
+# Check-out and patch the sources
+./scripts/fetch-source.sh --source-dir ${WORKDIR}/source
+
+# This `git grep` invocation in a trunk test fails in our Docker for some
+# reason, so just turn it into a plain `grep` again.
+perl -pi -e 's:"git",:#:' ${WORKDIR}/source/swift-project/swift/test/Misc/verify-swift-feature-testing.test-sh
+
+# Work around swiftlang/swift-driver#1822 for now
+perl -pi -g -we "s#(call rm ... \".\{LIBDISPATCH_BUILD_DIR\}\"\n(\s+)fi\n)#\1\2if [[ -d \"\\\${ANDROID_NDK}\" ]]; then call ln -sf \"\\\${SWIFT_BUILD_PATH}/lib/swift\" \"\\\${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib\"; fi#" ${WORKDIR}/source/swift-project/swift/utils/build-script-impl
+
+# disable backtrace() for Android (needs either API33+ or libandroid-execinfo, or to manually add in backtrace backport)
+perl -pi -e 's;os\(Android\);os\(AndroidDISABLED\);g' ${WORKDIR}/source/swift-project/swift-testing/Sources/Testing/SourceAttribution/Backtrace.swift
+
+mkdir -p ${WORKDIR}/products
+chmod ugo+rwx ${WORKDIR}/products
+
+if [[ "$DOCKER" == "" ]]; then
+    DOCKER=docker
+fi
+
+CONTAINER_NAME="swift-android"
+
+# Build the Docker image
+$DOCKER build --build-arg OS_ARCH_SUFFIX=$OS_ARCH_SUFFIX --build-arg SWIFT_TOOLCHAIN_URL=$SWIFT_TOOLCHAIN_URL --build-arg ANDROID_NDK_VERSION=$ANDROID_NDK_VERSION -t ${CONTAINER_NAME} .
+
+$DOCKER run -i --rm \
+          -v ${WORKDIR}/source:/source \
+          -v ${WORKDIR}/products:/products:rw \
+          ${CONTAINER_NAME} \
+          /scripts/build.sh \
+            --source-dir "/source" \
+            --products-dir "/products" \
+            --host-toolchain "/usr/local/swift" \
+            --build-compiler "${BUILD_COMPILER}" \
+            --android-api "${ANDROID_API}" \
+            --ndk-home "/usr/local/ndk/${ANDROID_NDK_VERSION}" \
+            --archs "${TARGET_ARCHS}"
