@@ -239,6 +239,8 @@ function run() {
     "$@"
 }
 
+# -----------------------------------------------------------------------
+
 header "Building CMake from source"
 
 quiet_pushd ${source_dir}/swift-project/cmake
@@ -255,6 +257,8 @@ run export PATH="${build_dir}/cmake/install/bin:$PATH"
 quiet_popd
 run cmake --version
 
+# -----------------------------------------------------------------------
+
 header "Patching Musl"
 
 echo -n "Patching Musl for locale support... "
@@ -267,6 +271,14 @@ else
     echo "failed"
     exit 1
 fi
+
+# -----------------------------------------------------------------------
+
+header "Patching BoringSSL"
+
+echo -n "Patching BoringSSL to disable -Werror... "
+sed -i.bak "s/-Werror //g" ${source_dir}/boringssl/CMakeLists.txt
+echo "done"
 
 # -----------------------------------------------------------------------
 
