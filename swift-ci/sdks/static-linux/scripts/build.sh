@@ -268,6 +268,37 @@ else
     exit 1
 fi
 
+# -----------------------------------------------------------------------
+
+header "Building clang for host"
+
+mkdir -p ${build_dir}/host/clang ${build_dir}/clang
+
+run cmake -G Ninja -S ${source_dir}/swift-project/llvm-project/llvm \
+    -B ${build_dir}/host/clang \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DLLVM_ENABLE_PROJECTS="clang" \
+    -DLLVM_PARALLEL_LINK_JOBS=1 \
+    -DCMAKE_INSTALL_PREFIX=${build_dir}/clang
+
+quiet_pushd ${build_dir}/host/clang
+run ninja -j$parallel_jobs
+quiet_popd
+
+header "Installing clang for host"
+
+quiet_pushd ${build_dir}/host/clang
+run ninja -j$parallel_jobs install
+quiet_popd
+
+clang_dir=${build_dir}/clang
+
+header "Clang version"
+
+${clang_dir}/bin/clang --version
+
+# -----------------------------------------------------------------------
+
 for arch in $archs; do
 
     # Fix architecture names
@@ -288,11 +319,11 @@ for arch in $archs; do
           "${sdk_root}/usr/lib/swift_static"
     ln -sf ../swift/clang "${sdk_root}/usr/lib/swift_static/clang"
 
-    clang_resource_dir=$(${swift_dir}/bin/clang -print-resource-dir)
+    clang_resource_dir=$(${clang_dir}/bin/clang -print-resource-dir)
     cp -rT $clang_resource_dir/include $sdk_resource_dir/include
 
-    cc="${swift_dir}/bin/clang -target $triple -resource-dir ${sdk_resource_dir} --sysroot ${sdk_root}"
-    cxx="${swift_dir}/bin/clang++ -target $triple -resource-dir ${sdk_resource_dir} --sysroot ${sdk_root} -stdlib=libc++ -unwindlib=libunwind"
+    cc="${clang_dir}/bin/clang -target $triple -resource-dir ${sdk_resource_dir} --sysroot ${sdk_root}"
+    cxx="${clang_dir}/bin/clang++ -target $triple -resource-dir ${sdk_resource_dir} --sysroot ${sdk_root} -stdlib=libc++ -unwindlib=libunwind"
     as="$cc"
 
     # Creating this gets rid of a warning
@@ -406,9 +437,9 @@ set(CMAKE_SYSROOT ${sdk_root})
 set(CMAKE_CROSSCOMPILING=YES)
 set(CMAKE_EXE_LINKER_FLAGS "-unwindlib=libunwind -rtlib=compiler-rt -stdlib=libc++ -fuse-ld=lld -lc++ -lc++abi")
 
-set(CMAKE_C_COMPILER ${swift_dir}/bin/clang -resource-dir ${sdk_resource_dir})
-set(CMAKE_CXX_COMPILER ${swift_dir}/bin/clang++ -resource-dir ${sdk_resource_dir} -stdlib=libc++)
-set(CMAKE_ASM_COMPILER ${swift_dir}/bin/clang -resource-dir ${sdk_resource_dir})
+set(CMAKE_C_COMPILER ${clang_dir}/bin/clang -resource-dir ${sdk_resource_dir})
+set(CMAKE_CXX_COMPILER ${clang_dir}/bin/clang++ -resource-dir ${sdk_resource_dir} -stdlib=libc++)
+set(CMAKE_ASM_COMPILER ${clang_dir}/bin/clang -resource-dir ${sdk_resource_dir})
 set(CMAKE_FIND_ROOT_PATH ${sdk_root})
 EOF
 
