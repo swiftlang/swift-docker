@@ -174,7 +174,32 @@ resource_dir="${script_dir}/../resources"
 # Find the version numbers of the various dependencies
 function describe {
     pushd $1 >/dev/null 2>&1
-    git describe --tags
+
+    desc=$(git describe --tags)
+    extra=
+
+    # Although git describe is documented as returning the newest tag,
+    # if a given revision has multiple tags, it will actually return
+    # the first one it finds, so we have some more work to do here.
+
+    # If we aren't pointing directly at a tag, git describe will append
+    # -<number-of-commits>-g<truncated-hash> to the nearest tag.  Strip
+    # this, but keep a note of it for later.
+    if [[ $desc =~ '-[0-9]+-g[0-9a-f]{11}$' ]]; then
+        stripped=${desc%-*-g*}
+        extra=${desc#$stripped}
+        desc=$stripped
+    fi
+
+    # Get the hash for the tag
+    rev=$(git rev-list -n 1 tags/$desc)
+
+    # Now find the newest tag at that hash, using version number ordering
+    latest_tag=$(git tag --points-at $rev | sort -V | tail -n 1)
+
+    # Stick it all back together
+    echo $latest_tag$extra
+
     popd >/dev/null 2>&1
 }
 function versionFromTag {
