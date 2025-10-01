@@ -406,7 +406,7 @@ EOF
     # Make some directories
     mkdir -p "$build_dir/$arch/musl" \
           "$build_dir/$arch/runtimes" \
-          "$sdk_root/$arch/usr"
+          "$sdk_root/usr"
 
     # -----------------------------------------------------------------------
 
@@ -653,23 +653,17 @@ EOF
 
     # -----------------------------------------------------------------------
 
-    header "Building bzip2 for $arch"
+    header "Building and installing bzip2 for $arch"
+
+    # We do this in a single step because bzip2's Makefile has
+    # its `test` action as a dependency of `all`, and that won't work
+    # when we're cross-compiling unless we've got the right binformat
+    # modules installed.
+    #
+    # The `install` action doesn't have this problem.
 
     rm -rf ${build_dir}/$arch/bzip2
     cp -R ${source_dir}/bzip2 ${build_dir}/$arch/bzip2
-    quiet_pushd $build_dir/$arch/bzip2
-    run make \
-        CC="$cc" \
-        CXX="$cxx" \
-        LDFLAGS="$ldflags" \
-        CXXLDFLAGS="$cxxldflags" \
-        AS="$as" \
-        AR="ar" RANLIB="ranlib" \
-        PREFIX=$sdk_root/usr
-    quiet_popd
-
-    header "Installing bzip2 for $arch"
-
     quiet_pushd $build_dir/$arch/bzip2
     run make install \
         CC="$cc" \
@@ -699,6 +693,7 @@ EOF
 
     quiet_pushd ${build_dir}/$arch/xz
     run ninja -j$parallel_jobs install
+
     quiet_popd
 
     # -----------------------------------------------------------------------
@@ -713,7 +708,7 @@ EOF
           -DBUILD_SHARED_LIBS=NO \
           -DLIBXML2_WITH_PYTHON=NO \
           -DLIBXML2_WITH_ICU=NO \
-          -DLIBXML2_WITH_LZMA=YES
+          -DLIBXML2_WITH_LZMA=NO
 
     quiet_pushd ${build_dir}/$arch/libxml2
     run ninja -j$parallel_jobs
@@ -953,6 +948,21 @@ EOF
     rm -rf \
        $sdk_root/usr/lib/swift/linux \
        $sdk_root/usr/lib/swift_static/linux
+
+    # -----------------------------------------------------------------------
+
+    header "Removing unnecessary files"
+
+    # Some of the scripts that get installed into /usr/bin are GPL'd.
+    # We don't want those, but also we don't really need the things in
+    # /usr/bin at all here.  Same goes for the man pages and documentation
+    # that get installed; if users want those things, installing the
+    # package on the host system makes more sense.
+
+    for dir in usr/bin man usr/share/doc usr/share/man; do
+        echo "  $dir"
+        rm -rf ${sdk_root}/$dir
+    done
 
 done
 
