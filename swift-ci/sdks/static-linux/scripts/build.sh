@@ -620,11 +620,34 @@ EOF
     run ninja -j$parallel_jobs install
     quiet_popd
 
-    # Make sure we link mimalloc
-    ldflags="-lmimalloc $ldflags"
-    cxxldflags="-lmimalloc $cxxldflags"
-    sed -i -e 's/-lc++ /-lmimalloc -lc++ /g' \
-        ${build_dir}/${arch}/toolchain.cmake 
+    # Remove the Musl allocator from libc and replace it with mimalloc
+    # (yes, musl has two realloc.lo and two free.lo files in its archive.)
+    ar d ${sdk_root}/usr/lib/libc.a \
+       aligned_alloc.lo \
+       calloc.lo \
+       free.lo \
+       free.lo \
+       libc_calloc.lo \
+       lite_malloc.lo \
+       malloc.lo \
+       malloc_usable_size.lo \
+       memalign.lo \
+       posix_memalign.lo \
+       realloc.lo \
+       realloc.lo \
+       reallocarray.lo \
+       strdup.lo \
+       strndup.lo \
+       valloc.lo \
+       wcsdup.lo
+    ar r ${sdk_root}/usr/lib/libc.a ${sdk_root}/usr/lib/mimalloc.o
+    rm ${sdk_root}/usr/lib/mimalloc.o
+    rm ${sdk_root}/usr/include/mimalloc-override.h
+
+    # Also remove std::operator new and std::operator delete from libc++abi;
+    # the code for these is in mimalloc.o, and we don't want a symbol clash.
+    ar d ${sdk_root}/usr/lib/libc++abi.a \
+       stdlib_new_delete.cpp.o
 
     # -----------------------------------------------------------------------
 
@@ -702,7 +725,7 @@ EOF
 
     run cmake -G Ninja -S ${source_dir}/libxml2 -B ${build_dir}/$arch/libxml2 \
           -DCMAKE_TOOLCHAIN_FILE=${build_dir}/$arch/toolchain.cmake \
-          -DCMAKE_EXTRA_LINK_FLAGS="-rtlib=compiler-rt -unwindlib=libunwind -stdlib=libc++ -fuse-ld=lld -lmimalloc -lc++ -lc++abi" \
+          -DCMAKE_EXTRA_LINK_FLAGS="-rtlib=compiler-rt -unwindlib=libunwind -stdlib=libc++ -fuse-ld=lld -lc++ -lc++abi" \
           -DCMAKE_BUILD_TYPE=RelWithDebInfo \
           -DCMAKE_INSTALL_PREFIX=$sdk_root/usr \
           -DBUILD_SHARED_LIBS=NO \
@@ -819,7 +842,6 @@ EOF
 -stdlib=libc++
 -fuse-ld=lld
 -unwindlib=libunwind
--lmimalloc
 -lc++abi
 -static
 EOF
