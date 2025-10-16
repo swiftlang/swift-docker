@@ -106,7 +106,7 @@ RUN Write-Host -NoNewLine 'Installing Swift ... ';                              
     Remove-Item -Force installer.exe;                                           \
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
-# Build argument for entr    
+# Build argument for entry point script.
 ARG ENTRY_POINT
 
 RUN if (-not ${env:ENTRY_POINT}.EndsWith('.ps1')) {                             \
