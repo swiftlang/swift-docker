@@ -236,7 +236,7 @@ if [[ $swift_version == swift-* ]]; then
 fi
 
 if [[ -z "$sdk_name" ]]; then
-    sdk_name=swift-${swift_version}-android-${android_sdk_version}
+    sdk_name=swift-${swift_version}_android
 fi
 
 libxml2_version=$(versionFromTag ${swift_source_dir}/libxml2)
