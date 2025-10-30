@@ -6,6 +6,7 @@ RUN yum -y install \
   binutils \
   gcc \
   git \
+  zip \
   unzip \
   libcurl-devel \
   libedit-devel \
