@@ -128,7 +128,7 @@ declare_package boringssl "boringssl" "OpenSSL AND ISC AND MIT" \
 android_sdk_version=0.1
 sdk_name=
 archs=aarch64,armv7,x86_64
-android_api=28
+android_api=23
 build_type=Release
 parallel_jobs=$(($(nproc --all) + 2))
 source_dir=
@@ -345,12 +345,12 @@ for arch in $archs; do
             -DCMAKE_TOOLCHAIN_FILE=$ndk_home/build/cmake/android.toolchain.cmake \
             -DCMAKE_BUILD_TYPE=$build_type \
             -DCMAKE_EXTRA_LINK_FLAGS="-rtlib=compiler-rt -unwindlib=libunwind -stdlib=libc++ -fuse-ld=lld -lc++ -lc++abi -Wl,-z,max-page-size=16384" \
-            -DCMAKE_BUILD_TYPE=$build_type \
             -DCMAKE_INSTALL_PREFIX=$sdk_root/usr \
             -DLIBXML2_WITH_PYTHON=NO \
             -DLIBXML2_WITH_ICU=NO \
             -DLIBXML2_WITH_ICONV=NO \
             -DLIBXML2_WITH_LZMA=NO \
+            -DLIBXML2_WITH_TESTS=OFF \
             -DBUILD_SHARED_LIBS=OFF \
             -DBUILD_STATIC_LIBS=ON
 
