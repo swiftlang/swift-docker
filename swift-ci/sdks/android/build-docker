@@ -18,7 +18,6 @@
 TARGET_ARCHS=${TARGET_ARCHS:-aarch64,x86_64,armv7}
 
 ANDROID_NDK_VERSION=android-ndk-r27d
-ANDROID_API=28
 
 BASEPATH=$(dirname $(realpath $0))
 cd ${BASEPATH}
@@ -38,16 +37,6 @@ source ./scripts/toolchain-vars.sh
 
 # Check-out and patch the sources
 ./scripts/fetch-source.sh --source-dir ${WORKDIR}/source
-
-# This `git grep` invocation in a trunk test fails in our Docker for some
-# reason, so just turn it into a plain `grep` again.
-perl -pi -e 's:"git",:#:' ${WORKDIR}/source/swift-project/swift/test/Misc/verify-swift-feature-testing.test-sh
-
-# Work around swiftlang/swift-driver#1822 for now
-perl -pi -g -we "s#(call rm ... \".\{LIBDISPATCH_BUILD_DIR\}\"\n(\s+)fi\n)#\1\2if [[ -d \"\\\${ANDROID_NDK}\" ]]; then call ln -sf \"\\\${SWIFT_BUILD_PATH}/lib/swift\" \"\\\${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib\"; fi#" ${WORKDIR}/source/swift-project/swift/utils/build-script-impl
-
-# disable backtrace() for Android (needs either API33+ or libandroid-execinfo, or to manually add in backtrace backport)
-perl -pi -e 's;os\(Android\);os\(AndroidDISABLED\);g' ${WORKDIR}/source/swift-project/swift-testing/Sources/Testing/SourceAttribution/Backtrace.swift
 
 mkdir -p ${WORKDIR}/products
 chmod ugo+rwx ${WORKDIR}/products
@@ -70,6 +59,5 @@ $DOCKER run -i --rm \
             --products-dir "/products" \
             --host-toolchain "/usr/local/swift" \
             --build-compiler "${BUILD_COMPILER}" \
-            --android-api "${ANDROID_API}" \
             --ndk-home "/usr/local/ndk/${ANDROID_NDK_VERSION}" \
             --archs "${TARGET_ARCHS}"

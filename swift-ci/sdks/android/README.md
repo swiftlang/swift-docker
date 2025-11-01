@@ -41,7 +41,7 @@ which will build the sources for each of the specified
 architectures and then combines the SDKs into a single
 artifactbundle with targetTriples for each of the supported
 architectures (`aarch64`, `x86_64`, `aarmv7`)
-and Android API levels (28-35).
+and Android API levels (23-35).
 
 ## Specifying Architectures
 
