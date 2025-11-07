@@ -52,14 +52,14 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:GIT});               
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
 # Install Python
-ARG PY39=https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe
-ARG PY39_SHA256=FB3D0466F3754752CA7FD839A09FFE53375FF2C981279FD4BC23A005458F7F5D
-RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PY39});              \
-    Invoke-WebRequest -Uri ${env:PY39} -OutFile python-3.9.13-amd64.exe;        \
+ARG PY310=https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe
+ARG PY310_SHA256=D8DEDE5005564B408BA50317108B765ED9C3C510342A598F9FD42681CBE0648B
+RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PY310});             \
+    Invoke-WebRequest -Uri ${env:PY310} -OutFile python-3.10.11-amd64.exe;      \
     Write-Host '✓';                                                             \
-    Write-Host -NoNewLine ('Verifying SHA256 ({0}) ... ' -f ${env:PY39_SHA256});\
-    $Hash = Get-FileHash python-3.9.13-amd64.exe -Algorithm sha256;             \
-    if ($Hash.Hash -eq ${env:PY39_SHA256}) {                                    \
+    Write-Host -NoNewLine ('Verifying SHA256 ({0}) ... ' -f ${env:PY310_SHA256});\
+    $Hash = Get-FileHash python-3.10.11-amd64.exe -Algorithm sha256;            \
+    if ($Hash.Hash -eq ${env:PY310_SHA256}) {                                   \
       Write-Host '✓';                                                           \
     } else {                                                                    \
       Write-Host ('✘ ({0})' -f $Hash.Hash);                                     \
@@ -67,7 +67,7 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PY39});              
     }                                                                           \
     Write-Host -NoNewLine 'Installing Python ... ';                             \
     $Process =                                                                  \
-        Start-Process python-3.9.13-amd64.exe -Wait -PassThru -NoNewWindow -ArgumentList @( \
+        Start-Process python-3.10.11-amd64.exe -Wait -PassThru -NoNewWindow -ArgumentList @( \
            'AssociateFiles=0',                                                  \
            'Include_doc=0',                                                     \
            'Include_debug=0',                                                   \
@@ -85,7 +85,7 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PY39});              
       Write-Host ('✘ ({0})' -f $Process.ExitCode);                              \
       exit 1;                                                                   \
     }                                                                           \
-    Remove-Item -Force python-3.9.13-amd64.exe;                                 \
+    Remove-Item -Force python-3.10.11-amd64.exe;                                \
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
 # Install Visual Studio Build Tools
