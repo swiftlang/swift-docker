@@ -161,3 +161,32 @@ pushd boringssl >/dev/null 2>&1
 git checkout ${BORINGSSL_VERSION}
 popd >/dev/null 2>&1
 groupend
+
+groupstart "Patching Sources"
+pushd swift-project >/dev/null
+
+# This `git grep` invocation in a trunk test fails in our Docker for some
+# reason, so just turn it into a plain `grep` again.
+perl -pi -e 's:"git",:#:' swift/test/Misc/verify-swift-feature-testing.test-sh
+
+# Work around swiftlang/swift-driver#1822 for now
+perl -pi -g -we "s#(call rm ... \".\{LIBDISPATCH_BUILD_DIR\}\"\n(\s+)fi\n)#\1\2if [[ -d \"\\\${ANDROID_NDK}\" ]]; then call ln -sf \"\\\${SWIFT_BUILD_PATH}/lib/swift\" \"\\\${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib\"; fi#" swift/utils/build-script-impl
+
+# fix optional result value in backtrace() call
+perl -pi -e 's;.init\(clamping: addresses.count\)\)\);.init\(clamping: addresses.count\)\) ?? 0\);g' swift-testing/Sources/Testing/SourceAttribution/Backtrace.swift
+
+# disable backtrace() for Android (needs either API33+ or libandroid-execinfo, or to manually add in backtrace backport); will be fixed post 6.2 (in which case only the above patch is needed)
+perl -pi -e 's;os\(Android\);os\(AndroidDISABLED\);g' swift-testing/Sources/Testing/SourceAttribution/Backtrace.swift
+
+
+# Disable posix_spawnattr_* calls for Android API 23
+perl -pi -e 's;try _throwIfPosixError\(posix_spawnattr_init;throw NSError\(domain: NSPOSIXErrorDomain, code: .init\(ENOEXEC\), userInfo: [ NSLocalizedFailureReasonErrorKey: "Process unavailable on Android" ]\) //try _throwIfPosixError\(posix_spawnattr_init;g' swift-corelibs-foundation/Sources/Foundation/Process.swift
+perl -pi -e 's;try _throwIfPosixError\(posix_spawnattr_setflags;//try _throwIfPosixError\(posix_spawnattr_setflags;g' swift-corelibs-foundation/Sources/Foundation/Process.swift
+perl -pi -e 's;posix_spawnattr_destroy;//posix_spawnattr_destroy;g' swift-corelibs-foundation/Sources/Foundation/Process.swift
+
+# Stub out getgrgid_r and getgrnam_r missing from Android API 23
+perl -pi -e 's;getgrgid_r|getgrnam_r;{ _, _, _, _, _ in 0 };g' swift-foundation/Sources/FoundationEssentials/Platform.swift
+
+popd >/dev/null 2>&1
+groupend
+
