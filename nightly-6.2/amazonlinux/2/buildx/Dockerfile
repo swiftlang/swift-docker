@@ -70,7 +70,7 @@ RUN set -e; \
     && chmod -R o+r $SWIFT_PREFIX/usr/lib/swift \
     # This is a compatibility workaround for those who expect `swift` to be in `/usr/bin/`.
     && ln -sf $SWIFT_PREFIX/usr/bin/* /usr/bin/ \
-    && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
+    && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz
 
 ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
 ENV LD_LIBRARY_PATH="${SWIFT_PREFIX}/usr/lib/swift/linux"
