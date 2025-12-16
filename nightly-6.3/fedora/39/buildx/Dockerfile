@@ -1,4 +1,4 @@
-FROM fedora:39
+FROM fedora:39 AS base
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
 
@@ -21,12 +21,22 @@ RUN yum -y install \
 
 ARG SWIFT_SIGNING_KEY=E813C892820A6FA13755B268F167DF1ACF9CE069
 ARG SWIFT_PLATFORM=fedora39
-ARG SWIFT_VERSION=6.2
+ARG SWIFT_VERSION=6.3
 ARG SWIFT_BRANCH=swift-${SWIFT_VERSION}-release
 ARG SWIFT_TAG=swift-${SWIFT_VERSION}-RELEASE
-ARG SWIFT_WEBROOT=https://download.swift.org/swift-6.2-branch
+ARG SWIFT_WEBROOT=https://download.swift.org/swift-6.3-branch
 ARG SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM"
 ARG SWIFT_PREFIX=/opt/swift/${SWIFT_VERSION}
+
+# This is a small trick to enable if/else for arm64 and amd64.
+# Because of https://bugs.swift.org/browse/SR-14872 we need adjust tar options.
+FROM base AS base-amd64
+ARG OS_ARCH_SUFFIX=
+
+FROM base AS base-arm64
+ARG OS_ARCH_SUFFIX=-aarch64
+
+FROM base-$TARGETARCH AS final
 
 ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
     SWIFT_PLATFORM=$SWIFT_PLATFORM \

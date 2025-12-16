@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/windows/servercore:1809 AS windows
+FROM mcr.microsoft.com/windows/servercore:ltsc2022 AS windows
 
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
@@ -6,11 +6,17 @@ LABEL description="Docker Container for the Swift programming language"
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 ENV PYTHONIOENCODING UTF-8
+ENV PYTHONUTF8=1
+
+# Enable Developer Mode.
+RUN reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+# Enable Long Paths
+RUN reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem" /t REG_DWORD /f /v "LongPathsEnabled" /d "1"
 
 # Install Git.
 # See: git-[version]-[bit].exe /SAVEINF=git.inf and /?
-ARG GIT=https://github.com/git-for-windows/git/releases/download/v2.42.0.windows.2/Git-2.42.0.2-64-bit.exe
-ARG GIT_SHA256=BD9B41641A258FD16D99BEECEC66132160331D685DFB4C714CEA2BCC78D63BDB
+ARG GIT=https://github.com/git-for-windows/git/releases/download/v2.49.0.windows.1/Git-2.49.0-64-bit.exe
+ARG GIT_SHA256=726056328967F242FE6E9AFBFE7823903A928AFF577DCF6F517F2FB6DA6CE83C
 RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:GIT});               \
     Invoke-WebRequest -Uri ${env:GIT} -OutFile git.exe;                         \
     Write-Host '✓';                                                             \
@@ -52,14 +58,14 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:GIT});               
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
 # Install Python
-ARG PY310=https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe
-ARG PY310_SHA256=D8DEDE5005564B408BA50317108B765ED9C3C510342A598F9FD42681CBE0648B
-RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PY310});             \
-    Invoke-WebRequest -Uri ${env:PY310} -OutFile python-3.10.11-amd64.exe;      \
+ARG PY39=https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe
+ARG PY39_SHA256=FB3D0466F3754752CA7FD839A09FFE53375FF2C981279FD4BC23A005458F7F5D
+RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PY39});              \
+    Invoke-WebRequest -Uri ${env:PY39} -OutFile python-3.9.13-amd64.exe;        \
     Write-Host '✓';                                                             \
-    Write-Host -NoNewLine ('Verifying SHA256 ({0}) ... ' -f ${env:PY310_SHA256});\
-    $Hash = Get-FileHash python-3.10.11-amd64.exe -Algorithm sha256;            \
-    if ($Hash.Hash -eq ${env:PY310_SHA256}) {                                   \
+    Write-Host -NoNewLine ('Verifying SHA256 ({0}) ... ' -f ${env:PY39_SHA256});\
+    $Hash = Get-FileHash python-3.9.13-amd64.exe -Algorithm sha256;             \
+    if ($Hash.Hash -eq ${env:PY39_SHA256}) {                                    \
       Write-Host '✓';                                                           \
     } else {                                                                    \
       Write-Host ('✘ ({0})' -f $Hash.Hash);                                     \
@@ -67,7 +73,7 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PY310});             
     }                                                                           \
     Write-Host -NoNewLine 'Installing Python ... ';                             \
     $Process =                                                                  \
-        Start-Process python-3.10.11-amd64.exe -Wait -PassThru -NoNewWindow -ArgumentList @( \
+        Start-Process python-3.9.13-amd64.exe -Wait -PassThru -NoNewWindow -ArgumentList @( \
            'AssociateFiles=0',                                                  \
            'Include_doc=0',                                                     \
            'Include_debug=0',                                                   \
@@ -85,12 +91,12 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PY310});             
       Write-Host ('✘ ({0})' -f $Process.ExitCode);                              \
       exit 1;                                                                   \
     }                                                                           \
-    Remove-Item -Force python-3.10.11-amd64.exe;                                \
+    Remove-Item -Force python-3.9.13-amd64.exe;                                 \
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
 # Install Visual Studio Build Tools
-ARG VSB=https://download.visualstudio.microsoft.com/download/pr/5536698c-711c-4834-876f-2817d31a2ef2/c792bdb0fd46155de19955269cac85d52c4c63c23db2cf43d96b9390146f9390/vs_BuildTools.exe
-ARG VSB_SHA256=C792BDB0FD46155DE19955269CAC85D52C4C63C23DB2CF43D96B9390146F9390
+ARG VSB=https://download.visualstudio.microsoft.com/download/pr/ae7ac791-9759-4076-bba7-47ff510c57af/a783199025439d65f310bff041e278b966a6dbed8dbcd7fc96b55389f574ef41/vs_BuildTools.exe
+ARG VSB_SHA256=A783199025439D65F310BFF041E278B966A6DBED8DBCD7FC96B55389F574EF41
 RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               \
     Invoke-WebRequest -Uri ${env:VSB} -OutFile vs_buildtools.exe;               \
     Write-Host '✓';                                                             \
@@ -122,19 +128,12 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
 # Install Swift toolchain.
-ARG SWIFT=https://download.swift.org/swift-6.2.3-release/windows10/swift-6.2.3-RELEASE/swift-6.2.3-RELEASE-windows10.exe
-ARG SWIFT_SHA256=10A4D887C383BEC128F3F11B8CAAAE8FBD0D13FF10CC9844C578B6560F1F3E77
-RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:SWIFT});             \
-    Invoke-WebRequest -Uri ${env:SWIFT} -OutFile installer.exe;                 \
+ARG SWIFT_RELEASE_METADATA=http://download.swift.org/swift-6.3-branch/windows10/latest-build.json
+RUN $env:Release = curl.exe -sL ${env:SWIFT_RELEASE_METADATA};                  \
+    $env:SWIFT_URL = "\"https://download.swift.org/swift-6.3-branch/windows10/$($($env:Release | ConvertFrom-JSON).dir)/$($($env:Release | ConvertFrom-JSON).download)\"";   \
+    Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:SWIFT_URL});         \
+    Invoke-WebRequest -Uri ${env:SWIFT_URL} -OutFile installer.exe;             \
     Write-Host '✓';                                                             \
-    Write-Host -NoNewLine ('Verifying SHA256 ({0}) ... ' -f ${env:SWIFT_SHA256}); \
-    $Hash = Get-FileHash installer.exe -Algorithm sha256;                       \
-    if ($Hash.Hash -eq ${env:SWIFT_SHA256}) {                                   \
-      Write-Host '✓';                                                           \
-    } else {                                                                    \
-      Write-Host ('✘ ({0})' -f $Hash.Hash);                                     \
-      exit 1;                                                                   \
-    }                                                                           \
     Write-Host -NoNewLine 'Installing Swift ... ';                              \
     $Process =                                                                  \
         Start-Process installer.exe -Wait -PassThru -NoNewWindow -ArgumentList @( \
@@ -150,8 +149,6 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:SWIFT});             
     Remove-Item -Force installer.exe;                                           \
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
-# Default to powershell
-# FIXME: we need to grant ContainerUser the SeCreateSymbolicLinkPrivilege
-# privilege so that it can create symbolic links.
+# FIXME: we should use a non-Administrator user
 # USER ContainerUser
 CMD ["powershell.exe", "-nologo", "-ExecutionPolicy", "Bypass"]

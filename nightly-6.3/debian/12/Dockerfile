@@ -1,49 +1,46 @@
-FROM fedora:39
-LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
-LABEL description="Docker Container for the Swift programming language"
+FROM debian:12
 
-RUN yum -y install \
-  binutils \
-  gcc \
-  git \
-  zip \
-  unzip \
-  libcurl-devel \
-  libedit-devel \
-  libicu-devel \
-  sqlite-devel \
-  libuuid-devel \
-  libxml2-devel \
-  python3-devel \
-  libstdc++-devel \
-  libstdc++-static
+RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
+    apt-get -q install -y \
+    binutils-gold \
+    curl \
+    gpg \
+    libicu-dev \
+    libcurl4-openssl-dev \
+    libedit-dev \
+    libsqlite3-dev \
+    libncurses-dev \
+    libpython3-dev \
+    libxml2-dev \
+    pkg-config \
+    uuid-dev \
+    tzdata \
+    git \
+    gcc \
+    libstdc++-12-dev \
+    && rm -r /var/lib/apt/lists/*
 
 
 ARG SWIFT_SIGNING_KEY=E813C892820A6FA13755B268F167DF1ACF9CE069
-ARG SWIFT_PLATFORM=fedora39
-ARG SWIFT_VERSION=6.2
-ARG SWIFT_BRANCH=swift-${SWIFT_VERSION}-release
-ARG SWIFT_TAG=swift-${SWIFT_VERSION}-RELEASE
-ARG SWIFT_WEBROOT=https://download.swift.org/swift-6.2-branch
+ARG SWIFT_PLATFORM=debian12
+ARG SWIFT_VERSION=6.3
+ARG SWIFT_WEBROOT=https://download.swift.org/swift-6.3-branch
 ARG SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM"
 ARG SWIFT_PREFIX=/opt/swift/${SWIFT_VERSION}
 
-ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
-    SWIFT_PLATFORM=$SWIFT_PLATFORM \
+ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_VERSION=$SWIFT_VERSION \
-    SWIFT_BRANCH=$SWIFT_BRANCH \
-    SWIFT_TAG=$SWIFT_TAG \
     SWIFT_WEBROOT=$SWIFT_WEBROOT \
     SWIFT_PREFIX=$SWIFT_PREFIX
 
 RUN set -e; \
-    ARCH_NAME="$(rpm --eval '%{_arch}')"; \
+    ARCH_NAME="$(dpkg --print-architecture)"; \
     url=; \
     case "${ARCH_NAME##*-}" in \
-        'x86_64') \
+        'amd64') \
             OS_ARCH_SUFFIX=''; \
             ;; \
-        'aarch64') \
+        'arm64') \
             OS_ARCH_SUFFIX='-aarch64'; \
             ;; \
         *) echo >&2 "error: unsupported architecture: '$ARCH_NAME'"; exit 1 ;; \
