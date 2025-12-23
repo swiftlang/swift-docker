@@ -8,12 +8,12 @@ jobs:
        fail-fast: false
        matrix:
          include:
-           - swift-version: 'tag:swift-DEVELOPMENT-SNAPSHOT-2025-12-19-a'
+           - runner: 'ubuntu-24.04'
+             swift-version: 'tag:swift-DEVELOPMENT-SNAPSHOT-2025-12-19-a'
            #- swift-version: 'tag:swift-6.2-DEVELOPMENT-SNAPSHOT-2025-09-10-a'
            #- swift-version: 'tag:swift-6.2-RELEASE'
-           #  build-type: 'local'
-           #  runner: 'ubuntu-24.04'
              build-type: 'docker'
+           #  build-type: 'local'
            #  build-compiler: '1'
            #  runner: 'self-hosted'
      runs-on: ${{ matrix.runner }}
