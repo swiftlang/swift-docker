@@ -410,6 +410,7 @@ for arch in $archs; do
             -DCURL_USE_OPENSSL=ON \
             -DCURL_USE_LIBSSH2=OFF \
             -DCURL_USE_LIBPSL=OFF \
+            -DENABLE_WEBSOCKETS=ON \
             -DTHREADS_PREFER_PTHREAD_FLAG=OFF \
             -DCMAKE_THREAD_PREFER_PTHREAD=OFF \
             -DCMAKE_THREADS_PREFER_PTHREAD_FLAG=OFF \
