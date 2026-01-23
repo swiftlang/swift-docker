@@ -97,7 +97,7 @@ function declare_package
 }
 
 declare_package static_linux_sdk \
-                "Swift statically linked SDK for Linux" \
+                "Swift Static SDK for Linux" \
                 "Apache-2.0" "https://swift.org/install/sdk"
 declare_package swift "swift" "Apache-2.0" "https://swift.org"
 declare_package musl "musl" "MIT" "https://musl.org"
@@ -109,9 +109,13 @@ declare_package curl "curl" "MIT" "https://curl.se"
 declare_package boringssl "boringssl" "OpenSSL AND ISC AND MIT" \
                 "https://boringssl.googlesource.com/boringssl/"
 declare_package zlib "zlib" "Zlib" "https://zlib.net"
+declare_package bzip2 "bzip2" "bzip2-1.0.6" "https://sourceware.org/bzip2/"
+declare_package xz "XZ Utils" "0BSD" "https://tukaani.org/xz"
+declare_package libarchive "libarchive" "BSD-2-Clause" "https://www.libarchive.org"
+declare_package mimalloc "mimalloc" "MIT" "https://microsoft.github.io/mimalloc/"
 
 # Parse command line arguments
-static_linux_sdk_version=0.0.1
+static_linux_sdk_version=0.1.0
 sdk_name=
 archs=x86_64,aarch64
 build_type=RelWithDebInfo
@@ -233,6 +237,15 @@ boringssl_version=$(describe ${source_dir}/boringssl)
 
 zlib_version=$(versionFromTag ${source_dir}/zlib)
 
+bzip2_desc=$(describe ${source_dir}/bzip2)
+bzip2_version=${bzip2_desc#bzip2-}
+
+libarchive_version=$(versionFromTag ${source_dir}/libarchive)
+
+mimalloc_version=$(versionFromTag ${source_dir}/mimalloc)
+
+xz_version=$(versionFromTag ${source_dir}/xz)
+
 function quiet_pushd {
     pushd "$1" >/dev/null 2>&1
 }
@@ -258,6 +271,10 @@ echo "  - libxml2 ${libxml2_version}"
 echo "  - curl ${curl_version}"
 echo "  - BoringSSL ${boringssl_version}"
 echo "  - zlib ${zlib_version}"
+echo "  - bzip2 ${bzip2_version}"
+echo "  - xz ${xz_version}"
+echo "  - libarchive ${libarchive_version}"
+echo "  - mimalloc ${mimalloc_version}"
 
 function run() {
     echo "$@"
@@ -296,6 +313,19 @@ else
     echo "failed"
     exit 1
 fi
+
+echo "Applying Musl security patches... "
+for patch in $(realpath "${resource_dir}/patches/musl")/*; do
+    echo -n "  $(basename $patch)..."
+    if git -C ${source_dir}/musl apply --reverse --check "$patch" >/dev/null 2>&1; then
+        echo "already patched"
+    elif git -C ${source_dir}/musl apply "$patch" >/dev/null 2>&1; then
+        echo "done"
+    else
+        echo "failed"
+        exit 1
+    fi
+done
 
 # -----------------------------------------------------------------------
 
@@ -367,7 +397,7 @@ for arch in $archs; do
     cat > $sdk_root/SDKSettings.json <<EOF
 {
   "DisplayName": "Swift SDK for Statically Linked Linux ($arch)",
-  "Version": "0.0.1",
+  "Version": "${static_linux_sdk_version}",
   "VersionMap": {},
   "CanonicalName": "${arch}-swift-linux-musl"
 }
@@ -376,7 +406,7 @@ EOF
     # Make some directories
     mkdir -p "$build_dir/$arch/musl" \
           "$build_dir/$arch/runtimes" \
-          "$sdk_root/$arch/usr"
+          "$sdk_root/usr"
 
     # -----------------------------------------------------------------------
 
@@ -567,6 +597,60 @@ EOF
 
     # -----------------------------------------------------------------------
 
+    header "Building mimalloc for $arch"
+
+    run cmake -G Ninja -S ${source_dir}/mimalloc \
+        -B ${build_dir}/$arch/mimalloc \
+        -DCMAKE_TOOLCHAIN_FILE=${build_dir}/$arch/toolchain.cmake \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+        -DCMAKE_INSTALL_PREFIX="$sdk_root/usr" \
+        -DMI_LIBC_MUSL=ON \
+        -DMI_BUILD_SHARED=OFF \
+        -DMI_BUILD_STATIC=ON \
+        -DMI_BUILD_TESTS=OFF \
+        -DMI_INSTALL_TOPLEVEL=ON
+
+    quiet_pushd ${build_dir}/$arch/mimalloc
+    run ninja -j$parallel_jobs
+    quiet_popd
+
+    header "Installing mimalloc for ${arch}"
+
+    quiet_pushd ${build_dir}/$arch/mimalloc
+    run ninja -j$parallel_jobs install
+    quiet_popd
+
+    # Remove the Musl allocator from libc and replace it with mimalloc
+    # (yes, musl has two realloc.lo and two free.lo files in its archive.)
+    ar d ${sdk_root}/usr/lib/libc.a \
+       aligned_alloc.lo \
+       calloc.lo \
+       free.lo \
+       free.lo \
+       libc_calloc.lo \
+       lite_malloc.lo \
+       malloc.lo \
+       malloc_usable_size.lo \
+       memalign.lo \
+       posix_memalign.lo \
+       realloc.lo \
+       realloc.lo \
+       reallocarray.lo \
+       strdup.lo \
+       strndup.lo \
+       valloc.lo \
+       wcsdup.lo
+    ar r ${sdk_root}/usr/lib/libc.a ${sdk_root}/usr/lib/mimalloc.o
+    rm ${sdk_root}/usr/lib/mimalloc.o
+    rm ${sdk_root}/usr/include/mimalloc-override.h
+
+    # Also remove std::operator new and std::operator delete from libc++abi;
+    # the code for these is in mimalloc.o, and we don't want a symbol clash.
+    ar d ${sdk_root}/usr/lib/libc++abi.a \
+       stdlib_new_delete.cpp.o
+
+    # -----------------------------------------------------------------------
+
     header "Building zlib for $arch"
 
     mkdir -p $build_dir/$arch/zlib
@@ -592,6 +676,51 @@ EOF
 
     # -----------------------------------------------------------------------
 
+    header "Building and installing bzip2 for $arch"
+
+    # We do this in a single step because bzip2's Makefile has
+    # its `test` action as a dependency of `all`, and that won't work
+    # when we're cross-compiling unless we've got the right binformat
+    # modules installed.
+    #
+    # The `install` action doesn't have this problem.
+
+    rm -rf ${build_dir}/$arch/bzip2
+    cp -R ${source_dir}/bzip2 ${build_dir}/$arch/bzip2
+    quiet_pushd $build_dir/$arch/bzip2
+    run make install \
+        CC="$cc" \
+        CXX="$cxx" \
+        LDFLAGS="$ldflags" \
+        CXXLDFLAGS="$cxxldflags" \
+        AS="$as" \
+        AR="ar" RANLIB="ranlib" \
+        PREFIX=$sdk_root/usr
+    quiet_popd
+
+    # -----------------------------------------------------------------------
+
+    header "Building xz for $arch"
+
+    run cmake -G Ninja -S ${source_dir}/xz -B ${build_dir}/$arch/xz \
+        -DCMAKE_TOOLCHAIN_FILE=${build_dir}/$arch/toolchain.cmake \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+        -DCMAKE_INSTALL_PREFIX=$sdk_root/usr \
+        -DBUILD_SHARED_LIBS=NO
+
+    quiet_pushd ${build_dir}/$arch/xz
+    run ninja -j$parallel_jobs
+    quiet_popd
+
+    header "Installing xz for $arch"
+
+    quiet_pushd ${build_dir}/$arch/xz
+    run ninja -j$parallel_jobs install
+
+    quiet_popd
+
+    # -----------------------------------------------------------------------
+
     header "Building libxml2 for $arch"
 
     run cmake -G Ninja -S ${source_dir}/libxml2 -B ${build_dir}/$arch/libxml2 \
@@ -611,6 +740,29 @@ EOF
     header "Installing libxml2 for $arch"
 
     quiet_pushd ${build_dir}/$arch/libxml2
+    run ninja -j$parallel_jobs install
+    quiet_popd
+
+    # -----------------------------------------------------------------------
+
+    header "Building libarchive for $arch"
+
+    run cmake -G Ninja -S ${source_dir}/libarchive \
+        -B ${build_dir}/$arch/libarchive \
+        -DCMAKE_TOOLCHAIN_FILE=${build_dir}/$arch/toolchain.cmake \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+        -DCMAKE_INSTALL_PREFIX=$sdk_root/usr \
+        -DCMAKE_INSTALL_LIBDIR=$sdk_root/usr/lib \
+        -DBUILD_SHARED_LIBS=NO \
+        -DENABLE_OPENSSL=NO
+
+    quiet_pushd ${build_dir}/$arch/libarchive
+    run ninja -j$parallel_jobs
+    quiet_popd
+
+    header "Installing libarchive for $arch"
+
+    quiet_pushd ${build_dir}/$arch/libarchive
     run ninja -j$parallel_jobs install
     quiet_popd
 
@@ -644,7 +796,9 @@ EOF
         -DCMAKE_INSTALL_PREFIX=$sdk_root/usr \
         -DBUILD_SHARED_LIBS=NO \
         -DBUILD_STATIC_LIBS=YES \
-        -DBUILD_CURL_EXE=NO
+        -DBUILD_CURL_EXE=NO \
+        -DCURL_USE_PKGCONFIG=OFF \
+        -DCURL_USE_LIBPSL=OFF
 
     quiet_pushd ${build_dir}/$arch/curl
     ninja -j$parallel_jobs
@@ -817,6 +971,21 @@ EOF
        $sdk_root/usr/lib/swift/linux \
        $sdk_root/usr/lib/swift_static/linux
 
+    # -----------------------------------------------------------------------
+
+    header "Removing unnecessary files"
+
+    # Some of the scripts that get installed into /usr/bin are GPL'd.
+    # We don't want those, but also we don't really need the things in
+    # /usr/bin at all here.  Same goes for the man pages and documentation
+    # that get installed; if users want those things, installing the
+    # package on the host system makes more sense.
+
+    for dir in usr/bin man usr/share/doc usr/share/man; do
+        echo "  $dir"
+        rm -rf ${sdk_root}/$dir
+    done
+
 done
 
 # Now generate the bundle
@@ -824,7 +993,7 @@ header "Bundling SDK"
 
 spdx_uuid=$(uuidgen)
 spdx_doc_uuid=$(uuidgen)
-spdx_timestamp=$(date -Iseconds)
+spdx_timestamp=$(date -Iseconds -z Z | sed 's/\+00:00$/Z/g')
 
 sdk_name=swift-${swift_version}_static-linux-${static_linux_sdk_version}
 bundle="${sdk_name}.artifactbundle"
@@ -845,7 +1014,7 @@ cat > info.json <<EOF
           "path": "$sdk_name/swift-linux-musl"
         }
       ],
-      "version": "0.0.1",
+      "version": "${static_linux_sdk_version}",
       "type": "swiftSDK"
     }
   }
