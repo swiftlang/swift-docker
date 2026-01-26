@@ -65,6 +65,7 @@ RUN set -e; \
     && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz
 
 ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${SWIFT_PREFIX}/usr/lib/swift/linux"
 
 # Print Installed Swift Version
 RUN swift --version
