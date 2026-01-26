@@ -6,8 +6,11 @@ LABEL description="Docker Container for the Swift programming language"
 RUN yum install -y  \
   git               \
   gcc-c++           \
+  glibc-static      \
   libcurl-devel     \
   libedit-devel     \
+  libstdc++-devel   \
+  libstdc++-static  \
   libuuid-devel     \
   libxml2-devel     \
   ncurses-devel     \
