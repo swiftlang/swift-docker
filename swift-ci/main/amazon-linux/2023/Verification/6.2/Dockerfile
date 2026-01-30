@@ -33,7 +33,8 @@ RUN yum -y install \
   unzip \
   zip \
   lld \
-  diffutils
+  diffutils \
+  which
 
 RUN mkdir -p /usr/local/lib/python3.7/site-packages/
 
