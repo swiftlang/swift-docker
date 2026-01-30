@@ -51,7 +51,19 @@ ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_WEBROOT=$SWIFT_WEBROOT \
     SWIFT_PREFIX=$SWIFT_PREFIX
 
-RUN SWIFT_BIN_URL="$SWIFT_WEBROOT/tmp-ci-nightly/development/swift-6.2-bootstrap/amazonlinux2023/latest.tar.gz" \
+RUN set -e; \
+    ARCH_NAME="$(rpm --eval '%{_arch}')"; \
+    url=; \
+    case "${ARCH_NAME##*-}" in \
+        'x86_64') \
+            OS_ARCH_SUFFIX=''; \
+            ;; \
+        'aarch64') \
+            OS_ARCH_SUFFIX='-aarch64'; \
+            ;; \
+        *) echo >&2 "error: unsupported architecture: '$ARCH_NAME'"; exit 1 ;; \
+    esac; \
+    SWIFT_BIN_URL="$SWIFT_WEBROOT/tmp-ci-nightly/development/swift-6.2-bootstrap/amazonlinux2023$OS_ARCH_SUFFIX/latest.tar.gz" \
     && curl -fsSL "$SWIFT_BIN_URL" -o swift.tar.gz \
     && mkdir -p $SWIFT_PREFIX \
     && tar -xzf swift.tar.gz --directory $SWIFT_PREFIX \
