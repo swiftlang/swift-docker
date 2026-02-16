@@ -33,6 +33,11 @@ fi
 mkdir -p ${WORKDIR}
 WORKDIR=$(realpath ${WORKDIR})
 
+# Push trunk back to build against Android API 24
+if [[ -n "${SWIFT_VERSION}" && ($SWIFT_VERSION == scheme:main || $SWIFT_VERSION == tag:swift-DEV*) ]]; then
+    ANDROID_API=24
+fi
+
 HOST_OS=ubuntu24.04
 source ./scripts/toolchain-vars.sh
 
