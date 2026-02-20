@@ -6,6 +6,7 @@ RUN groupadd -g 42 build-user && \
 RUN yum install -y  \
   git               \
   gcc-c++           \
+  gnupg2            \
   cmake             \
   diffutils         \
   make              \
