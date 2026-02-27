@@ -123,7 +123,7 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
 
 # Install Swift toolchain.
 ARG SWIFT=https://download.swift.org/swift-6.2.4-release/windows10/swift-6.2.4-RELEASE/swift-6.2.4-RELEASE-windows10.exe
-ARG SWIFT_SHA256=8DC2C4EF254CF090EA7081F712123D01DD5345C538D5204158BFF955BE4E0CA4
+ARG SWIFT_SHA256=222501D4A0EF6EC3B2F08B3E0055140BB3A5136527542239BB925F979689F4AD
 RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:SWIFT});             \
     Invoke-WebRequest -Uri ${env:SWIFT} -OutFile installer.exe;                 \
     Write-Host '✓';                                                             \
