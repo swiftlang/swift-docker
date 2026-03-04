@@ -65,4 +65,9 @@ RUN git clone https://github.com/microsoft/vcpkg C:\\vcpkg; \
 SHELL ["cmd", "/S", "/C"]
 RUN ""C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat" && C:\vcpkg\vcpkg install libxml2:x64-windows"
 SHELL ["powershell", "-ExecutionPolicy", "Bypass", "-Command"]
-RUN [Environment]::SetEnvironmentVariable('VCPKG_ROOT', 'C:\\vcpkg', [EnvironmentVariableTarget]::Machine)
+RUN [Environment]::SetEnvironmentVariable('VCPKG_ROOT', 'C:\\vcpkg', [EnvironmentVariableTarget]::Machine); \
+    [Environment]::SetEnvironmentVariable('PATH', $env:PATH + ';C:\\vcpkg\\installed\\x64-windows\\bin', [EnvironmentVariableTarget]::Machine)
+
+# Add VC runtime redist DLLs to PATH
+RUN $redist = (Get-ChildItem 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\*\x64\Microsoft.VC143.CRT' | Select-Object -First 1).FullName; \
+    [Environment]::SetEnvironmentVariable('PATH', $env:PATH + ';' + $redist, [EnvironmentVariableTarget]::Machine)
