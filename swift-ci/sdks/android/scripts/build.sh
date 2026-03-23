@@ -502,10 +502,12 @@ for arch in $archs; do
             --cross-compile-append-host-target-to-destdir=False 
             # --extra-cmake-options='-DCMAKE_EXTRA_LINK_FLAGS="-Wl,-z,max-page-size=16384"'
         # need to remove the arch-specific portion of the Swift resource dir in
-        # the build directory, through this symlink that we create in the NDK to
+        # the build directories, through this symlink that we create in the NDK to
         # the build directory, or else we get errors like:
-        # error: could not find module '_Builtin_float' for target 'x86_64-unknown-linux-android'; found: aarch64-unknown-linux-android, at: /home/runner/work/_temp/swift-android-sdk/ndk/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/swift/android/_Builtin_float.swiftmodule
+        # error: could not find module '_Builtin_float' for target 'x86_64-unknown-linux-android'; found: aarch64-unknown-linux-android, at: /home/runner/work/_temp/swift-android-sdk/ndk/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/swift/android/_Builtin_float.swiftmodule
         rm -rf $ndk_installation/sysroot/usr/lib/swift/android
+        rm -rf $ndk_installation/sysroot/usr/lib/swift/../swift_static/android
+        rm -rf $ndk_installation/sysroot/usr/lib/swift/../../../swift-linux-x86_64/lib/swift{,_static}/android
     quiet_popd
     groupend
 done
