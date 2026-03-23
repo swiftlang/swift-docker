@@ -351,6 +351,7 @@ for arch in $archs; do
             -DLIBXML2_WITH_ICU=NO \
             -DLIBXML2_WITH_ICONV=NO \
             -DLIBXML2_WITH_LZMA=NO \
+            -DLIBXML2_WITH_TESTS=OFF \
             -DBUILD_SHARED_LIBS=OFF \
             -DBUILD_STATIC_LIBS=ON
 
@@ -486,6 +487,7 @@ for arch in $archs; do
             --host-test \
             --skip-test-linux \
             --skip-test-xctest --skip-test-foundation \
+            --skip-clean-libdispatch --skip-clean-foundation --skip-clean-xctest \
             --build-swift-static-stdlib \
             --swift-install-components='compiler;clang-resource-dir-symlink;license;stdlib;sdk-overlay' \
             --install-swift \
@@ -500,10 +502,12 @@ for arch in $archs; do
             --cross-compile-append-host-target-to-destdir=False 
             # --extra-cmake-options='-DCMAKE_EXTRA_LINK_FLAGS="-Wl,-z,max-page-size=16384"'
         # need to remove the arch-specific portion of the Swift resource dir in
-        # the build directory, through this symlink that we create in the NDK to
+        # the build directories, through this symlink that we create in the NDK to
         # the build directory, or else we get errors like:
-        # error: could not find module '_Builtin_float' for target 'x86_64-unknown-linux-android'; found: aarch64-unknown-linux-android, at: /home/runner/work/_temp/swift-android-sdk/ndk/android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/swift/android/_Builtin_float.swiftmodule
+        # error: could not find module '_Builtin_float' for target 'x86_64-unknown-linux-android'; found: aarch64-unknown-linux-android, at: /home/runner/work/_temp/swift-android-sdk/ndk/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/swift/android/_Builtin_float.swiftmodule
         rm -rf $ndk_installation/sysroot/usr/lib/swift/android
+        rm -rf $ndk_installation/sysroot/usr/lib/swift/../swift_static/android
+        rm -rf $ndk_installation/sysroot/usr/lib/swift/../../../swift-linux-x86_64/lib/swift{,_static}/android
     quiet_popd
     groupend
 done

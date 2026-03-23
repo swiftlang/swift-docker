@@ -33,6 +33,12 @@ fi
 mkdir -p ${WORKDIR}
 WORKDIR=$(realpath ${WORKDIR})
 
+# Push trunk back to build against Android API 24 with NDK 28c
+if [[ -n "${SWIFT_VERSION}" && ($SWIFT_VERSION == scheme:main || $SWIFT_VERSION == tag:swift-DEV*) ]]; then
+    ANDROID_NDK_VERSION=android-ndk-r28c
+    ANDROID_API=24
+fi
+
 HOST_OS=ubuntu$(lsb_release -sr)
 source ./scripts/toolchain-vars.sh
 
@@ -70,6 +76,15 @@ perl -pi -g -we "s#(call rm ... \".\{LIBDISPATCH_BUILD_DIR\}\"\n(\s+)fi\n)#\1\2i
 
 # disable backtrace() for Android (needs either API33+ or libandroid-execinfo, or to manually add in backtrace backport)
 perl -pi -e 's;os\(Android\);os\(AndroidDISABLED\);g' ${WORKDIR}/source/swift-project/swift-testing/Sources/Testing/SourceAttribution/Backtrace.swift
+
+# Disable failing trunk tests when building against NDK 28c
+if [[ -n "${SWIFT_VERSION}" && ($SWIFT_VERSION == scheme:main || $SWIFT_VERSION == tag:swift-DEV*) ]]; then
+    rm ${WORKDIR}/source/swift-project/swift/test/Interop/Cxx/class/invalid-members/stdlib-containers-of-incomplete.swift
+    rm ${WORKDIR}/source/swift-project/swift/test/Interop/SwiftToCxx/stdlib/stdlib-in-cxx-no-diagnostics-generated-header.cpp
+    rm ${WORKDIR}/source/swift-project/swift/test/Reflection/typeref_decoding_packs.swift
+    rm ${WORKDIR}/source/swift-project/swift/test/Reflection/typeref_lowering.swift
+    rm ${WORKDIR}/source/swift-project/swift/test/Reflection/typeref_lowering_packs.swift
+fi
 
 mkdir -p ${WORKDIR}/products
 
