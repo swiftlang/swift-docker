@@ -678,9 +678,9 @@ done
 
 rm -rf ${swift_res_root}/usr/share/{aclocal,doc,man}
 rm -r ${sdk_staging}
-# Link the local NDK's clang resource directory as a place-holder
+# The local NDK's clang resource directory will be linked under
+# here as part of the post-install script
 mkdir -p $swift_res_root/usr/lib/swift
-ln -s $ndk_installation/lib/clang/$ndk_clang_version $swift_res_root/usr/lib/swift/clang
 
 # create an install script to set up the NDK links
 #ANDROID_NDK_HOME="/opt/homebrew/share/android-ndk"
