@@ -17,8 +17,8 @@
 # default architectures to build for
 TARGET_ARCHS=${TARGET_ARCHS:-aarch64,x86_64,armv7}
 
-ANDROID_NDK_VERSION=android-ndk-r27d
-ANDROID_API=28
+ANDROID_NDK_VERSION=android-ndk-r28c
+ANDROID_API=24
 
 BASEPATH=$(dirname $(realpath $0))
 cd ${BASEPATH}
@@ -32,12 +32,6 @@ if [[ "${WORKDIR}" == '' ]]; then
 fi
 mkdir -p ${WORKDIR}
 WORKDIR=$(realpath ${WORKDIR})
-
-# Push trunk back to build against Android API 24 with NDK 28c
-if [[ -n "${SWIFT_VERSION}" && ($SWIFT_VERSION == scheme:main || $SWIFT_VERSION == tag:swift-DEV*) ]]; then
-    ANDROID_NDK_VERSION=android-ndk-r28c
-    ANDROID_API=24
-fi
 
 HOST_OS=ubuntu$(lsb_release -sr)
 source ./scripts/toolchain-vars.sh
@@ -67,24 +61,9 @@ fi
 
 # Check-out and patch the sources
 ./scripts/fetch-source.sh --source-dir ${WORKDIR}/source
-# This `git grep` invocation in a trunk test fails in our Docker for some
-# reason, so just turn it into a plain `grep` again.
-perl -pi -e 's:"git",:#:' ${WORKDIR}/source/swift-project/swift/test/Misc/verify-swift-feature-testing.test-sh
 
 # Work around swiftlang/swift-driver#1822 for now
 perl -pi -g -we "s#(call rm ... \".\{LIBDISPATCH_BUILD_DIR\}\"\n(\s+)fi\n)#\1\2if [[ -d \"\\\${ANDROID_NDK}\" ]]; then call ln -sf \"\\\${SWIFT_BUILD_PATH}/lib/swift\" \"\\\${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib\"; fi#" ${WORKDIR}/source/swift-project/swift/utils/build-script-impl
-
-# disable backtrace() for Android (needs either API33+ or libandroid-execinfo, or to manually add in backtrace backport)
-perl -pi -e 's;os\(Android\);os\(AndroidDISABLED\);g' ${WORKDIR}/source/swift-project/swift-testing/Sources/Testing/SourceAttribution/Backtrace.swift
-
-# Disable failing trunk tests when building against NDK 28c
-if [[ -n "${SWIFT_VERSION}" && ($SWIFT_VERSION == scheme:main || $SWIFT_VERSION == tag:swift-DEV*) ]]; then
-    rm ${WORKDIR}/source/swift-project/swift/test/Interop/Cxx/class/invalid-members/stdlib-containers-of-incomplete.swift
-    rm ${WORKDIR}/source/swift-project/swift/test/Interop/SwiftToCxx/stdlib/stdlib-in-cxx-no-diagnostics-generated-header.cpp
-    rm ${WORKDIR}/source/swift-project/swift/test/Reflection/typeref_decoding_packs.swift
-    rm ${WORKDIR}/source/swift-project/swift/test/Reflection/typeref_lowering.swift
-    rm ${WORKDIR}/source/swift-project/swift/test/Reflection/typeref_lowering_packs.swift
-fi
 
 mkdir -p ${WORKDIR}/products
 
