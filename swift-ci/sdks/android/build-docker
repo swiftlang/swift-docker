@@ -85,6 +85,8 @@ CONTAINER_NAME="swift-android"
 $DOCKER build --build-arg OS_ARCH_SUFFIX=$OS_ARCH_SUFFIX --build-arg SWIFT_TOOLCHAIN_URL=$SWIFT_TOOLCHAIN_URL --build-arg ANDROID_NDK_VERSION=$ANDROID_NDK_VERSION -t ${CONTAINER_NAME} .
 
 $DOCKER run -i --rm \
+          -e http_proxy -e https_proxy \
+          -e HTTP_PROXY -e HTTPS_PROXY \
           -v ${WORKDIR}/source:/source \
           -v ${WORKDIR}/products:/products:rw \
           ${CONTAINER_NAME} \
