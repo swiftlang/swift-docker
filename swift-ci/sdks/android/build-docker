@@ -23,6 +23,15 @@ ANDROID_API=28
 BASEPATH=$(dirname $(realpath $0))
 cd ${BASEPATH}
 
+SKIP_FETCH=false
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --skip-fetch) SKIP_FETCH=true ;;
+        *) break ;;
+    esac
+    shift
+done
+
 export SWIFT_VERSION=${1}
 # note that WORKDIR must not be under the current checkout or the patches will fail to apply
 WORKDIR=${2}
@@ -37,7 +46,9 @@ HOST_OS=ubuntu24.04
 source ./scripts/toolchain-vars.sh
 
 # Check-out and patch the sources
-./scripts/fetch-source.sh --source-dir ${WORKDIR}/source
+if [[ "$SKIP_FETCH" != "true" ]]; then
+    ./scripts/fetch-source.sh --source-dir ${WORKDIR}/source
+fi
 
 # This `git grep` invocation in a trunk test fails in our Docker for some
 # reason, so just turn it into a plain `grep` again.
