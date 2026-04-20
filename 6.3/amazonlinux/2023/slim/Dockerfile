@@ -43,7 +43,7 @@ RUN set -e; \
     && gpg --batch --quiet --keyserver keyserver.ubuntu.com --recv-keys "$SWIFT_SIGNING_KEY" \
     && gpg --batch --verify swift.tar.gz.sig swift.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
-    && dnf -y --allowerasing install tar gzip \
+    && dnf -y install tar gzip \
     && tar -xzf swift.tar.gz --directory / --strip-components=1 \
         $SWIFT_VERSION-$SWIFT_PLATFORM$OS_ARCH_SUFFIX/usr/lib/swift/linux \
         $SWIFT_VERSION-$SWIFT_PLATFORM$OS_ARCH_SUFFIX/usr/libexec/swift/linux \
