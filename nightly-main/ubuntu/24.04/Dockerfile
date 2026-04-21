@@ -7,6 +7,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     binutils \
     curl \
     git \
+    unzip \
     gnupg2 \
     libc6-dev \
     libcurl4-openssl-dev \
