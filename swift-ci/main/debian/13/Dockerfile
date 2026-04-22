@@ -83,6 +83,8 @@ RUN set -e; \
     && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
     && apt-get purge --auto-remove -y curl
 
+RUN update-alternatives --install /usr/bin/ld ld /opt/swift/6.3/usr/bin/lld 20
+
 ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
 
 RUN echo PATH="${SWIFT_PREFIX}/usr/bin:${PATH}" >> /etc/profile
