@@ -16,7 +16,10 @@ RUN yum install -y  \
   libxml2-devel     \
   ncurses-devel     \
   python3-devel     \
+  python3-distro    \
   python3-pip       \
+  python3-psutil    \
+  python3-setuptools \
   rsync             \
   sqlite-devel      \
   unzip             \
