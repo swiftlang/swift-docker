@@ -33,6 +33,14 @@ RUN apt-get -y update && apt-get -y install \
   uuid-dev              \
   zip
 
+# libxml2 2.13+ changed its soname from libxml2.so.2 to libxml2.so.16, but the Swift
+# toolchain (built for Ubuntu 24.04) expects libxml2.so.2.
+RUN MULTIARCH=$(dpkg-architecture -qDEB_HOST_MULTIARCH) && \
+    if [ ! -e "/usr/lib/${MULTIARCH}/libxml2.so.2" ]; then \
+        LIBXML2=$(find /usr/lib/${MULTIARCH} -name 'libxml2.so.*' -not -name 'libxml2.so' | sort | tail -1) && \
+        ln -sf "$LIBXML2" "/usr/lib/${MULTIARCH}/libxml2.so.2"; \
+    fi
+
 COPY swift-ci/dependencies/requirements.txt /dependencies/
 RUN pip3 install -r /dependencies/requirements.txt --break-system-packages
 
