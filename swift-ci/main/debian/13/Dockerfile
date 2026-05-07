@@ -6,6 +6,7 @@ RUN groupadd -g 998 build-user && \
 ENV DEBIAN_FRONTEND="noninteractive"
 
 RUN apt-get -y update && apt-get -y install \
+  binutils-gold          \
   build-essential       \
   clang                 \
   cmake                 \
@@ -82,8 +83,6 @@ RUN set -e; \
     && chmod -R o+r $SWIFT_PREFIX/usr/lib/swift \
     && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
     && apt-get purge --auto-remove -y curl
-
-RUN update-alternatives --install /usr/bin/ld ld /opt/swift/6.3/usr/bin/lld 20
 
 ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
 
