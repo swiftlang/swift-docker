@@ -25,7 +25,11 @@ RUN yum install -y    \
   cmake               \
   zip                 \
   unzip               \
-  diffutils
+  diffutils           \
+  libstdc++-devel     \
+  libstdc++-static    \
+  glibc-static
+
 
 COPY swift-ci/dependencies/requirements.txt /dependencies/
 RUN pip3 install -r /dependencies/requirements.txt
