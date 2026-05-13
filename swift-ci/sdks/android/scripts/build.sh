@@ -670,6 +670,30 @@ for arch in $archs; do
         mv lib/lib*.a lib/swift_static-$arch/android
 
         ln -sv ../swift/clang lib/swift_static-$arch/clang
+
+        # The Swift stdlib + sdk-overlay install steps run from a shared
+        # SWIFT_BUILD_ROOT across cross-compile-host iterations and pull
+        # .swiftinterface / .swiftmodule files from every host that built
+        # before this one, leaving non-monotonic per-arch overlays
+        # (e.g. lib/swift-armv7/android/Android.swiftmodule/ ends up with
+        # aarch64-* and x86_64-* triple files alongside armv7-*). When
+        # SwiftPM's targetTriples lookup picks the wrong swiftResourcesPath,
+        # the wrong-arch .swiftinterface load succeeds and the failure
+        # surfaces one step later as a Clang modulemap miss ("missing
+        # required module 'SwiftAndroid'") instead of the cleaner
+        # "could not find module 'Foundation' for target ...". Strip the
+        # leaked cross-arch entries so each lib/swift{,_static}-<arch>/
+        # android/*.swiftmodule/ contains only this arch's triple, matching
+        # the per-arch layout already produced by Foundation, Dispatch,
+        # XCTest, and swift-testing.
+        keep_triple_prefix="${arch}-unknown-linux-android."
+        for swiftmod_root in lib/swift-$arch/android lib/swift_static-$arch/android; do
+            for swiftmod_dir in ${swiftmod_root}/*.swiftmodule; do
+                [ -d "${swiftmod_dir}" ] || continue
+                find "${swiftmod_dir}" -mindepth 1 -maxdepth 1 -type f \
+                    ! -name "${keep_triple_prefix}*" -delete
+            done
+        done
     quiet_popd
 
     # now sync the massaged sdk_root into the swift_res_root
