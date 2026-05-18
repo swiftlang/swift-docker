@@ -8,6 +8,7 @@ RUN groupadd -g ${BUILD_USER_ID} build-user && \
 ENV DEBIAN_FRONTEND="noninteractive"
 
 RUN apt-get -y update && apt-get -y install \
+  binutils-gold         \
   build-essential       \
   clang                 \
   cmake                 \
