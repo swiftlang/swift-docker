@@ -8,10 +8,13 @@ RUN yum install -y  \
   gcc-c++           \
   clang             \
   cmake             \
+  glibc-static      \
   make              \
   libcurl-devel     \
   libedit-devel     \
   libuuid-devel     \
+  libstdc++-devel   \
+  libstdc++-static  \
   libxml2-devel     \
   ncurses-devel     \
   python3-devel     \
