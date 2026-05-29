@@ -6,6 +6,7 @@ RUN yum -y install \
   binutils \
   gcc \
   git \
+  gnupg2 \
   zip \
   unzip \
   libcurl-devel \
