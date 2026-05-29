@@ -35,7 +35,7 @@ RUN apt-get -y update && apt-get -y install \
 
 
 ARG SWIFT_PLATFORM=debian12
-ARG SWIFT_VERSION=5.10.1
+ARG SWIFT_VERSION=6.0
 ARG SWIFT_BRANCH=swift-${SWIFT_VERSION}-release
 ARG SWIFT_TAG=swift-${SWIFT_VERSION}-RELEASE
 ARG SWIFT_WEBROOT=https://download.swift.org

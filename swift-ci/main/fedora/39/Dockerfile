@@ -30,7 +30,7 @@ RUN yum install -y \
   libstdc++-static
 
 ARG SWIFT_PLATFORM=fedora39
-ARG SWIFT_VERSION=5.10.1
+ARG SWIFT_VERSION=6.0
 ARG SWIFT_BRANCH=swift-${SWIFT_VERSION}-release
 ARG SWIFT_TAG=swift-${SWIFT_VERSION}-RELEASE
 ARG SWIFT_WEBROOT=https://download.swift.org
