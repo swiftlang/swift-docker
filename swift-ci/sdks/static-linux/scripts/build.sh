@@ -115,7 +115,7 @@ declare_package libarchive "libarchive" "BSD-2-Clause" "https://www.libarchive.o
 declare_package mimalloc "mimalloc" "MIT" "https://microsoft.github.io/mimalloc/"
 
 # Parse command line arguments
-static_linux_sdk_version=0.1.0
+static_linux_sdk_version=0.1.1
 sdk_name=
 archs=x86_64,aarch64
 build_type=RelWithDebInfo
@@ -855,7 +855,7 @@ EOF
 
     SWIFT_SOURCE_ROOT="${source_dir}/swift-project" \
     SWIFT_BUILD_ROOT="${build_dir}/swift" \
-    run ${source_dir}/swift-project/swift/utils/build-script -r \
+    run ${source_dir}/swift-project/swift/utils/build-script -r -A \
         --reconfigure \
         --compiler-vendor=apple \
         --bootstrapping hosttools \
