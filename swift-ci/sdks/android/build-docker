@@ -17,7 +17,7 @@
 # default architectures to build for
 TARGET_ARCHS=${TARGET_ARCHS:-aarch64,x86_64,armv7}
 
-ANDROID_NDK_VERSION=android-ndk-r27d
+ANDROID_NDK_VERSION=android-ndk-r28c
 ANDROID_API=28
 
 BASEPATH=$(dirname $(realpath $0))
@@ -55,7 +55,6 @@ perl -0777 -pi -e "s#(call rm ... \".\{LIBDISPATCH_BUILD_DIR\}\"\n(\s+)fi\n)#\1\
 
 # Push trunk back to build against Android API 23 with NDK 28c
 if [[ -n "${SWIFT_VERSION}" && ($SWIFT_VERSION != scheme:release/6.3 && $SWIFT_VERSION != tag:swift-6.3-*) ]]; then
-    ANDROID_NDK_VERSION=android-ndk-r28c
     ANDROID_API=23
 fi
 
