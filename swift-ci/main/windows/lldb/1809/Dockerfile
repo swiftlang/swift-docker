@@ -9,9 +9,9 @@ RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tl
 RUN Set-ItemProperty -Path HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem -Name LongPathsEnabled -Value 1
 RUN Set-ItemProperty -Path HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock -Name AllowDevelopmentWithoutDevLicense -Value 1 -Type DWord
 
-# Visual Studio 2022 Community with C++ and Windows SDK components
-RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_community.exe -OutFile vs_community.exe; \
-    Start-Process -FilePath .\\vs_community.exe -Wait -ArgumentList \
+# Visual Studio 2022 Build Tools with C++ and Windows SDK components
+RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFile vs_buildtools.exe; \
+    Start-Process -FilePath .\\vs_buildtools.exe -Wait -ArgumentList \
       '--quiet --wait --norestart \
       --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 \
       --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 \
@@ -23,7 +23,7 @@ RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_community.exe -OutFil
       --add Microsoft.VisualStudio.Component.Windows11SDK.22621 \
       --add Microsoft.VisualStudio.Component.VC.CMake.Project \
       --add Microsoft.NetCore.Component.Runtime.9.0'; \
-    Remove-Item -Force vs_community.exe
+    Remove-Item -Force vs_buildtools.exe
 
 # Git
 RUN Invoke-WebRequest -Uri https://github.com/git-for-windows/git/releases/download/v2.47.1.windows.1/Git-2.47.1-64-bit.exe -OutFile git.exe; \
@@ -60,14 +60,15 @@ RUN git config --global core.symlink true; \
     git config --global core.autocrlf false
 
 # vcpkg + libxml2
-RUN git clone https://github.com/microsoft/vcpkg C:\\vcpkg; \
+RUN git clone --depth 1 https://github.com/microsoft/vcpkg C:\\vcpkg; \
     C:\\vcpkg\\bootstrap-vcpkg.bat -disableMetrics
 SHELL ["cmd", "/S", "/C"]
-RUN ""C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat" && C:\vcpkg\vcpkg install libxml2:x64-windows"
+RUN ""C:\Program Files\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" && C:\vcpkg\vcpkg install libxml2:x64-windows"
 SHELL ["powershell", "-ExecutionPolicy", "Bypass", "-Command"]
+RUN Remove-Item -Recurse -Force C:\\vcpkg\\buildtrees, C:\\vcpkg\\packages, C:\\vcpkg\\downloads
 RUN [Environment]::SetEnvironmentVariable('VCPKG_ROOT', 'C:\\vcpkg', [EnvironmentVariableTarget]::Machine); \
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH + ';C:\\vcpkg\\installed\\x64-windows\\bin', [EnvironmentVariableTarget]::Machine)
 
 # Add VC runtime redist DLLs to PATH
-RUN $redist = (Get-ChildItem 'C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\*\x64\Microsoft.VC143.CRT' | Select-Object -First 1).FullName; \
+RUN $redist = (Get-ChildItem 'C:\Program Files\Microsoft Visual Studio\2022\BuildTools\VC\Redist\MSVC\*\x64\Microsoft.VC143.CRT' | Select-Object -First 1).FullName; \
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH + ';' + $redist, [EnvironmentVariableTarget]::Machine)
