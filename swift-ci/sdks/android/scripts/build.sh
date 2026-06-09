@@ -496,6 +496,7 @@ for arch in $archs; do
             --xctest --install-xctest \
             --swift-testing --install-swift-testing \
             --swift-testing-macros --install-swift-testing-macros \
+            --build-embedded-stdlib=False \
             --cross-compile-build-swift-tools=False \
             --libdispatch-cmake-options=-DCMAKE_SHARED_LINKER_FLAGS= \
             --foundation-cmake-options=-DCMAKE_SHARED_LINKER_FLAGS= \
