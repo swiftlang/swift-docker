@@ -654,7 +654,10 @@ for arch in $archs; do
     quiet_pushd ${sdk_staging}/${arch}/usr
         rm -rf bin lib/clang local
         rm -r include/*
-        cp -r ${swift_source_dir}/swift/lib/ClangImporter/SwiftBridging/{module.modulemap,swift} include/
+        # No longer needed in trunk snapshots and PRs
+        if [[ $swift_version != DEVELOPMENT-SNAPSHOT-* && $swift_version != PR ]]; then
+            cp -r ${swift_source_dir}/swift/lib/ClangImporter/SwiftBridging/{module.modulemap,swift} include/
+        fi
 
         arch_triple="$arch-linux-android"
         if [[ $arch == 'armv7' ]]; then
