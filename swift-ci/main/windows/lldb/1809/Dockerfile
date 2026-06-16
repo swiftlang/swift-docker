@@ -36,7 +36,7 @@ RUN Invoke-WebRequest -Uri https://www.python.org/ftp/python/3.13.0/python-3.13.
     Start-Process -FilePath .\\python.exe -Wait -ArgumentList \
       '/quiet InstallAllUsers=1 PrependPath=1 Include_test=0'; \
     Remove-Item -Force python.exe
-RUN & "C:\Program Files\Python313\python.exe" -m pip install packaging==25.0 psutil==7.1.1 cryptography==47.0.0
+RUN python -m pip install packaging==25.0 psutil==7.1.1 cryptography==47.0.0
 
 # CMake 3.31.8
 RUN Invoke-WebRequest -Uri https://github.com/Kitware/CMake/releases/download/v3.31.8/cmake-3.31.8-windows-x86_64.msi -OutFile cmake.msi; \
