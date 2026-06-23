@@ -14,16 +14,12 @@ RUN Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_buildtools.exe -OutFi
     Start-Process -FilePath .\\vs_buildtools.exe -Wait -ArgumentList \
       '--quiet --wait --norestart \
       --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 \
-      --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 \
-      --add Microsoft.VisualStudio.Component.VC.14.44.17.14.ARM64 \
-      --add Microsoft.VisualStudio.Component.VC.14.44.17.14.x86.x64 \
       --add Microsoft.VisualStudio.Component.VC.ATL \
-      --add Microsoft.VisualStudio.Component.VC.ATL.ARM64 \
-      --add Microsoft.VisualStudio.Component.Windows10SDK \
       --add Microsoft.VisualStudio.Component.Windows11SDK.22621 \
-      --add Microsoft.VisualStudio.Component.VC.CMake.Project \
       --add Microsoft.NetCore.Component.Runtime.9.0'; \
-    Remove-Item -Force vs_buildtools.exe
+    Remove-Item -Force vs_buildtools.exe; \
+    Remove-Item -Recurse -Force 'C:\\ProgramData\\Package Cache' -ErrorAction SilentlyContinue; \
+    Remove-Item -Recurse -Force "$env:TEMP\\*" -ErrorAction SilentlyContinue
 
 # Git
 RUN Invoke-WebRequest -Uri https://github.com/git-for-windows/git/releases/download/v2.47.1.windows.1/Git-2.47.1-64-bit.exe -OutFile git.exe; \
@@ -68,11 +64,11 @@ RUN Invoke-WebRequest -Uri https://downloads.sourceforge.net/project/ezwinports/
 
 # vcpkg + libxml2
 RUN git clone --depth 1 https://github.com/microsoft/vcpkg C:\\vcpkg; \
-    C:\\vcpkg\\bootstrap-vcpkg.bat -disableMetrics
+    C:\\vcpkg\\bootstrap-vcpkg.bat -disableMetrics; \
+    Remove-Item -Recurse -Force C:\\vcpkg\\.git
 SHELL ["cmd", "/S", "/C"]
-RUN ""C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" && C:\vcpkg\vcpkg install libxml2:x64-windows"
+RUN ""C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" && C:\vcpkg\vcpkg install libxml2:x64-windows && rmdir /S /Q C:\vcpkg\buildtrees && rmdir /S /Q C:\vcpkg\packages && rmdir /S /Q C:\vcpkg\downloads"
 SHELL ["powershell", "-ExecutionPolicy", "Bypass", "-Command"]
-RUN Remove-Item -Recurse -Force C:\\vcpkg\\buildtrees, C:\\vcpkg\\packages, C:\\vcpkg\\downloads
 RUN [Environment]::SetEnvironmentVariable('VCPKG_ROOT', 'C:\\vcpkg', [EnvironmentVariableTarget]::Machine); \
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH + ';C:\\vcpkg\\installed\\x64-windows\\bin', [EnvironmentVariableTarget]::Machine)
 
