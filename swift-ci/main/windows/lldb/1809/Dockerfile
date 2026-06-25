@@ -57,7 +57,7 @@ RUN git config --global core.symlink true; \
     git config --global core.autocrlf false
 
 # GNU make 4.4.1 (ezwinports)
-RUN Invoke-WebRequest -Uri https://downloads.sourceforge.net/project/ezwinports/make-4.4.1-without-guile-w32-bin.zip -OutFile make.zip; \
+RUN curl.exe -L -o make.zip https://downloads.sourceforge.net/project/ezwinports/make-4.4.1-without-guile-w32-bin.zip; \
     Expand-Archive -Path make.zip -DestinationPath C:\\GnuWin32Make-4.4.1; \
     Remove-Item -Force make.zip; \
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH + ';C:\\GnuWin32Make-4.4.1\\bin', [EnvironmentVariableTarget]::Machine)
