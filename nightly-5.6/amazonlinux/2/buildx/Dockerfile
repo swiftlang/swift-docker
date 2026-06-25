@@ -63,7 +63,7 @@ RUN set -e; \
     # - Unpack the toolchain, set libs permissions, and clean up.
     && tar -xzf latest_toolchain.tar.gz --directory / ${ADDITIONAL_TAR_OPTIONS} \
     && chmod -R o+r /usr/lib/swift \
-    && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
+    && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz
 
 # Print Installed Swift Version
 RUN swift --version
