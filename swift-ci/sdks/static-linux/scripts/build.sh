@@ -70,6 +70,9 @@ Options:
   --build <type>        Specify the CMake build type to use (Release, Debug,
                         RelWithDebInfo).
                         (Default is ${build_type}).
+  --cpu <cpu>           Specify a target CPU to build for (e.g. cortex-a53).
+                        This adds -mcpu=<cpu> to C/C++ compiler flags and
+                        -target-cpu <cpu> to Swift compiler flags.
   -j <count>
   --jobs <count>        Specify the number of parallel jobs to run at a time.
                         (Default is ${parallel_jobs}.)
@@ -123,6 +126,7 @@ parallel_jobs=$(($(nproc --all) + 2))
 source_dir=
 build_dir=$(pwd)/build
 products_dir=
+target_cpu=
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --source-dir)
@@ -137,6 +141,8 @@ while [ "$#" -gt 0 ]; do
             archs="$2"; shift ;;
         --version)
             static_linux_sdk_version="$2"; shift ;;
+        --cpu)
+            target_cpu="$2"; shift ;;
         -j|--jobs)
             parallel_jobs=$2; shift ;;
         *)
@@ -166,6 +172,10 @@ if [[ -z "$source_dir" || -z "$products_dir" ]]; then
     usage
     exit 1
 fi
+
+source_dir=$(realpath "$source_dir")
+products_dir=$(realpath "$products_dir")
+build_dir=$(realpath "$build_dir")
 
 if ! swiftc=$(which swiftc); then
     echo "build.sh: Unable to find Swift compiler.  You must have a Swift toolchain installed to build the statically linked SDK."
@@ -222,6 +232,9 @@ fi
 
 if [[ -z "$sdk_name" ]]; then
     sdk_name=swift-${swift_version}_static-linux-${static_linux_sdk_version}
+    if [[ -n "$target_cpu" ]]; then
+        sdk_name=${sdk_name}_${target_cpu}
+    fi
 fi
 
 musl_version=$(versionFromTag ${source_dir}/musl)
@@ -275,6 +288,10 @@ echo "  - bzip2 ${bzip2_version}"
 echo "  - xz ${xz_version}"
 echo "  - libarchive ${libarchive_version}"
 echo "  - mimalloc ${mimalloc_version}"
+
+if [[ -n "$target_cpu" ]]; then
+    echo "Building for CPU: ${target_cpu}"
+fi
 
 function run() {
     echo "$@"
@@ -377,6 +394,13 @@ for arch in $archs; do
 
     triple=${arch}-swift-linux-musl
 
+    extra_c_flags=""
+    extra_swift_flags=""
+    if [[ -n "$target_cpu" && "$arch" == "aarch64" ]]; then
+        extra_c_flags=" -mcpu=${target_cpu}"
+        extra_swift_flags=" -target-cpu ${target_cpu}"
+    fi
+
     sdk_root=${build_dir}/sdk_root/${arch}
     mkdir -p "$sdk_root"
 
@@ -389,8 +413,8 @@ for arch in $archs; do
     clang_resource_dir=$(${clang_dir}/bin/clang -print-resource-dir)
     cp -rT $clang_resource_dir/include $sdk_resource_dir/include
 
-    cc="${clang_dir}/bin/clang -target $triple -resource-dir ${sdk_resource_dir} --sysroot ${sdk_root}"
-    cxx="${clang_dir}/bin/clang++ -target $triple -resource-dir ${sdk_resource_dir} --sysroot ${sdk_root} -stdlib=libc++ -unwindlib=libunwind"
+    cc="${clang_dir}/bin/clang -target $triple -resource-dir ${sdk_resource_dir} --sysroot ${sdk_root}${extra_c_flags}"
+    cxx="${clang_dir}/bin/clang++ -target $triple -resource-dir ${sdk_resource_dir} --sysroot ${sdk_root} -stdlib=libc++ -unwindlib=libunwind${extra_c_flags}"
     as="$cc"
 
     # Creating this gets rid of a warning
@@ -504,9 +528,9 @@ set(CMAKE_SYSROOT ${sdk_root})
 set(CMAKE_CROSSCOMPILING=YES)
 set(CMAKE_EXE_LINKER_FLAGS "-unwindlib=libunwind -rtlib=compiler-rt -stdlib=libc++ -fuse-ld=lld -lc++ -lc++abi")
 
-set(CMAKE_C_COMPILER ${clang_dir}/bin/clang -resource-dir ${sdk_resource_dir})
-set(CMAKE_CXX_COMPILER ${clang_dir}/bin/clang++ -resource-dir ${sdk_resource_dir} -stdlib=libc++)
-set(CMAKE_ASM_COMPILER ${clang_dir}/bin/clang -resource-dir ${sdk_resource_dir})
+set(CMAKE_C_COMPILER ${clang_dir}/bin/clang -resource-dir ${sdk_resource_dir}${extra_c_flags})
+set(CMAKE_CXX_COMPILER ${clang_dir}/bin/clang++ -resource-dir ${sdk_resource_dir} -stdlib=libc++${extra_c_flags})
+set(CMAKE_ASM_COMPILER ${clang_dir}/bin/clang -resource-dir ${sdk_resource_dir}${extra_c_flags})
 set(CMAKE_FIND_ROOT_PATH ${sdk_root})
 EOF
 
@@ -599,6 +623,13 @@ EOF
 
     header "Building mimalloc for $arch"
 
+    # mimalloc defaults to MI_OPT_ARCH=ON on arm64, adding -march=armv8.1-a
+    # (LSE atomics). That overrides -mcpu=cortex-a53 and breaks ARMv8.0 CPUs.
+    mimalloc_extra_cmake_args=
+    if [[ -n "$target_cpu" && "$arch" == "aarch64" ]]; then
+        mimalloc_extra_cmake_args="-DMI_NO_OPT_ARCH=ON"
+    fi
+
     run cmake -G Ninja -S ${source_dir}/mimalloc \
         -B ${build_dir}/$arch/mimalloc \
         -DCMAKE_TOOLCHAIN_FILE=${build_dir}/$arch/toolchain.cmake \
@@ -608,7 +639,8 @@ EOF
         -DMI_BUILD_SHARED=OFF \
         -DMI_BUILD_STATIC=ON \
         -DMI_BUILD_TESTS=OFF \
-        -DMI_INSTALL_TOPLEVEL=ON
+        -DMI_INSTALL_TOPLEVEL=ON \
+        $mimalloc_extra_cmake_args
 
     quiet_pushd ${build_dir}/$arch/mimalloc
     run ninja -j$parallel_jobs
@@ -845,6 +877,9 @@ EOF
 -lc++abi
 -static
 EOF
+    if [[ -n "$extra_c_flags" ]]; then
+        echo "-mcpu=${target_cpu}" >> $llvm_bin/${arch}-swift-linux-musl-clang.cfg
+    fi
     ln -sf ${arch}-swift-linux-musl-clang.cfg \
        $llvm_bin/${arch}-swift-linux-musl-clang++.cfg
 
@@ -876,7 +911,7 @@ EOF
 
     # Add the Swift compiler to the CMake toolchain file
     cat >> ${build_dir}/$arch/toolchain.cmake <<EOF
-set(CMAKE_Swift_FLAGS "-static-stdlib -use-ld=${lld} -sdk ${sdk_root} -target ${arch}-swift-linux-musl -resource-dir ${sdk_root}/usr/lib/swift_static -Xclang-linker -resource-dir -Xclang-linker ${sdk_resource_dir}")
+set(CMAKE_Swift_FLAGS "-static-stdlib -use-ld=${lld} -sdk ${sdk_root} -target ${arch}-swift-linux-musl -resource-dir ${sdk_root}/usr/lib/swift_static -Xclang-linker -resource-dir -Xclang-linker ${sdk_resource_dir}${extra_swift_flags}")
 set(CMAKE_Swift_COMPILER ${swiftc})
 EOF
 
@@ -995,7 +1030,6 @@ spdx_uuid=$(uuidgen)
 spdx_doc_uuid=$(uuidgen)
 spdx_timestamp=$(date -Iseconds -z Z | sed 's/\+00:00$/Z/g')
 
-sdk_name=swift-${swift_version}_static-linux-${static_linux_sdk_version}
 bundle="${sdk_name}.artifactbundle"
 
 rm -rf "${build_dir}/$bundle"
@@ -1148,13 +1182,23 @@ quiet_popd
 
 mkdir -p swift.xctoolchain/usr/bin
 
+toolset_extra_swift_options=
+if [[ -n "$target_cpu" ]]; then
+    toolset_extra_swift_options=$(cat <<EOF
+      ,
+      "-target-cpu",
+      "${target_cpu}"
+EOF
+)
+fi
+
 cat > toolset.json <<EOF
 {
   "rootPath": "swift.xctoolchain/usr/bin",
   "swiftCompiler" : {
     "extraCLIOptions" : [
       "-static-executable",
-      "-static-stdlib"
+      "-static-stdlib"${toolset_extra_swift_options}
     ]
   },
   "schemaVersion": "1.0"
