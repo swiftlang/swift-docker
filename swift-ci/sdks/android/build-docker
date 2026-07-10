@@ -53,6 +53,8 @@ fi
 # Work around swiftlang/swift-driver#1822 for now
 perl -0777 -pi -e "s#(call rm ... \".\{LIBDISPATCH_BUILD_DIR\}\"\n(\s+)fi\n)#\1\2if [[ -d \"\\\${ANDROID_NDK}\" ]]; then call ln -sf \"\\\${SWIFT_BUILD_PATH}/lib/swift\" \"\\\${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib\"; fi#g" ${WORKDIR}/source/swift-project/swift/utils/build-script-impl
 
+rm ${WORKDIR}/source/swift-project/swift/test/Interop/CxxToSwiftToCxx/bridge-cxx-struct-back-to-cxx.swift
+
 # Push 6.4 and trunk back to build against Android API 23 with newer NDKs
 if [[ -n "${SWIFT_VERSION}" ]]; then
     if [[ $SWIFT_VERSION != scheme:release/6.3 && $SWIFT_VERSION != tag:swift-6.3-* ]]; then

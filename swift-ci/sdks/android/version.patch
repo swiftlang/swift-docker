@@ -1,0 +1,178 @@
+commit c1044ffd6453254339500e170b64d698d77c0943
+Author: finagolfin
+Date:   Fri Jul 24 22:03:25 2026
+
+    [android] Switch compiling Swift source in stdlib and the test suite to target triples with the API level specified (#90650)
+    
+    We were already doing this for the C/C++ source in the stdlib and
+    linking against the Android libc with the API level given, resolves
+    #85522.
+
+diff --git a/cmake/modules/SwiftConfigureSDK.cmake b/cmake/modules/SwiftConfigureSDK.cmake
+index 8a8b0978653..008ff5bea1b 100644
+--- a/cmake/modules/SwiftConfigureSDK.cmake
++++ b/cmake/modules/SwiftConfigureSDK.cmake
+@@ -385,6 +385,7 @@ macro(configure_sdk_unix name architectures)
+     if("${prefix}" STREQUAL "ANDROID")
+       swift_android_sysroot(android_sysroot)
+       set(SWIFT_SDK_ANDROID_ARCH_${arch}_PATH "${android_sysroot}")
++      set(SWIFT_SDK_ANDROID_TEST_DEPLOYMENT_VERSION "${SWIFT_ANDROID_API_LEVEL}")
+ 
+       if("${arch}" STREQUAL "armv7")
+         set(SWIFT_SDK_ANDROID_ARCH_${arch}_NDK_TRIPLE "arm-linux-androideabi")
+diff --git a/stdlib/cmake/modules/AddSwiftStdlib.cmake b/stdlib/cmake/modules/AddSwiftStdlib.cmake
+index ed1ee34fc48..d538410690e 100644
+--- a/stdlib/cmake/modules/AddSwiftStdlib.cmake
++++ b/stdlib/cmake/modules/AddSwiftStdlib.cmake
+@@ -2581,11 +2581,6 @@ function(add_swift_target_library name)
+         list(APPEND swiftlib_link_flags_all "-Wl,-z,max-page-size=16384")
+       endif()
+ 
+-      # This is a Android-specific hack till we transition the stdlib fully to versioned triples.
+-      if(sdk STREQUAL "ANDROID" AND name STREQUAL "swiftSwiftReflectionTest")
+-        list(APPEND swiftlib_swift_compile_flags_all "-target" "${SWIFT_SDK_ANDROID_ARCH_${arch}_TRIPLE}${SWIFT_ANDROID_API_LEVEL}")
+-      endif()
+-
+       if (SWIFTLIB_BACK_DEPLOYMENT_LIBRARY)
+         set(back_deployment_library_option BACK_DEPLOYMENT_LIBRARY ${SWIFTLIB_BACK_DEPLOYMENT_LIBRARY})
+       else()
+diff --git a/stdlib/cmake/modules/SwiftSource.cmake b/stdlib/cmake/modules/SwiftSource.cmake
+index 55a00bf01c3..50191a26706 100644
+--- a/stdlib/cmake/modules/SwiftSource.cmake
++++ b/stdlib/cmake/modules/SwiftSource.cmake
+@@ -271,6 +271,11 @@ function(_add_target_variant_swift_compile_flags
+     if(target_variant)
+       list(APPEND result "-target-variant" "${target_variant}")
+     endif()
++  elseif("${sdk}" STREQUAL "ANDROID")
++    get_target_triple(target target_variant "${sdk}" "${arch}"
++    DEPLOYMENT_VERSION "${SWIFT_ANDROID_API_LEVEL}")
++
++    list(APPEND result "-target" "${target}")
+   else()
+     list(APPEND result
+         "-target" "${SWIFT_SDK_${sdk}_ARCH_${arch}_TRIPLE}")
+diff --git a/test/IRGen/availability_android.swift b/test/IRGen/availability_android.swift
+index f7a2dfc0ef7..262116a0c9c 100644
+--- a/test/IRGen/availability_android.swift
++++ b/test/IRGen/availability_android.swift
+@@ -1,5 +1,5 @@
+-// RUN: %target-swift-frontend -target %target-triple24 -primary-file %s -emit-ir | %FileCheck %s --check-prefix=CHECK-24
+-// RUN: %target-swift-frontend -target %target-triple28 -primary-file %s -emit-ir | %FileCheck %s --check-prefix=CHECK-28
++// RUN: %target-swift-frontend -target %target-arch-unknown-linux-android24 -primary-file %s -emit-ir | %FileCheck %s --check-prefix=CHECK-24
++// RUN: %target-swift-frontend -target %target-arch-unknown-linux-android28 -primary-file %s -emit-ir | %FileCheck %s --check-prefix=CHECK-28
+ 
+ // CHECK-24-LABEL: define{{.*}}$s20availability_android0A5CheckyyF
+ // CHECK-24: call swiftcc i1 @"$ss26_stdlib_isOSVersionAtLeastyBi1_Bw_BwBwtF"(
+@@ -7,7 +7,7 @@
+ // CHECK-28-LABEL: define{{.*}}$s20availability_android0A5CheckyyF
+ // CHECK-28-NOT: call swiftcc i1 @"$ss26_stdlib_isOSVersionAtLeastyBi1_Bw_BwBwtF"(
+ 
+-// REQUIRES: OS=linux-android
++// REQUIRES: OS=linux-android, OS=linux-androideabi
+ 
+ public func availabilityCheck() {
+   if #available(Android 28, *) {
+diff --git a/test/Interop/Cxx/class/invalid-members/stdlib-containers-of-incomplete.swift b/test/Interop/Cxx/class/invalid-members/stdlib-containers-of-incomplete.swift
+index f75b20ba305..0c59bc275b3 100644
+--- a/test/Interop/Cxx/class/invalid-members/stdlib-containers-of-incomplete.swift
++++ b/test/Interop/Cxx/class/invalid-members/stdlib-containers-of-incomplete.swift
+@@ -30,9 +30,6 @@
+ //
+ // REQUIRES: swift_feature_ImportCxxMembersLazily
+ 
+-// Requires specifying the Android API when compiling
+-// XFAIL: OS=linux-android, OS=linux-androideabi
+-
+ //--- Inputs/module.modulemap
+ module StdContain {
+   header "std-contain-incomplete.h"
+diff --git a/test/Reflection/noncopyable_field_typeref.swift b/test/Reflection/noncopyable_field_typeref.swift
+index efa3c9ab95f..8ded8775392 100644
+--- a/test/Reflection/noncopyable_field_typeref.swift
++++ b/test/Reflection/noncopyable_field_typeref.swift
+@@ -10,6 +10,7 @@
+ // UNSUPPORTED: CPU=arm64e
+ // UNSUPPORTED: OS=linux-android
+ // UNSUPPORTED: CPU=armv7k && OS=watchos
++// XFAIL: OS=linux-android, OS=linux-androideabi
+ 
+ // RUN: %empty-directory(%t)
+ // RUN: %target-build-swift -target %module-target-future %s -parse-as-library -emit-module -emit-library -module-name NoncopyableFields -o %t/%target-library-name(NoncopyableFields)
+diff --git a/test/lit.cfg b/test/lit.cfg
+index 1d5cfcf1c02..4724316cf9d 100644
+--- a/test/lit.cfg
++++ b/test/lit.cfg
+@@ -2043,8 +2043,7 @@ elif run_os == 'linux-androideabi' or run_os == 'linux-android':
+     config.target_build_swift = ' '.join([
+         config.swiftc,
+         '-target', config.variant_triple,
+-        '-sdk', config.variant_sdk, '-Xclang-linker',
+-        '--target={}{}'.format(config.variant_triple, config.android_api_level),
++        '-sdk', config.variant_sdk,
+         '-tools-directory', tools_directory,
+         config.resource_dir_opt, mcp_opt, config.swift_test_options,
+         config.swift_driver_test_options, swift_execution_tests_extra_flags])
+@@ -2097,8 +2096,7 @@ elif run_os == 'linux-androideabi' or run_os == 'linux-android':
+         config.swiftc,
+         '-target', config.variant_triple,
+         '-toolchain-stdlib-rpath',
+-        '-sdk', config.variant_sdk, '-Xclang-linker',
+-        '--target={}{}'.format(config.variant_triple, config.android_api_level),
++        '-sdk', config.variant_sdk,
+         '-tools-directory', tools_directory,
+         config.resource_dir_opt, mcp_opt,
+         config.swift_driver_test_options])
+diff --git a/test/Interop/CxxToSwiftToCxx/bridge-cxx-struct-back-to-cxx.swift b/test/Interop/CxxToSwiftToCxx/bridge-cxx-struct-back-to-cxx.swift
+index 1ff05c691f0..d789c949044 100644
+--- a/test/Interop/CxxToSwiftToCxx/bridge-cxx-struct-back-to-cxx.swift
++++ b/test/Interop/CxxToSwiftToCxx/bridge-cxx-struct-back-to-cxx.swift
+@@ -21,6 +21,9 @@
+ // RUN: %target-interop-build-clangxx -fsyntax-only -x c++-header %t/full-cxx-swift-cxx-bridging.h -std=gnu++17 -c -fmodules -fcxx-modules -I %t 
+ // FIXME: test c++20 (rdar://117419434)
+ 
++// Failing for Android since NDK 29, android/ndk#2242
++// UNSUPPORTED: OS=linux-android, OS=linux-androideabi
++
+ //--- header.h
+ 
+ struct Trivial {
+diff --git a/test/Reflection/typeref_decoding_packs.swift b/test/Reflection/typeref_decoding_packs.swift
+index 2e9ea9d7dba..26ad3ba203b 100644
+--- a/test/Reflection/typeref_decoding_packs.swift
++++ b/test/Reflection/typeref_decoding_packs.swift
+@@ -19,7 +19,7 @@
+ // RUN: %target-swift-reflection-dump %t/TypesToReflect | %FileCheck %s
+ 
+ // Fails only with Android NDK 28 because of an lld issue
+-// XFAIL: OS=linux-android
++// UNSUPPORTED: OS=linux-android
+ 
+ // CHECK: FIELDS:
+ // CHECK: =======
+diff --git a/test/Reflection/typeref_lowering.swift b/test/Reflection/typeref_lowering.swift
+index 48a07d7a108..898b71de4fd 100644
+--- a/test/Reflection/typeref_lowering.swift
++++ b/test/Reflection/typeref_lowering.swift
+@@ -13,7 +13,7 @@
+ // UNSUPPORTED: CPU=arm64e
+ 
+ // This started failing for Android with #89305, disable until NDK 30 is used.
+-// XFAIL: OS=linux-android && CPU=aarch64
++// UNSUPPORTED: OS=linux-android && CPU=aarch64
+ 
+ // RUN: %target-build-swift -target %target-swift-5.2-abi-triple -Xfrontend -disable-availability-checking %S/Inputs/TypeLowering.swift -parse-as-library -emit-module -emit-library %no-fixup-chains -module-name TypeLowering -o %t/%target-library-name(TypesToReflect)
+ // RUN: %target-build-swift -target %target-swift-5.2-abi-triple -Xfrontend -disable-availability-checking %S/Inputs/TypeLowering.swift %S/Inputs/main.swift -emit-module -emit-executable %no-fixup-chains -module-name TypeLowering -o %t/TypesToReflect
+diff --git a/test/Reflection/typeref_lowering_packs.swift b/test/Reflection/typeref_lowering_packs.swift
+index 95feb3fbeea..259e11df3d2 100644
+--- a/test/Reflection/typeref_lowering_packs.swift
++++ b/test/Reflection/typeref_lowering_packs.swift
+@@ -17,7 +17,7 @@
+ // REQUIRES: PTRSIZE=64
+ 
+ // Fails only with Android NDK 28 because of an lld issue
+-// XFAIL: OS=linux-android
++// UNSUPPORTED: OS=linux-android
+ 
+ 12TypeLowering6SimpleV
+ 

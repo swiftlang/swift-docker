@@ -65,6 +65,11 @@ fi
 # Work around swiftlang/swift-driver#1822 for now
 perl -pi -g -we "s#(call rm ... \".\{LIBDISPATCH_BUILD_DIR\}\"\n(\s+)fi\n)#\1\2if [[ -d \"\\\${ANDROID_NDK}\" ]]; then call ln -sf \"\\\${SWIFT_BUILD_PATH}/lib/swift\" \"\\\${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib\"; fi#" ${WORKDIR}/source/swift-project/swift/utils/build-script-impl
 
+cp version.patch ${WORKDIR}/source/swift-project/swift/
+pushd ${WORKDIR}/source/swift-project/swift/
+git apply version.patch
+popd
+
 mkdir -p ${WORKDIR}/products
 
 ./scripts/build.sh \
