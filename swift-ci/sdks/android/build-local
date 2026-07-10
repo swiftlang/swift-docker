@@ -17,7 +17,7 @@
 # default architectures to build for
 TARGET_ARCHS=${TARGET_ARCHS:-aarch64,x86_64,armv7}
 
-ANDROID_NDK_VERSION=android-ndk-r28c
+ANDROID_NDK_VERSION=android-ndk-r30-beta2
 ANDROID_API=23
 
 BASEPATH=$(dirname $(realpath $0))
