@@ -6,7 +6,7 @@ LABEL description="Docker Container for the Swift programming language"
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
     apt-get -q install -y \
     libcurl4 \
-    libxml2 \
+    libxml2-16 \
     tzdata \
     && rm -r /var/lib/apt/lists/*
 
