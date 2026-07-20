@@ -9,6 +9,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
     curl \
     git \
     gnupg2 \
+    libarchive-tools \
     libc6-dev \
     libcurl4-openssl-dev \
     libncurses5-dev       \
@@ -62,7 +63,8 @@ RUN set -e; \
     && curl -fSsL --compressed https://swift.org/keys/all-keys.asc | gpg --import -  \
     && gpg --batch --verify latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
-    && tar -xzf latest_toolchain.tar.gz --directory / --strip-components=1 \
+    # - bsdtar is used instead of GNU tar to work around https://github.com/orbstack/orbstack/issues/2588
+    && bsdtar -xzf latest_toolchain.tar.gz -C / --strip-components=1 \
     && chmod -R o+r /usr/lib/swift \
     && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
     && apt-get purge --auto-remove -y curl

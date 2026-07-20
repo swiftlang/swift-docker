@@ -77,7 +77,7 @@ RUN set -e; \
     && SWIFT_SIG_URL="$SWIFT_BIN_URL.sig" \
     # - Grab curl here so we cache better up above
     && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -q update && apt-get -q install -y curl && rm -rf /var/lib/apt/lists/* \
+    && apt-get -q update && apt-get -q install -y curl libarchive-tools && rm -rf /var/lib/apt/lists/* \
     # - Download the GPG keys, Swift toolchain, and toolchain signature, and verify.
     && export GNUPGHOME="$(mktemp -d)" \
     && curl -fsSL "$SWIFT_BIN_URL" -o swift.tar.gz "$SWIFT_SIG_URL" -o swift.tar.gz.sig \
@@ -85,10 +85,11 @@ RUN set -e; \
     && gpg --batch --verify swift.tar.gz.sig swift.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
     && mkdir -p $SWIFT_PREFIX \
-    && tar -xzf swift.tar.gz --directory $SWIFT_PREFIX --strip-components=1 \
+    # - bsdtar is used instead of GNU tar to work around https://github.com/orbstack/orbstack/issues/2588
+    && bsdtar -xzf swift.tar.gz -C $SWIFT_PREFIX --strip-components=1 \
     && chmod -R o+r $SWIFT_PREFIX/usr/lib/swift \
     && rm -rf "$GNUPGHOME" swift.tar.gz.sig swift.tar.gz \
-    && apt-get purge --auto-remove -y curl
+    && apt-get purge --auto-remove -y curl libarchive-tools
 
 ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
 

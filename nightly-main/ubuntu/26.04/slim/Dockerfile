@@ -32,7 +32,7 @@ ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
 RUN set -e; \
     # - Grab curl and gpg here so we cache better up above
     export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -q update && apt-get -q install -y curl gnupg && rm -rf /var/lib/apt/lists/* \
+    && apt-get -q update && apt-get -q install -y curl gnupg libarchive-tools && rm -rf /var/lib/apt/lists/* \
     # - Latest Toolchain info
     && export $(curl -s ${SWIFT_WEBROOT}/latest-build.yml | grep 'download:' | sed 's/:[^:\/\/]/=/g')  \
     && export $(curl -s ${SWIFT_WEBROOT}/latest-build.yml | grep 'download_signature:' | sed 's/:[^:\/\/]/=/g')  \
@@ -45,12 +45,13 @@ RUN set -e; \
     && curl -fSsL --compressed https://swift.org/keys/all-keys.asc | gpg --import -  \
     && gpg --batch --verify latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
     # - Unpack the toolchain, set libs permissions, and clean up.
-    && tar -xzf latest_toolchain.tar.gz --directory / --strip-components=1 \
+    # - bsdtar is used instead of GNU tar to work around https://github.com/orbstack/orbstack/issues/2588
+    && bsdtar -xzf latest_toolchain.tar.gz -C / --strip-components=1 \
        ${DOWNLOAD_DIR}-${OS_VER}/usr/lib/swift/linux \
        ${DOWNLOAD_DIR}-${OS_VER}/usr/libexec/swift/linux \
     && chmod -R o+r /usr/lib/swift /usr/libexec/swift \
     && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz \
-    && apt-get purge --auto-remove -y curl gnupg
+    && apt-get purge --auto-remove -y curl gnupg libarchive-tools
 
 RUN echo "[ -n \"\${TERM:-}\" -a -r /etc/motd ] && cat /etc/motd" >> /etc/bash.bashrc; \
     ( \
