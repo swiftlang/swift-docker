@@ -37,7 +37,7 @@ COPY swift-ci/dependencies/requirements.txt /dependencies/
 RUN pip3 install -r /dependencies/requirements.txt --break-system-packages
 
 ARG SWIFT_PLATFORM=ubuntu24.04
-ARG SWIFT_VERSION=5.10.1
+ARG SWIFT_VERSION=6.2.4
 ARG SWIFT_BRANCH=swift-${SWIFT_VERSION}-release
 ARG SWIFT_TAG=swift-${SWIFT_VERSION}-RELEASE
 ARG SWIFT_WEBROOT=https://download.swift.org
