@@ -347,6 +347,7 @@ run cmake -G Ninja -S ${source_dir}/swift-project/llvm-project/llvm \
     -DLLVM_ENABLE_PROJECTS="clang" \
     -DLLVM_PARALLEL_LINK_JOBS=1 \
     -DCMAKE_INSTALL_PREFIX=${build_dir}/clang
+    -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64;RISCV"
 
 quiet_pushd ${build_dir}/host/clang
 run ninja -j$parallel_jobs
