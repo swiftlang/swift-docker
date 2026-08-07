@@ -1,10 +1,7 @@
 FROM debian:10
 
-ARG BUILD_USER_ID=998
-ARG BUILD_GROUP_ID=998
-
-RUN groupadd -g ${BUILD_GROUP_ID} build-user && \
-    useradd -m -r -u ${BUILD_USER_ID} -g build-user build-user
+RUN groupadd -g 998 build-user && \
+    useradd -m -r -u 998 -g build-user build-user
 
 ENV DEBIAN_FRONTEND="noninteractive"
 
