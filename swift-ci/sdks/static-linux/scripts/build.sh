@@ -856,7 +856,7 @@ EOF
 
     SWIFT_SOURCE_ROOT="${source_dir}/swift-project" \
     SWIFT_BUILD_ROOT="${build_dir}/swift" \
-    run ${source_dir}/swift-project/swift/utils/build-script -r \
+    run ${source_dir}/swift-project/swift/utils/build-script -r -A \
         --reconfigure \
         --compiler-vendor=apple \
         --bootstrapping hosttools \
