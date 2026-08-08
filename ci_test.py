@@ -46,8 +46,9 @@ def get_dockerfiles():
 
     for file_info in data:
         filename = file_info['filename']
+        status = file_info['status']
         print(filename)
-        if "Dockerfile" in filename and not "windows" in filename:
+        if "Dockerfile" in filename and not "windows" in filename and status != "removed":
             dockerfiles.append(filename)
     return dockerfiles
 
