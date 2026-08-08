@@ -496,7 +496,6 @@ for arch in $archs; do
             --xctest --install-xctest \
             --swift-testing --install-swift-testing \
             --swift-testing-macros --install-swift-testing-macros \
-            --build-embedded-stdlib=False \
             --cross-compile-build-swift-tools=False \
             --libdispatch-cmake-options=-DCMAKE_SHARED_LINKER_FLAGS= \
             --foundation-cmake-options=-DCMAKE_SHARED_LINKER_FLAGS= \
@@ -533,7 +532,16 @@ cat > info.json <<EOF
     "$sdk_name": {
       "variants": [
         {
-          "path": "$sdk_base"
+          "path": "$sdk_base/swift-sdk.json"
+        }
+      ],
+      "version": "${android_sdk_version}",
+      "type": "swiftSDK"
+    },
+    "${sdk_name}-embedded": {
+      "variants": [
+        {
+          "path": "$sdk_base/embedded-swift-sdk.json"
         }
       ],
       "version": "${android_sdk_version}",
@@ -665,7 +673,7 @@ for arch in $archs; do
         fi
 
         # need force rm in case linux is not present (when not running tests)
-        rm -rf lib/swift{,_static}/{FrameworkABIBaseline,_InternalSwiftScan,_InternalSwiftStaticMirror,clang,embedded,host,linux,migrator}
+        rm -rf lib/swift{,_static}/{FrameworkABIBaseline,_InternalSwiftScan,_InternalSwiftStaticMirror,clang,host,linux,migrator}
         rm -rf lib/lib*.so*
         mv lib/swift lib/swift-$arch
         ln -s ../swift/clang lib/swift-$arch/clang
@@ -806,11 +814,42 @@ cat >> swift-sdk.json <<EOF
 }
 EOF
 
+cp swift-sdk.json embedded-swift-sdk.json
+python3 - <<'PY'
+from pathlib import Path
+p = Path('embedded-swift-sdk.json')
+s = p.read_text()
+s = s.replace('"toolsetPaths": [ "swift-toolset.json" ]',
+              '"toolsetPaths": [ "embedded-toolset.json" ]')
+p.write_text(s)
+PY
+
 cat > swift-toolset.json <<EOF
 {
   "cCompiler": { "extraCLIOptions": ["-fPIC"] },
   "swiftCompiler": { "extraCLIOptions": ["-Xclang-linker", "-fuse-ld=lld"] },
   "linker": { "extraCLIOptions": ["-z", "max-page-size=16384"] },
+  "schemaVersion": "1.0"
+}
+EOF
+
+cat > embedded-toolset.json <<EOF
+{
+  "cCompiler": { "extraCLIOptions": ["-fPIC", "-D__EMBEDDED_SWIFT__"] },
+  "cxxCompiler": { "extraCLIOptions": ["-fPIC", "-D__EMBEDDED_SWIFT__"] },
+  "swiftCompiler": {
+    "extraCLIOptions": [
+      "-Xclang-linker", "-fuse-ld=lld",
+      "-enable-experimental-feature", "Embedded",
+      "-wmo"
+    ]
+  },
+  "linker": {
+    "extraCLIOptions": [
+      "-z", "max-page-size=16384",
+      "-z", "nostart-stop-gc"
+    ]
+  },
   "schemaVersion": "1.0"
 }
 EOF
