@@ -1,8 +1,9 @@
 FROM ubuntu:resolute
 
 ARG BUILD_USER_ID=998
+ARG BUILD_GROUP_ID=998
 
-RUN groupadd -g ${BUILD_USER_ID} build-user && \
+RUN groupadd -g ${BUILD_GROUP_ID} build-user && \
     useradd -m -r -u ${BUILD_USER_ID} -g build-user build-user
 
 ENV DEBIAN_FRONTEND="noninteractive"

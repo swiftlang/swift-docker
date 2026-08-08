@@ -1,7 +1,10 @@
 FROM fedora:32
 
-RUN groupadd -g 42 build-user && \
-    useradd -m -r -u 42 -g build-user build-user
+ARG BUILD_USER_ID=42
+ARG BUILD_GROUP_ID=42
+
+RUN groupadd -g ${BUILD_GROUP_ID} build-user && \
+    useradd -m -r -u ${BUILD_USER_ID} -g build-user build-user
 
 RUN dnf -y update && dnf install -y \
     clang                       \
