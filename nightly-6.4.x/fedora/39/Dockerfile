@@ -21,20 +21,12 @@ RUN yum -y install \
 
 ARG SWIFT_SIGNING_KEY=E813C892820A6FA13755B268F167DF1ACF9CE069
 ARG SWIFT_PLATFORM=fedora39
-ARG SWIFT_VERSION=6.2
-ARG SWIFT_BRANCH=swift-${SWIFT_VERSION}-release
-ARG SWIFT_TAG=swift-${SWIFT_VERSION}-RELEASE
 ARG SWIFT_WEBROOT=https://download.swift.org/swift-6.4.x-branch
 ARG SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM"
-ARG SWIFT_PREFIX=/opt/swift/${SWIFT_VERSION}
 
 ENV SWIFT_SIGNING_KEY=$SWIFT_SIGNING_KEY \
     SWIFT_PLATFORM=$SWIFT_PLATFORM \
-    SWIFT_VERSION=$SWIFT_VERSION \
-    SWIFT_BRANCH=$SWIFT_BRANCH \
-    SWIFT_TAG=$SWIFT_TAG \
-    SWIFT_WEBROOT=$SWIFT_WEBROOT \
-    SWIFT_PREFIX=$SWIFT_PREFIX
+    SWIFT_WEBROOT=$SWIFT_WEBROOT
 
 RUN set -e; \
     ARCH_NAME="$(rpm --eval '%{_arch}')"; \
@@ -58,12 +50,9 @@ RUN set -e; \
     ${SWIFT_WEBROOT}${OS_ARCH_SUFFIX}/${DOWNLOAD_DIR}/${download} -o latest_toolchain.tar.gz.sig \
     && curl -fSsL --compressed https://swift.org/keys/all-keys.asc | gpg --import -  \
     # - Unpack the toolchain, set libs permissions, and clean up.
-    && mkdir -p $SWIFT_PREFIX \
-    && tar -xzf latest_toolchain.tar.gz --directory $SWIFT_PREFIX --strip-components=1 \
-    && chmod -R o+r $SWIFT_PREFIX/usr/lib/swift \
+    && tar -xzf latest_toolchain.tar.gz --directory / --strip-components=1 \
+    && chmod -R o+r /usr/lib/swift \
     && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz
-
-ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
 
 # Print Installed Swift Version
 RUN swift --version
