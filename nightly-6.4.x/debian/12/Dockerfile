@@ -29,9 +29,6 @@ ARG SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM"
 ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
     SWIFT_WEBROOT=$SWIFT_WEBROOT
 
-COPY swift-ci/dependencies/requirements.txt /dependencies/
-RUN pip3 install -r /dependencies/requirements.txt --break-system-packages
-
 RUN set -e; \
     ARCH_NAME="$(dpkg --print-architecture)"; \
     url=; \
