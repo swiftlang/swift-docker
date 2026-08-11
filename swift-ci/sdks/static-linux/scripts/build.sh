@@ -832,8 +832,8 @@ EOF
     # will build a Clang of its own, but that Clang needs to be set up to build
     # for the static SDK (which means we need a .cfg file)
     build_arch=$(uname -m)
-    llvm_bin=${build_dir}/swift/Ninja-RelWithDebInfoAssert/llvm-linux-${build_arch}/bin
-    swift_bin=${build_dir}/swift/Ninja-RelWithDebInfoAssert/swift-linux-${build_arch}/bin
+    llvm_bin=${build_dir}/swift/Ninja-RelWithDebInfo/llvm-linux-${build_arch}/bin
+    swift_bin=${build_dir}/swift/Ninja-RelWithDebInfo/swift-linux-${build_arch}/bin
     mkdir -p $llvm_bin $swift_bin
     cat >> $llvm_bin/${arch}-swift-linux-musl-clang.cfg <<EOF
 --sysroot ${sdk_root}
