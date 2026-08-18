@@ -33,6 +33,7 @@ RUN yum install -y \
   libstdc++-static    \
   ninja-build         \
   gnupg               \
+  glibc-static        \
   binutils-gold
 
 ARG SWIFT_PLATFORM=fedora39

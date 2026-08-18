@@ -9,11 +9,14 @@ RUN groupadd -g ${BUILD_GROUP_ID} build-user && \
 RUN yum install -y  \
   git               \
   gcc-c++           \
+  glibc-static      \
   cmake             \
   diffutils         \
   make              \
   libcurl-devel     \
   libedit-devel     \
+  libstdc++-devel   \
+  libstdc++-static  \
   libuuid-devel     \
   libxml2-devel     \
   ncurses-devel     \
