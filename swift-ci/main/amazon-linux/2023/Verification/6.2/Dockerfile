@@ -45,6 +45,7 @@ COPY swift-ci/dependencies/requirements.txt /dependencies/
 RUN pip3 install -r /dependencies/requirements.txt
 RUN pip3 install six
 
+ARG SCCACHE_VERSION=v0.17.0
 ARG SWIFT_PLATFORM=amazon-linux2023
 ARG SWIFT_VERSION=6.2
 ARG SWIFT_WEBROOT=https://download.swift.org
@@ -73,7 +74,12 @@ RUN set -e; \
     && tar -xzf swift.tar.gz --directory $SWIFT_PREFIX \
     && ls -la $SWIFT_PREFIX/usr/lib/ \
     && chmod -R o+r $SWIFT_PREFIX/usr/lib/swift \
-    && rm -rf "$GNUPGHOME" swift.tar.gz
+    && rm -rf "$GNUPGHOME" swift.tar.gz \
+    # - Download and install sccache
+    && curl -fsSL "https://github.com/mozilla/sccache/releases/download/${SCCACHE_VERSION}/sccache-${SCCACHE_VERSION}-${ARCH_NAME}-unknown-linux-musl.tar.gz" -o sccache.tar.gz \
+    && tar -xzf sccache.tar.gz \
+    && install -m 755 "sccache-${SCCACHE_VERSION}-${ARCH_NAME}-unknown-linux-musl/sccache" /usr/local/bin/sccache \
+    && rm -rf sccache.tar.gz "sccache-${SCCACHE_VERSION}-${ARCH_NAME}-unknown-linux-musl"
 
 ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
 

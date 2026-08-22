@@ -48,6 +48,7 @@ RUN MULTIARCH=$(dpkg-architecture -qDEB_HOST_MULTIARCH) && \
 COPY swift-ci/dependencies/requirements.txt /dependencies/
 RUN pip3 install -r /dependencies/requirements.txt --break-system-packages
 
+ARG SCCACHE_VERSION=v0.17.0
 # TODO: Update to ubuntu26.04 once toolchain is available on ci.swift.org
 ARG SWIFT_PLATFORM=ubuntu24.04
 ARG SWIFT_VERSION=6.3
@@ -81,6 +82,12 @@ RUN set -e; \
     # - Grab curl here so we cache better up above
     && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -q update && apt-get -q install -y curl libarchive-tools && rm -rf /var/lib/apt/lists/* \
+    # - Download and install sccache
+    && SCCACHE_ARCH="$(uname -m)" \
+    && curl -fsSL "https://github.com/mozilla/sccache/releases/download/${SCCACHE_VERSION}/sccache-${SCCACHE_VERSION}-${SCCACHE_ARCH}-unknown-linux-musl.tar.gz" -o sccache.tar.gz \
+    && tar -xzf sccache.tar.gz \
+    && install -m 755 "sccache-${SCCACHE_VERSION}-${SCCACHE_ARCH}-unknown-linux-musl/sccache" /usr/local/bin/sccache \
+    && rm -rf sccache.tar.gz "sccache-${SCCACHE_VERSION}-${SCCACHE_ARCH}-unknown-linux-musl" \
     # - Download the GPG keys, Swift toolchain, and toolchain signature, and verify.
     && export GNUPGHOME="$(mktemp -d)" \
     && curl -fsSL "$SWIFT_BIN_URL" -o swift.tar.gz "$SWIFT_SIG_URL" -o swift.tar.gz.sig \

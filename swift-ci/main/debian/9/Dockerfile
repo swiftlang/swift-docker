@@ -15,8 +15,10 @@ RUN apt-get update
 
 RUN apt-get --no-install-recommends -y install \
   build-essential       \
+  ca-certificates       \
   clang                 \
   cmake                 \
+  curl                  \
   git                   \
   icu-devtools          \
   libcurl4-openssl-dev  \
@@ -37,11 +39,23 @@ RUN apt-get --no-install-recommends -y install \
   systemtap-sdt-dev     \
   tzdata                \
   unzip                 \
-  ca-certificates       \
   uuid-dev
 
 COPY swift-ci/dependencies/requirements.txt /dependencies/
 RUN pip3 install -r /dependencies/requirements.txt
+
+ARG SCCACHE_VERSION=v0.17.0
+RUN set -e; \
+    ARCH_NAME="$(dpkg --print-architecture)"; \
+    case "$ARCH_NAME" in \
+        'amd64') SCCACHE_ARCH='x86_64' ;; \
+        'arm64') SCCACHE_ARCH='aarch64' ;; \
+        *) echo >&2 "error: unsupported architecture: '$ARCH_NAME'"; exit 1 ;; \
+    esac; \
+    curl -fsSL "https://github.com/mozilla/sccache/releases/download/${SCCACHE_VERSION}/sccache-${SCCACHE_VERSION}-${SCCACHE_ARCH}-unknown-linux-musl.tar.gz" -o sccache.tar.gz \
+    && tar -xzf sccache.tar.gz \
+    && install -m 755 "sccache-${SCCACHE_VERSION}-${SCCACHE_ARCH}-unknown-linux-musl/sccache" /usr/local/bin/sccache \
+    && rm -rf sccache.tar.gz "sccache-${SCCACHE_VERSION}-${SCCACHE_ARCH}-unknown-linux-musl"
 
 USER build-user
 

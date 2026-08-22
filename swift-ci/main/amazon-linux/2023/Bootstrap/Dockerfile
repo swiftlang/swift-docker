@@ -41,6 +41,14 @@ RUN yum -y install \
 RUN curl -fsSL "https://github.com/Kitware/CMake/releases/download/v4.0.2/cmake-4.0.2-linux-`uname -m`.tar.gz" \
   | tar --strip-components=1 -xz -C /usr/local
 
+ARG SCCACHE_VERSION=v0.17.0
+RUN set -e; \
+    SCCACHE_ARCH="$(uname -m)" \
+    && curl -fsSL "https://github.com/mozilla/sccache/releases/download/${SCCACHE_VERSION}/sccache-${SCCACHE_VERSION}-${SCCACHE_ARCH}-unknown-linux-musl.tar.gz" -o sccache.tar.gz \
+    && tar -xzf sccache.tar.gz \
+    && install -m 755 "sccache-${SCCACHE_VERSION}-${SCCACHE_ARCH}-unknown-linux-musl/sccache" /usr/local/bin/sccache \
+    && rm -rf sccache.tar.gz "sccache-${SCCACHE_VERSION}-${SCCACHE_ARCH}-unknown-linux-musl"
+
 COPY swift-ci/dependencies/requirements.txt /dependencies/
 RUN pip3 install -r /dependencies/requirements.txt
 

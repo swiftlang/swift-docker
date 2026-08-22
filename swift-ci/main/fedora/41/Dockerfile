@@ -35,6 +35,7 @@ RUN yum install -y \
   gnupg               \
   binutils-gold
 
+ARG SCCACHE_VERSION=v0.17.0
 ARG SWIFT_PLATFORM=fedora39
 ARG SWIFT_VERSION=6.2.4
 ARG SWIFT_BRANCH=swift-${SWIFT_VERSION}-release
@@ -68,6 +69,11 @@ RUN set -e; \
     && SWIFT_BIN_URL="$SWIFT_WEBDIR/$SWIFT_TAG/$SWIFT_TAG-$SWIFT_PLATFORM$OS_ARCH_SUFFIX.tar.gz" \
     && SWIFT_SIG_URL="$SWIFT_BIN_URL.sig" \
     && echo $SWIFT_BIN_URL \
+    # - Download and install sccache
+    && curl -fsSL "https://github.com/mozilla/sccache/releases/download/${SCCACHE_VERSION}/sccache-${SCCACHE_VERSION}-${ARCH_NAME}-unknown-linux-musl.tar.gz" -o sccache.tar.gz \
+    && tar -xzf sccache.tar.gz \
+    && install -m 755 "sccache-${SCCACHE_VERSION}-${ARCH_NAME}-unknown-linux-musl/sccache" /usr/local/bin/sccache \
+    && rm -rf sccache.tar.gz "sccache-${SCCACHE_VERSION}-${ARCH_NAME}-unknown-linux-musl" \
     # - Download the GPG keys, Swift toolchain, and toolchain signature, and verify.
     && export GNUPGHOME="$(mktemp -d)" \
     && curl -fsSL "$SWIFT_BIN_URL" -o swift.tar.gz "$SWIFT_SIG_URL" -o swift.tar.gz.sig \

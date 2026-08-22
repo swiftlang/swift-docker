@@ -41,6 +41,7 @@ RUN apt-get -y update && apt-get -y install \
 COPY swift-ci/dependencies/requirements.txt /dependencies/
 RUN pip3 install -r /dependencies/requirements.txt --break-system-packages
 
+ARG SCCACHE_VERSION=v0.17.0
 ARG SWIFT_PLATFORM=ubuntu24.04
 ARG SWIFT_VERSION=6.2
 ARG SWIFT_WEBROOT=https://download.swift.org
@@ -57,15 +58,22 @@ RUN set -e; \
     case "${ARCH_NAME##*-}" in \
         'amd64') \
             OS_ARCH_SUFFIX=''; \
+            SCCACHE_ARCH='x86_64'; \
             ;; \
         'arm64') \
             OS_ARCH_SUFFIX='-aarch64'; \
+            SCCACHE_ARCH='aarch64'; \
             ;; \
         *) echo >&2 "error: unsupported architecture: '$ARCH_NAME'"; exit 1 ;; \
     esac; \
     SWIFT_BIN_URL="$SWIFT_WEBROOT/tmp-ci-nightly/development/swift-6.2-bootstrap/ubuntu2404$OS_ARCH_SUFFIX/latest.tar.gz" \
     && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -q update && apt-get -q install -y curl && rm -rf /var/lib/apt/lists/* \
+    # - Download and install sccache
+    && curl -fsSL "https://github.com/mozilla/sccache/releases/download/${SCCACHE_VERSION}/sccache-${SCCACHE_VERSION}-${SCCACHE_ARCH}-unknown-linux-musl.tar.gz" -o sccache.tar.gz \
+    && tar -xzf sccache.tar.gz \
+    && install -m 755 "sccache-${SCCACHE_VERSION}-${SCCACHE_ARCH}-unknown-linux-musl/sccache" /usr/local/bin/sccache \
+    && rm -rf sccache.tar.gz "sccache-${SCCACHE_VERSION}-${SCCACHE_ARCH}-unknown-linux-musl" \
     && curl -fsSL "$SWIFT_BIN_URL" -o swift.tar.gz \
     && mkdir -p $SWIFT_PREFIX \
     && tar -xzf swift.tar.gz --directory $SWIFT_PREFIX \

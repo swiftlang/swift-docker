@@ -7,6 +7,7 @@ RUN groupadd -g ${BUILD_GROUP_ID} build-user && \
     useradd -m -r -u ${BUILD_USER_ID} -g build-user build-user
 
 RUN yum install -y    \
+  curl                \
   libcurl-devel       \
   libedit-devel       \
   libicu-devel        \
@@ -32,6 +33,14 @@ RUN yum install -y    \
 
 COPY swift-ci/dependencies/requirements.txt /dependencies/
 RUN pip3 install -r /dependencies/requirements.txt
+
+ARG SCCACHE_VERSION=v0.17.0
+RUN set -e; \
+    ARCH_NAME="$(rpm --eval '%{_arch}')" \
+    && curl -fsSL "https://github.com/mozilla/sccache/releases/download/${SCCACHE_VERSION}/sccache-${SCCACHE_VERSION}-${ARCH_NAME}-unknown-linux-musl.tar.gz" -o sccache.tar.gz \
+    && tar -xzf sccache.tar.gz \
+    && install -m 755 "sccache-${SCCACHE_VERSION}-${ARCH_NAME}-unknown-linux-musl/sccache" /usr/local/bin/sccache \
+    && rm -rf sccache.tar.gz "sccache-${SCCACHE_VERSION}-${ARCH_NAME}-unknown-linux-musl"
 
 USER build-user
 
