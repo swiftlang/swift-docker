@@ -130,6 +130,14 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
 # Install Swift toolchain.
 ARG SWIFT_RELEASE_METADATA=https://download.swift.org/development/windows10/latest-build.json
 RUN $Release = curl.exe -sL ${env:SWIFT_RELEASE_METADATA} | ConvertFrom-JSON;   \
+    Write-Host ('({0})' -f $Release);                                           \
+    Write-Host -NoNewLine 'Release metadata ... ';                              \
+    if ($Release.dir -and $Release.download) {                                  \
+      Write-Host '✓';                                                           \
+    } else {                                                                    \
+      Write-Host '✘ Missing fields.';                                           \
+      exit 1;                                                                   \
+    }                                                                           \
     $SWIFT_URL = "\"https://download.swift.org/development/windows10/$($Release.dir)/$($Release.download)\""; \
     Write-Host -NoNewLine ('Downloading {0} ... ' -f ${SWIFT_URL});             \
     Invoke-WebRequest -Uri ${SWIFT_URL} -OutFile installer.exe;                 \
