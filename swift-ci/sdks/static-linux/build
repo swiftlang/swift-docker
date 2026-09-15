@@ -36,7 +36,7 @@ SWIFT_VER=6.0
 # Get the number of CPUs on this system
 NPROC=$(which nproc)
 if [ -x "$NPROC" ]; then
-    cpus=$(NPROC)
+    cpus=$($NPROC)
 elif output=$(sysctl machdep.cpu.core_count 2>/dev/null); then
     cpus=$(echo "$output" | cut -d ':' -f 2 | tr -d ' ')
 else
@@ -159,12 +159,14 @@ if $build_docker; then
             --build-arg "OS_ARCH_SUFFIX=$OS_ARCH_SUFFIX" \
             --build-arg "SWIFT_VERSION=$SWIFT_VERSION" \
             --build-arg "SWIFT_WEBROOT=$SWIFT_WEBROOT" \
+            --build-arg "BUILD_USER_GID=$(id -g)" \
+            --build-arg "BUILD_USER_UID=$(id -u)" \
             -t static-swift-linux . || exit 1
 fi
 
 # Check-out the sources
 if $fetch; then
-    scripts/fetch-source.sh --clone-with-ssh --source-dir source
+    scripts/fetch-source.sh --source-dir source
 fi
 
 mkdir -p products
@@ -178,7 +180,7 @@ if [ ! -z "$build_volume" ]; then
 fi
 
 # Run the build
-$DOCKER run -it --rm \
+$DOCKER run -t --rm \
           -c $cpus \
           -m $mem \
           -v ./source:/source \

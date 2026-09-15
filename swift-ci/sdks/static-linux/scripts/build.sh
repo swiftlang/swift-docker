@@ -286,15 +286,23 @@ function run() {
 header "Building CMake from source"
 
 quiet_pushd ${source_dir}/swift-project/cmake
-run cmake -G 'Ninja' ./ \
-    -B ${build_dir}/cmake/build \
-    -DCMAKE_INSTALL_PREFIX=${build_dir}/cmake/install \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_USE_OPENSSL=OFF \
-    -DBUILD_CursesDialog=OFF \
-    -DBUILD_TESTING=OFF
-run ninja -C ${build_dir}/cmake/build
-run ninja -C ${build_dir}/cmake/build install
+cmake_version=$(versionFromTag .)
+if curl -fsL -o install-cmake.sh "https://github.com/Kitware/CMake/releases/download/v${cmake_version}/cmake-${cmake_version}-linux-${host_arch}.sh"; then
+    header "Installing CMake from GitHub releases"
+    chmod +x ./install-cmake.sh
+    mkdir -p "${build_dir}/cmake/install"
+    ./install-cmake.sh --skip-license "--prefix=${build_dir}/cmake/install"
+else
+    run cmake -G 'Ninja' ./ \
+        -B ${build_dir}/cmake/build \
+        -DCMAKE_INSTALL_PREFIX=${build_dir}/cmake/install \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_USE_OPENSSL=OFF \
+        -DBUILD_CursesDialog=OFF \
+        -DBUILD_TESTING=OFF
+    run ninja -C ${build_dir}/cmake/build
+    run ninja -C ${build_dir}/cmake/build install
+fi
 run export PATH="${build_dir}/cmake/install/bin:$PATH"
 quiet_popd
 run cmake --version

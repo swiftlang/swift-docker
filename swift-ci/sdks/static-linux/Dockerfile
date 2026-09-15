@@ -88,8 +88,11 @@ RUN chmod ugo+x /scripts/*
 COPY resources /resources
 
 # Create a user
-RUN groupadd -g 998 build-user && \
-    useradd -m -r -u 998 -g build-user build-user
+RUN userdel -f -r ubuntu || echo "Failed to delete 'ubuntu' user";
+ARG BUILD_USER_GID=998
+ARG BUILD_USER_UID=998
+RUN groupadd -g $BUILD_USER_GID build-user && \
+    useradd -m -r -u $BUILD_USER_UID -g build-user build-user
 
 USER build-user
 
