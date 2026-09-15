@@ -85,7 +85,8 @@ RUN set -e; \
     # - Download and install sccache
     && SCCACHE_ARCH="$(uname -m)" \
     && curl -fsSL "https://github.com/mozilla/sccache/releases/download/${SCCACHE_VERSION}/sccache-${SCCACHE_VERSION}-${SCCACHE_ARCH}-unknown-linux-musl.tar.gz" -o sccache.tar.gz \
-    && tar -xzf sccache.tar.gz \
+    # - bsdtar is used instead of GNU tar to work around https://github.com/orbstack/orbstack/issues/2588
+    && bsdtar -xzf sccache.tar.gz \
     && install -m 755 "sccache-${SCCACHE_VERSION}-${SCCACHE_ARCH}-unknown-linux-musl/sccache" /usr/local/bin/sccache \
     && rm -rf sccache.tar.gz "sccache-${SCCACHE_VERSION}-${SCCACHE_ARCH}-unknown-linux-musl" \
     # - Download the GPG keys, Swift toolchain, and toolchain signature, and verify.
