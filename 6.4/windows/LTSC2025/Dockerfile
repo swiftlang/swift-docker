@@ -10,8 +10,6 @@ ENV PYTHONUTF8=1
 
 # Enable Developer Mode.
 RUN reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
-# Enable Long Paths
-RUN reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem" /t REG_DWORD /f /v "LongPathsEnabled" /d "1"
 
 # Install Git.
 # See: git-[version]-[bit].exe /SAVEINF=git.inf and /?
