@@ -26,24 +26,6 @@ RUN Write-Host -NoNewLine "Enabling Developer Mode";                            
       exit 1;                                                                   \
     }
 
-# Enable Long Paths
-# RUN Write-Host -NoNewLine "Enabling Long Paths";                                \
-#     $Process =                                                                  \
-#         Start-Process reg.exe -Wait -PassThru -NoNewWindow -ArgumentList @(     \
-#           'add',                                                                \
-#           'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem',     \
-#           '/f',                                                                 \
-#           '/t', 'REG_DWORD',                                                    \
-#           '/v', 'LongPathsEnabled',                                             \
-#           '/d' '1'                                                              \
-#         );                                                                      \
-#     if ($Process.ExitCode -eq 0) {                                              \
-#       Write-Host '✓';                                                           \
-#     } else {                                                                    \
-#       Write-Host ('✘ ({0})' -f $Process.ExitCode);                              \
-#       exit 1;                                                                   \
-#     }
-
 # Install Git.
 # See: git-[version]-[bit].exe /SAVEINF=git.inf and /?
 ARG GIT=https://github.com/git-for-windows/git/releases/download/v2.42.0.windows.2/Git-2.42.0.2-64-bit.exe
