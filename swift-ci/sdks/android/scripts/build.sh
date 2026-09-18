@@ -771,11 +771,7 @@ cat > swift-sdk.json <<EOF
 EOF
 
 first=true
-# create targets for the supported API and higher,
-# as well as a blank API, which will be the NDK default
-# FIXME: building against blank API doesn't work: ld.lld: error: cannot open crtbegin_dynamic.o: No such file or directory
-#for api in "" $(eval echo "{$android_api..36}"); do
-for api in $(eval echo "{$android_api..36}"); do
+for api in $(eval echo "{$android_api..37}"); do
     for arch in $archs; do
         if [[ "$first" == "true" ]]; then
             first=false
