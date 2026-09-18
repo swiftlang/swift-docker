@@ -8,23 +8,18 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 ENV PYTHONIOENCODING UTF-8
 ENV PYTHONUTF8 1
 
-# Enable Developer Mode.
-RUN Write-Host -NoNewLine "Enabling Developer Mode";                            \
-    $Process =                                                                  \
-        Start-Process reg.exe -Wait -PassThru -NoNewWindow -ArgumentList @(     \
-          'add',                                                                \
-          'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock', \
-          '/f',                                                                 \
-          '/t', 'REG_DWORD',                                                    \
-          '/v', 'AllowDevelopmentWithoutDevLicense',                            \
-          '/d', '1'                                                             \
-        );                                                                      \
-    if ($Process.ExitCode -eq 0) {                                              \
-      Write-Host '✓';                                                           \
-    } else {                                                                    \
-      Write-Host ('✘ ({0})' -f $Process.ExitCode);                              \
-      exit 1;                                                                   \
-    }
+# Permit symbolic link creation.
+RUN @'
+[Unicode]
+Unicode=yes
+[Privilege Rights]
+SeCreateSymbolicLinkPrivilege = *S-1-5-32-544, ContainerUser
+[Version]
+Signature="CHICAGO"
+Revision=1
+'@ | Out-File -FilePath GrantCreateSymbolicLink.inf -Encoding Unicode;                      \
+secedit.exe /configure /db secedit.sdb /cfg GrantCreateSymbolicLink.inf /areas USER_RIGHTS; \
+Remove-Item -Path GrantCreateSymbolicLink.inf, secedit.sdb, secedit.log -Force
 
 # Enable Long Paths
 # RUN Write-Host -NoNewLine "Enabling Long Paths";                                \
