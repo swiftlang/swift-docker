@@ -1,4 +1,7 @@
-FROM mcr.microsoft.com/windows/servercore:ltsc2022 AS windows
+# With process isolation, the base image must match the host's Windows build:
+# pass --build-arg BASE_IMAGE=mcr.microsoft.com/windows/servercore:10.0.<build>.<ubr>.
+ARG BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
+FROM ${BASE_IMAGE} AS windows
 
 LABEL maintainer="Swift Infrastructure <swift-infrastructure@forums.swift.org>"
 LABEL description="Docker Container for the Swift programming language"
