@@ -156,8 +156,8 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PYTHON});            
 
 # Install .NET Framework 4.8, which the Visual Studio installer needs.
 # Windows Server 2019 images only have 4.7.2, and the Visual Studio installer
-# would install 4.8 itself but then require a reboot (3010) without installing
-# anything else. Installing it in its own layer takes care of the reboot.
+# would install 4.8 itself, which requires a reboot (3010). Installing it in its
+# own layer takes care of the reboot.
 ARG NDP48=https://download.visualstudio.microsoft.com/download/pr/2d6bb6b2-226a-4baa-bdec-798822606ff1/8494001c276a4b96804cde7829c04d7f/ndp48-x86-x64-allos-enu.exe
 ARG NDP48_SHA256=68C9986A8DCC0214D909AA1F31BEE9FB5461BB839EDCA996A75B08DDFFC1483F
 RUN $Release = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full').Release; \
@@ -191,11 +191,13 @@ RUN $Release = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\N
     Remove-Item -Force ndp48.exe;                                               \
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
-# Install Visual Studio 2026 Build Tools
-# Fixed-version bootstrapper for 18.11.0 (12306.390), see
-# https://learn.microsoft.com/en-us/visualstudio/releases/2026/release-history
-ARG VSB=https://download.visualstudio.microsoft.com/download/pr/4ee8a2e7-bc71-435a-8180-6703ab4d2017/89341fb2edf12ef29977078fdc72a9e47767ce6895cc297f274bc4a379db4c71/vs_BuildTools.exe
-ARG VSB_SHA256=89341FB2EDF12EF29977078FDC72A9E47767CE6895CC297F274BC4A379DB4C71
+# Install Visual Studio 2022 Build Tools
+# Fixed-version bootstrapper for 17.14.42 (17.14.37806.7), see
+# https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history
+# The Visual Studio 2026 installer fails with 0x8007007E (module not found) on
+# Windows Server 2019 base images.
+ARG VSB=https://download.visualstudio.microsoft.com/download/pr/c95450be-0a45-4779-b142-33f567ccfd6e/68978bb28916156802e60e04c5ee50b94348d802fe151a3ca24433f27984187b/vs_BuildTools.exe
+ARG VSB_SHA256=68978BB28916156802E60E04C5EE50B94348D802FE151A3CA24433F27984187B
 RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               \
     Invoke-WebRequest -Uri ${env:VSB} -OutFile vs_buildtools.exe -UseBasicParsing -TimeoutSec 300; \
     Write-Host '✓';                                                             \
