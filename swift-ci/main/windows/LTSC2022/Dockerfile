@@ -154,6 +154,43 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PYTHON});            
     Remove-Item -Force python-amd64.exe;                                        \
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
+# Install .NET Framework 4.8, which the Visual Studio installer needs.
+# Windows Server 2019 images only have 4.7.2, and the Visual Studio installer
+# would install 4.8 itself but then require a reboot (3010) without installing
+# anything else. Installing it in its own layer takes care of the reboot.
+ARG NDP48=https://download.visualstudio.microsoft.com/download/pr/2d6bb6b2-226a-4baa-bdec-798822606ff1/8494001c276a4b96804cde7829c04d7f/ndp48-x86-x64-allos-enu.exe
+ARG NDP48_SHA256=68C9986A8DCC0214D909AA1F31BEE9FB5461BB839EDCA996A75B08DDFFC1483F
+RUN $Release = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full').Release; \
+    if ($Release -ge 528040) {                                                  \
+      Write-Host ('.NET Framework 4.8 or later is installed ({0})' -f $Release); \
+      exit 0;                                                                   \
+    }                                                                           \
+    Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:NDP48});             \
+    Invoke-WebRequest -Uri ${env:NDP48} -OutFile ndp48.exe -UseBasicParsing;    \
+    Write-Host '✓';                                                             \
+    Write-Host -NoNewLine ('Verifying SHA256 ({0}) ... ' -f ${env:NDP48_SHA256}); \
+    $Hash = Get-FileHash ndp48.exe -Algorithm sha256;                           \
+    if ($Hash.Hash -eq ${env:NDP48_SHA256}) {                                   \
+      Write-Host '✓';                                                           \
+    } else {                                                                    \
+      Write-Host ('✘ ({0})' -f $Hash.Hash);                                     \
+      exit 1;                                                                   \
+    }                                                                           \
+    Write-Host -NoNewLine 'Installing .NET Framework 4.8 ... ';                 \
+    $Process =                                                                  \
+        Start-Process ndp48.exe -Wait -PassThru -NoNewWindow -ArgumentList @(   \
+          '/q',                                                                 \
+          '/norestart'                                                          \
+        );                                                                      \
+    if ($Process.ExitCode -eq 0 -or $Process.ExitCode -eq 3010) {               \
+      Write-Host ('✓ ({0})' -f $Process.ExitCode);                              \
+    } else {                                                                    \
+      Write-Host ('✘ ({0})' -f $Process.ExitCode);                              \
+      exit 1;                                                                   \
+    }                                                                           \
+    Remove-Item -Force ndp48.exe;                                               \
+    Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
+
 # Install Visual Studio 2026 Build Tools
 # Fixed-version bootstrapper for 18.11.0 (12306.390), see
 # https://learn.microsoft.com/en-us/visualstudio/releases/2026/release-history
@@ -186,8 +223,12 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
           '--add', 'Microsoft.VisualStudio.Component.VC.CMake.Project',         \
           '--add', 'Microsoft.NetCore.Component.SDK'                            \
         );                                                                      \
-    if ($Process.ExitCode -eq 0 -or $Process.ExitCode -eq 3010) {               \
-      Write-Host '✓';                                                           \
+    $DIA = 'C:\BuildTools\DIA SDK\bin\amd64\msdia140.dll';                      \
+    $Installed = ($Process.ExitCode -eq 0 -or $Process.ExitCode -eq 3010) -and  \
+                 (Test-Path C:\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64\cl.exe) -and \
+                 (Test-Path $DIA);                                              \
+    if ($Installed) {                                                           \
+      Write-Host ('✓ ({0})' -f $Process.ExitCode);                              \
     } else {                                                                    \
       Write-Host ('✘ ({0})' -f $Process.ExitCode);                              \
       foreach ($Log in Get-ChildItem ${env:TEMP} -Filter 'dd_*.log' | Sort-Object LastWriteTime) { \
@@ -202,7 +243,7 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
     $Process =                                                                  \
         Start-Process regsvr32.exe -Wait -PassThru -NoNewWindow -ArgumentList @( \
           '/s',                                                                 \
-          '"C:\BuildTools\DIA SDK\bin\amd64\msdia140.dll"'                      \
+          ('"{0}"' -f $DIA)                                                     \
         );                                                                      \
     if ($Process.ExitCode -eq 0) {                                              \
       Write-Host '✓';                                                           \
