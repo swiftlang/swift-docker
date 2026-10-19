@@ -154,48 +154,9 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PYTHON});            
     Remove-Item -Force python-amd64.exe;                                        \
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
-# Install .NET Framework 4.8, which the Visual Studio installer needs.
-# Windows Server 2019 images only have 4.7.2, and the Visual Studio installer
-# would install 4.8 itself, which requires a reboot (3010). Installing it in its
-# own layer takes care of the reboot.
-ARG NDP48=https://download.visualstudio.microsoft.com/download/pr/2d6bb6b2-226a-4baa-bdec-798822606ff1/8494001c276a4b96804cde7829c04d7f/ndp48-x86-x64-allos-enu.exe
-ARG NDP48_SHA256=68C9986A8DCC0214D909AA1F31BEE9FB5461BB839EDCA996A75B08DDFFC1483F
-RUN $Release = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full').Release; \
-    if ($Release -ge 528040) {                                                  \
-      Write-Host ('.NET Framework 4.8 or later is installed ({0})' -f $Release); \
-      exit 0;                                                                   \
-    }                                                                           \
-    Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:NDP48});             \
-    Invoke-WebRequest -Uri ${env:NDP48} -OutFile ndp48.exe -UseBasicParsing;    \
-    Write-Host '✓';                                                             \
-    Write-Host -NoNewLine ('Verifying SHA256 ({0}) ... ' -f ${env:NDP48_SHA256}); \
-    $Hash = Get-FileHash ndp48.exe -Algorithm sha256;                           \
-    if ($Hash.Hash -eq ${env:NDP48_SHA256}) {                                   \
-      Write-Host '✓';                                                           \
-    } else {                                                                    \
-      Write-Host ('✘ ({0})' -f $Hash.Hash);                                     \
-      exit 1;                                                                   \
-    }                                                                           \
-    Write-Host -NoNewLine 'Installing .NET Framework 4.8 ... ';                 \
-    $Process =                                                                  \
-        Start-Process ndp48.exe -Wait -PassThru -NoNewWindow -ArgumentList @(   \
-          '/q',                                                                 \
-          '/norestart'                                                          \
-        );                                                                      \
-    if ($Process.ExitCode -eq 0 -or $Process.ExitCode -eq 3010) {               \
-      Write-Host ('✓ ({0})' -f $Process.ExitCode);                              \
-    } else {                                                                    \
-      Write-Host ('✘ ({0})' -f $Process.ExitCode);                              \
-      exit 1;                                                                   \
-    }                                                                           \
-    Remove-Item -Force ndp48.exe;                                               \
-    Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
-
 # Install Visual Studio 2022 Build Tools
 # Fixed-version bootstrapper for 17.14.42 (17.14.37806.7), see
 # https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history
-# The Visual Studio 2026 installer fails with 0x8007007E (module not found) on
-# Windows Server 2019 base images.
 ARG VSB=https://download.visualstudio.microsoft.com/download/pr/c95450be-0a45-4779-b142-33f567ccfd6e/68978bb28916156802e60e04c5ee50b94348d802fe151a3ca24433f27984187b/vs_BuildTools.exe
 ARG VSB_SHA256=68978BB28916156802E60E04C5EE50B94348D802FE151A3CA24433F27984187B
 RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               \
@@ -216,36 +177,35 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
           '--wait',                                                             \
           '--norestart',                                                        \
           '--nocache',                                                          \
-          '--installPath', 'C:\BuildTools',                                     \
           '--add', 'Microsoft.VisualStudio.Component.Windows11SDK.26100',       \
           '--add', 'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',         \
           '--add', 'Microsoft.VisualStudio.Component.VC.Tools.ARM64',           \
           '--add', 'Microsoft.VisualStudio.Component.VC.ATL',                   \
           '--add', 'Microsoft.VisualStudio.Component.VC.ATL.ARM64',             \
-          '--add', 'Microsoft.VisualStudio.Component.VC.CMake.Project',         \
           '--add', 'Microsoft.NetCore.Component.SDK'                            \
         );                                                                      \
-    $DIA = 'C:\BuildTools\DIA SDK\bin\amd64\msdia140.dll';                      \
-    $Installed = ($Process.ExitCode -eq 0 -or $Process.ExitCode -eq 3010) -and  \
-                 (Test-Path C:\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64\cl.exe) -and \
-                 (Test-Path $DIA);                                              \
-    if ($Installed) {                                                           \
+    $VSWhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'; \
+    $VSInstallRoot =                                                            \
+        & $VSWhere -nologo -products * -property installationPath               \
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64;        \
+    if (($Process.ExitCode -eq 0 -or $Process.ExitCode -eq 3010) -and $VSInstallRoot) { \
       Write-Host ('✓ ({0})' -f $Process.ExitCode);                              \
     } else {                                                                    \
       Write-Host ('✘ ({0})' -f $Process.ExitCode);                              \
-      foreach ($Log in Get-ChildItem ${env:TEMP} -Filter 'dd_*.log' | Sort-Object LastWriteTime) { \
-        if ($Log.Name -match '_errors\.log$|^dd_bootstrapper|^dd_client|^dd_setup_\d+\.log$') { \
-          Write-Host ('===== {0} (last 40 lines)' -f $Log.Name);                \
-          Get-Content $Log.FullName -Tail 40 | Write-Host;                      \
-        }                                                                       \
+      foreach ($Log in Get-ChildItem ${env:TEMP} -Recurse -Filter '*.log' | Sort-Object LastWriteTime) { \
+        Write-Host ('===== {0} (last 40 lines)' -f $Log.FullName);              \
+        Get-Content $Log.FullName -Tail 40 | Write-Host;                        \
       }                                                                         \
+      Write-Host '===== Application event log errors';                          \
+      Get-WinEvent -ErrorAction SilentlyContinue -MaxEvents 10 -FilterHashtable @{ LogName = 'Application'; Level = 2 } | \
+        Format-List TimeCreated, ProviderName, Message | Out-String | Write-Host; \
       exit 1;                                                                   \
     }                                                                           \
     Write-Host -NoNewLine 'Registering msdia140.dll ... ';                      \
     $Process =                                                                  \
         Start-Process regsvr32.exe -Wait -PassThru -NoNewWindow -ArgumentList @( \
           '/s',                                                                 \
-          ('"{0}"' -f $DIA)                                                     \
+          ('{0}{1}\DIA SDK\bin\amd64\msdia140.dll{0}' -f [char]34, $VSInstallRoot) \
         );                                                                      \
     if ($Process.ExitCode -eq 0) {                                              \
       Write-Host '✓';                                                           \
@@ -254,8 +214,27 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
       exit 1;                                                                   \
     }                                                                           \
     Remove-Item -Force vs_buildtools.exe;                                       \
-    Remove-Item -ErrorAction SilentlyContinue -Force -Recurse "${env:ProgramData}\Package Cache"; \
+    Remove-Item -ErrorAction SilentlyContinue -Force -Recurse (Join-Path ${env:ProgramData} 'Package Cache'); \
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
+
+# Install Ninja, which build.ps1 otherwise takes from the Visual Studio CMake
+# component. build.ps1 downloads its own CMake.
+ARG NINJA=https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-win.zip
+ARG NINJA_SHA256=07FC8261B42B20E71D1720B39068C2E14FFCEE6396B76FB7A795FB460B78DC65
+RUN New-Item -ItemType Directory -Force C:\Tools | Out-Null;                    \
+    Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:NINJA});             \
+    Invoke-WebRequest -Uri ${env:NINJA} -OutFile ninja-win.zip;                 \
+    Write-Host '✓';                                                             \
+    Write-Host -NoNewLine ('Verifying SHA256 ({0}) ... ' -f ${env:NINJA_SHA256}); \
+    $Hash = Get-FileHash ninja-win.zip -Algorithm sha256;                       \
+    if ($Hash.Hash -eq ${env:NINJA_SHA256}) {                                   \
+      Write-Host '✓';                                                           \
+    } else {                                                                    \
+      Write-Host ('✘ ({0})' -f $Hash.Hash);                                     \
+      exit 1;                                                                   \
+    }                                                                           \
+    Expand-Archive -Path ninja-win.zip -DestinationPath C:\Tools;               \
+    Remove-Item -Force ninja-win.zip
 
 # Install nuget.exe, used by build.ps1 when -WinSDKVersion names an SDK that is
 # not installed.
