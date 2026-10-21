@@ -116,8 +116,8 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:GIT});               
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
 # Install Python
-ARG PYTHON=https://www.python.org/ftp/python/3.13.16/python-3.13.16-amd64.exe
-ARG PYTHON_SHA256=FB4F9F5D438B2396DA0086DC70B935C530CB578E37ADC6D354F7AD2037FEE83B
+ARG PYTHON=https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe
+ARG PYTHON_SHA256=D8DEDE5005564B408BA50317108B765ED9C3C510342A598F9FD42681CBE0648B
 RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:PYTHON});            \
     Invoke-WebRequest -Uri ${env:PYTHON} -OutFile python-amd64.exe;             \
     Write-Host '✓';                                                             \
@@ -171,6 +171,7 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
       exit 1;                                                                   \
     }                                                                           \
     Write-Host -NoNewLine 'Installing Visual Studio Build Tools ... ';          \
+    $Start = Get-Date;                                                          \
     $Process =                                                                  \
         Start-Process vs_buildtools.exe -Wait -PassThru -NoNewWindow -ArgumentList @( \
           '--quiet',                                                            \
@@ -192,12 +193,12 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
       Write-Host ('✓ ({0})' -f $Process.ExitCode);                              \
     } else {                                                                    \
       Write-Host ('✘ ({0})' -f $Process.ExitCode);                              \
-      foreach ($Log in Get-ChildItem ${env:TEMP} -Recurse -Filter '*.log' | Sort-Object LastWriteTime) { \
-        Write-Host ('===== {0} (last 40 lines)' -f $Log.FullName);              \
-        Get-Content $Log.FullName -Tail 40 | Write-Host;                        \
+      foreach ($Log in Get-ChildItem ${env:TEMP} -Recurse -Filter 'dd_*_errors.log' | Sort-Object LastWriteTime) { \
+        Write-Host ('===== {0}' -f $Log.FullName);                              \
+        Get-Content $Log.FullName | Write-Host;                                 \
       }                                                                         \
       Write-Host '===== Application event log errors';                          \
-      Get-WinEvent -ErrorAction SilentlyContinue -MaxEvents 10 -FilterHashtable @{ LogName = 'Application'; Level = 2 } | \
+      Get-WinEvent -ErrorAction SilentlyContinue -FilterHashtable @{ LogName = 'Application'; Level = 2; StartTime = $Start } | \
         Format-List TimeCreated, ProviderName, Message | Out-String | Write-Host; \
       exit 1;                                                                   \
     }                                                                           \
