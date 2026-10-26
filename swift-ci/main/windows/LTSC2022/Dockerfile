@@ -9,17 +9,24 @@ ENV PYTHONIOENCODING UTF-8
 ENV PYTHONUTF8 1
 
 # Permit symbolic link creation.
-RUN @'
-[Unicode]
-Unicode=yes
-[Privilege Rights]
-SeCreateSymbolicLinkPrivilege = *S-1-5-32-544,ContainerUser
-[Version]
-Signature="$CHICAGO$"
-Revision=1
-'@ | Out-File -FilePath GrantCreateSymbolicLink.inf -Encoding Unicode;                      \
-secedit.exe /configure /db ${env:SystemRoot}\security\database\secedit.sdb /cfg GrantCreateSymbolicLink.inf /areas USER_RIGHTS; \
-Remove-Item -Path GrantCreateSymbolicLink.inf -Force
+RUN @(                                                                          \
+      '[Unicode]',                                                              \
+      'Unicode=yes',                                                            \
+      '[Privilege Rights]',                                                     \
+      'SeCreateSymbolicLinkPrivilege = *S-1-5-32-544,ContainerUser',            \
+      '[Version]',                                                              \
+      ('Signature={0}$CHICAGO${0}' -f [char]34),                                \
+      'Revision=1'                                                              \
+    ) | Out-File -FilePath GrantCreateSymbolicLink.inf -Encoding Unicode;       \
+    Write-Host -NoNewLine 'Granting SeCreateSymbolicLinkPrivilege ... ';        \
+    secedit.exe /configure /db ${env:SystemRoot}\security\database\secedit.sdb /cfg GrantCreateSymbolicLink.inf /areas USER_RIGHTS /quiet; \
+    if ($LASTEXITCODE -eq 0) {                                                  \
+      Write-Host '✓';                                                           \
+    } else {                                                                    \
+      Write-Host ('✘ ({0})' -f $LASTEXITCODE);                                  \
+      exit 1;                                                                   \
+    }                                                                           \
+    Remove-Item -Path GrantCreateSymbolicLink.inf -Force
 
 # Enable Long Paths
 # RUN Write-Host -NoNewLine "Enabling Long Paths";                                \
