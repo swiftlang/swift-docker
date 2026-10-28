@@ -732,6 +732,7 @@ EOF
           -DBUILD_SHARED_LIBS=NO \
           -DLIBXML2_WITH_PYTHON=NO \
           -DLIBXML2_WITH_ICU=NO \
+          -DLIBXML2_WITH_ZLIB=NO \
           -DLIBXML2_WITH_LZMA=NO
 
     quiet_pushd ${build_dir}/$arch/libxml2

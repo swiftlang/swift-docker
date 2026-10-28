@@ -350,6 +350,7 @@ for arch in $archs; do
             -DLIBXML2_WITH_PYTHON=NO \
             -DLIBXML2_WITH_ICU=NO \
             -DLIBXML2_WITH_ICONV=NO \
+            -DLIBXML2_WITH_ZLIB=NO \
             -DLIBXML2_WITH_LZMA=NO \
             -DLIBXML2_WITH_TESTS=OFF \
             -DBUILD_SHARED_LIBS=OFF \
