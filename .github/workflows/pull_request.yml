@@ -25,3 +25,45 @@ jobs:
           name: docker-logs
           path: |
             *.log
+
+   build-windows:
+     name: Build Windows Docker images (${{ matrix.windows-version }})
+     # Windows containers using process isolation must match the host OS
+     # version, so each Windows version is built on a matching runner.
+     strategy:
+       fail-fast: false
+       matrix:
+         include:
+           - runner: windows-2022
+             windows-version: LTSC2022
+           - runner: windows-2025
+             windows-version: LTSC2025
+     runs-on: ${{ matrix.runner }}
+     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # Store Docker data on D:, as C: does not have enough free space for the
+      # images. Docker is also not always running when the job starts.
+      # See: https://github.com/actions/runner-images/issues/13729
+      - name: Start Docker
+        run: |
+          Stop-Service docker -ErrorAction SilentlyContinue
+          $Config = "${env:ProgramData}\docker\config\daemon.json"
+          $Settings = if (Test-Path $Config) { Get-Content $Config -Raw | ConvertFrom-Json -AsHashtable } else { @{} }
+          $Settings['data-root'] = 'D:\docker'
+          New-Item -ItemType Directory -Force (Split-Path $Config) | Out-Null
+          $Settings | ConvertTo-Json | Set-Content $Config
+          Start-Service docker
+          docker version
+          docker info --format 'Docker root: {{.DockerRootDir}}'
+          Get-PSDrive C, D | Format-Table Name, @{n='Free (GB)'; e={[math]::Round($_.Free / 1GB, 1)}}
+      - name: Build Docker images
+        run: python ci_test.py --windows ${{ matrix.windows-version }}
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: docker-logs-windows-${{ matrix.windows-version }}
+          path: |
+            *.log
+          if-no-files-found: ignore

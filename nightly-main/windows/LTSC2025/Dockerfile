@@ -9,24 +9,27 @@ ENV PYTHONIOENCODING UTF-8
 ENV PYTHONUTF8=1
 
 # Permit symbolic link creation.
+# ContainerUser is referenced by its SID (S-1-5-93-2-2) because secedit cannot
+# resolve the account name during `docker build`.
 RUN @(                                                                          \
       '[Unicode]',                                                              \
       'Unicode=yes',                                                            \
       '[Privilege Rights]',                                                     \
-      'SeCreateSymbolicLinkPrivilege = *S-1-5-32-544,ContainerUser',            \
+      'SeCreateSymbolicLinkPrivilege = *S-1-5-32-544,*S-1-5-93-2-2',            \
       '[Version]',                                                              \
       ('Signature={0}$CHICAGO${0}' -f [char]34),                                \
       'Revision=1'                                                              \
     ) | Out-File -FilePath GrantCreateSymbolicLink.inf -Encoding Unicode;       \
     Write-Host -NoNewLine 'Granting SeCreateSymbolicLinkPrivilege ... ';        \
-    secedit.exe /configure /db ${env:SystemRoot}\security\database\secedit.sdb /cfg GrantCreateSymbolicLink.inf /areas USER_RIGHTS /quiet; \
+    secedit.exe /configure /db GrantCreateSymbolicLink.sdb /cfg GrantCreateSymbolicLink.inf /areas USER_RIGHTS /log GrantCreateSymbolicLink.log; \
     if ($LASTEXITCODE -eq 0) {                                                  \
       Write-Host '✓';                                                           \
     } else {                                                                    \
       Write-Host ('✘ ({0})' -f $LASTEXITCODE);                                  \
+      Get-Content -ErrorAction SilentlyContinue GrantCreateSymbolicLink.log;    \
       exit 1;                                                                   \
     }                                                                           \
-    Remove-Item -Path GrantCreateSymbolicLink.inf -Force
+    Remove-Item -Path GrantCreateSymbolicLink.* -Force
 
 # Install Git.
 # See: git-[version]-[bit].exe /SAVEINF=git.inf and /?
