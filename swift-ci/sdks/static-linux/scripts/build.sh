@@ -608,6 +608,7 @@ EOF
         -DMI_LIBC_MUSL=ON \
         -DMI_BUILD_SHARED=OFF \
         -DMI_BUILD_STATIC=ON \
+        -DMI_OPT_ARCH=OFF \
         -DMI_BUILD_TESTS=OFF \
         -DMI_INSTALL_TOPLEVEL=ON
 
