@@ -107,7 +107,7 @@ if [[ -z "${BORINGSSL_VERSION}" ]]; then
     BORINGSSL_VERSION=817ab07ebb53da35afea409ab9328f578492832d
 fi
 if [[ -z "${ZLIB_VERSION}" ]]; then
-    ZLIB_VERSION=1.3.2
+    ZLIB_VERSION=1.4
 fi
 if [[ -z "${BZIP2_VERSION}" ]]; then
     BZIP2_VERSION=1.0.8
