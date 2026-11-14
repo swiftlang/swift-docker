@@ -25,10 +25,8 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
 
 ARG SWIFT_SIGNING_KEY=E813C892820A6FA13755B268F167DF1ACF9CE069
 ARG SWIFT_PLATFORM=debian12
-ARG SWIFT_VERSION=6.2
 ARG SWIFT_WEBROOT=https://download.swift.org/development
 ARG SWIFT_WEBROOT="$SWIFT_WEBROOT/$SWIFT_PLATFORM"
-ARG SWIFT_PREFIX=/opt/swift/${SWIFT_VERSION}
 
 # This is a small trick to enable if/else for arm64 and amd64.
 # Because of https://bugs.swift.org/browse/SR-14872 we need adjust tar options.
@@ -41,9 +39,7 @@ ARG OS_ARCH_SUFFIX=-aarch64
 FROM base-$TARGETARCH AS final
 
 ENV SWIFT_PLATFORM=$SWIFT_PLATFORM \
-    SWIFT_VERSION=$SWIFT_VERSION \
-    SWIFT_WEBROOT=$SWIFT_WEBROOT \
-    SWIFT_PREFIX=$SWIFT_PREFIX
+    SWIFT_WEBROOT=$SWIFT_WEBROOT
 
 RUN set -e; \
     ARCH_NAME="$(dpkg --print-architecture)"; \
@@ -67,12 +63,9 @@ RUN set -e; \
     ${SWIFT_WEBROOT}${OS_ARCH_SUFFIX}/${DOWNLOAD_DIR}/${download} -o latest_toolchain.tar.gz.sig \
     && curl -fSsL --compressed https://swift.org/keys/all-keys.asc | gpg --import -  \
     # - Unpack the toolchain, set libs permissions, and clean up.
-    && mkdir -p $SWIFT_PREFIX \
-    && tar -xzf latest_toolchain.tar.gz --directory $SWIFT_PREFIX --strip-components=1 \
-    && chmod -R o+r $SWIFT_PREFIX/usr/lib/swift \
+    && tar -xzf latest_toolchain.tar.gz --directory / --strip-components=1 \
+    && chmod -R o+r /usr/lib/swift \
     && rm -rf "$GNUPGHOME" latest_toolchain.tar.gz.sig latest_toolchain.tar.gz
-
-ENV PATH="${SWIFT_PREFIX}/usr/bin:${PATH}"
 
 # Print Installed Swift Version
 RUN swift --version
