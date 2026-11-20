@@ -126,9 +126,9 @@ RUN Write-Host -NoNewLine ('Downloading {0} ... ' -f ${env:VSB});               
     Remove-Item -ErrorAction SilentlyContinue -Force -Recurse ${env:TEMP}\*
 
 # Install Swift toolchain.
-ARG SWIFT_AMD64=https://download.swift.org/swift-6.4.2-release/windows10/swift-6.4.2-RELEASE/swift-6.4.2-RELEASE-windows10.exe
+ARG SWIFT_AMD64=https://download.swift.org/swift-6.4.3-release/windows10/swift-6.4.3-RELEASE/swift-6.4.3-RELEASE-windows10.exe
 ARG SWIFT_AMD64_SHA256=8FE5D31CA1153DFE6BE3A76DE0B93347FD42A27599671E9F9ADE23A3648E7184
-ARG SWIFT_ARM64=https://download.swift.org/swift-6.4.2-release/windows10-arm64/swift-6.4.2-RELEASE/swift-6.4.2-RELEASE-windows10-arm64.exe
+ARG SWIFT_ARM64=https://download.swift.org/swift-6.4.3-release/windows10-arm64/swift-6.4.3-RELEASE/swift-6.4.3-RELEASE-windows10-arm64.exe
 ARG SWIFT_ARM64_SHA256=E4E5FDB6CA88B18AC430FBCE3DE35DD80E2249A84A484A02272D82D89F2C7969
 RUN switch (${env:PROCESSOR_ARCHITECTURE}) {                                    \
       'ARM64' {                                                                 \
