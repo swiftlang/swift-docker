@@ -64,7 +64,6 @@ function usage {
     cat <<EOF
 usage: fetch-source.sh [--swift-scheme <scheme>|--swift-tag <tag>
                                                |--swift-version <version>]
-                       [--boringssl-version <version>]
                        [--clone-with-ssh]
                        [--source-dir <path>]
                        [--github-comment <comment>]
@@ -82,7 +81,6 @@ SDK for Swift.  Options are:
                       If <version> starts with "scheme:" or "tag:", it will
                       select a scheme or tag; otherwise it will be treated as
                       a version number.
-  --boringssl-version <version>
   --github-comment <comment>
                       GitHub PR comment body to pass to update-checkout via
                       --github-comment, used to select specific repos to check
@@ -92,10 +90,7 @@ EOF
 
 # Defaults
 if [[ -z "${SWIFT_VERSION}" || ($SWIFT_VERSION != scheme:* && $SWIFT_VERSION != tag:*) ]]; then
-    SWIFT_VERSION=scheme:release/6.2
-fi
-if [[ -z "${BORINGSSL_VERSION}" ]]; then
-    BORINGSSL_VERSION=fips-20220613
+    SWIFT_VERSION=scheme:release/6.4.x
 fi
 
 clone_with_ssh=false
@@ -108,8 +103,6 @@ while [ "$#" -gt 0 ]; do
             SWIFT_VERSION="tag:$2"; shift ;;
         --swift-version)
             SWIFT_VERSION="$2"; shift ;;
-        --boringssl-version)
-            BORINGSSL_VERSION="$2"; shift ;;
         --clone-with-ssh)
             clone_with_ssh=true ;;
         --source-dir)
@@ -163,12 +156,4 @@ else
 fi
 
 popd >/dev/null
-groupend
-
-# Fetch BoringSSL
-groupstart "Fetching BoringSSL"
-[[ -d boringssl ]] || git clone https://boringssl.googlesource.com/boringssl
-pushd boringssl >/dev/null 2>&1
-git checkout ${BORINGSSL_VERSION}
-popd >/dev/null 2>&1
 groupend

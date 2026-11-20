@@ -244,7 +244,7 @@ libxml2_version=$(versionFromTag ${swift_source_dir}/libxml2)
 curl_desc=$(describe ${swift_source_dir}/curl | tr '_' '.')
 curl_version=${curl_desc#curl-}
 
-boringssl_version=$(describe ${source_dir}/boringssl)
+boringssl_version=$(describe ${swift_source_dir}/boringssl)
 
 function quiet_pushd {
     pushd "$1" >/dev/null 2>&1
@@ -368,7 +368,7 @@ for arch in $archs; do
     groupend
 
     groupstart "Building boringssl for ${compiler_target_host}"
-    quiet_pushd ${source_dir}/boringssl
+    quiet_pushd ${swift_source_dir}/boringssl
         run cmake \
             -GNinja \
             -B ${build_dir}/$arch/boringssl \
