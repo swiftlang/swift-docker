@@ -394,6 +394,9 @@ for arch in $archs; do
     groupend
 
     groupstart "Building libcurl for ${compiler_target_host}"
+        # curl measures time with CLOCK_MONOTONIC_RAW when it is available, and that
+        # clock jumps on some Android 8 and older kernels, so requests hang or time
+        # out at once. Use CLOCK_MONOTONIC instead.
         run cmake \
             -G Ninja \
             -S ${swift_source_dir}/curl \
@@ -413,6 +416,7 @@ for arch in $archs; do
             -DCURL_USE_LIBSSH2=OFF \
             -DCURL_USE_LIBPSL=OFF \
             -DENABLE_WEBSOCKETS=ON \
+            -DHAVE_CLOCK_GETTIME_MONOTONIC_RAW=OFF \
             -DTHREADS_PREFER_PTHREAD_FLAG=OFF \
             -DCMAKE_THREAD_PREFER_PTHREAD=OFF \
             -DCMAKE_THREADS_PREFER_PTHREAD_FLAG=OFF \
